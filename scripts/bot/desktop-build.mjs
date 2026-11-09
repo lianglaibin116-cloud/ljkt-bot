@@ -14,16 +14,22 @@ import {
   statSync,
   symlinkSync,
 } from 'node:fs';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const result = spawnSync('pnpm', ['bot:build'], {
-  cwd: root,
-  stdio: 'inherit',
-  env: { ...process.env, LJKT_BOT_DESKTOP_BUILD: '1' },
-});
+const pnpmCli = process.env.npm_execpath;
+const result = spawnSync(
+  pnpmCli ? process.execPath : process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
+  pnpmCli ? [pnpmCli, 'bot:build'] : ['bot:build'],
+  {
+    cwd: root,
+    stdio: 'inherit',
+    shell: !pnpmCli && process.platform === 'win32',
+    env: { ...process.env, LJKT_BOT_DESKTOP_BUILD: '1' },
+  },
+);
 if (result.status !== 0) process.exit(result.status ?? 1);
 const standalone = join(root, '.next/standalone');
 if (!existsSync(join(standalone, 'server.js')))
@@ -32,6 +38,16 @@ const build = join(root, 'desktop/build');
 rmSync(build, { recursive: true, force: true });
 mkdirSync(join(build, 'app'), { recursive: true });
 const packagedServer = join(build, 'server');
+const pendingWindowsLinks = [];
+const isWithinDirectory = (directory, candidate) => {
+  const pathFromDirectory = relative(directory, candidate);
+  return (
+    pathFromDirectory === '' ||
+    (pathFromDirectory !== '..' &&
+      !pathFromDirectory.startsWith(`..${sep}`) &&
+      !isAbsolute(pathFromDirectory))
+  );
+};
 // pnpm's standalone node_modules can contain absolute symlinks back into
 // .next/standalone. Preserve the dependency layout and rewrite those links as
 // relative links within the package. Resolving every link to a shared realpath
@@ -41,10 +57,19 @@ function copyStandaloneEntry(source, target) {
   if (stat.isSymbolicLink()) {
     const link = readlinkSync(source);
     const resolvedLink = resolve(dirname(source), link);
-    if (resolvedLink !== standalone && !resolvedLink.startsWith(`${standalone}${sep}`)) {
+    if (!isWithinDirectory(standalone, resolvedLink)) {
       throw new Error(`Standalone dependency escaped the runtime: ${source} -> ${link}`);
     }
     mkdirSync(dirname(target), { recursive: true });
+    if (process.platform === 'win32') {
+      pendingWindowsLinks.push({
+        source,
+        target,
+        resolvedLink,
+        isDirectory: statSync(source).isDirectory(),
+      });
+      return;
+    }
     symlinkSync(
       relative(dirname(target), join(packagedServer, relative(standalone, resolvedLink))),
       target,
@@ -55,7 +80,7 @@ function copyStandaloneEntry(source, target) {
 
   if (stat.isDirectory()) {
     mkdirSync(target, { recursive: true, mode: stat.mode & 0o777 });
-    for (const name of readdirSync(source)) {
+    for (const name of readdirSync(source).sort()) {
       copyStandaloneEntry(join(source, name), join(target, name));
     }
     chmodSync(target, stat.mode & 0o777);
@@ -67,11 +92,20 @@ function copyStandaloneEntry(source, target) {
   chmodSync(target, stat.mode & 0o777);
 }
 copyStandaloneEntry(standalone, packagedServer);
+for (const { source, target, resolvedLink, isDirectory } of pendingWindowsLinks) {
+  const realTarget = realpathSync(source);
+  if (!isWithinDirectory(standalone, realTarget)) {
+    throw new Error(`Standalone dependency escaped the runtime: ${source} -> ${realTarget}`);
+  }
+  const packagedTarget = join(packagedServer, relative(standalone, realTarget));
+  if (isDirectory) symlinkSync(packagedTarget, target, 'junction');
+  else copyFileSync(realTarget, target);
+}
 const packagedServerReal = realpathSync(packagedServer);
 const runtimeRequire = createRequire(join(packagedServerReal, 'server.js'));
 for (const dependency of ['next', 'next/dist/server/lib/start-server']) {
   const resolved = realpathSync(runtimeRequire.resolve(dependency));
-  if (!resolved.startsWith(`${packagedServerReal}${sep}`)) {
+  if (!isWithinDirectory(packagedServerReal, resolved)) {
     throw new Error(`Desktop runtime dependency escaped the package: ${dependency} -> ${resolved}`);
   }
 }

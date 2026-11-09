@@ -13,6 +13,8 @@ pnpm bot:desktop:package
 
 macOS数据位于 `~/Library/Application Support/LingjingClassroomBot/`，包含独立浏览器存储、课程与媒体、对话和日志。模型配置在新应用的设置内单独完成。原课件可通过原有导出／导入流程迁移，不自动读取原浏览器配置和密钥。不要随意改变桌面服务端口，因为浏览器课程存储随来源隔离。
 
+Windows x64 数据位于 `%APPDATA%\LingjingClassroomBot\`，目录内容相同。Windows 构建在 GitHub Actions 的 Windows runner 上执行，下载 `LingjingClassroomBot-Windows-x64` 构建产物并解压后，双击 `LingjingBot.exe` 启动。应用包使用灵境课堂 Logo 图标；运行环境和原生依赖由 Windows runner 原生构建。
+
 关闭窗口会隐藏应用，正在进行的操作继续；从菜单“退出”会结束Bot服务。当前流式聊天支持停止；程序完全退出后，未完成的模型回复显示中断。完整课程制作仍按原有生成与恢复流程执行。本版未提供操作系统重启后持续运行的任务守护服务。
 
-本机构建生成当前系统、当前CPU架构的应用。Windows安装包须在对应平台处理原生依赖后另行构建验收。正式对外发行的macOS签名、公证和自动更新仍待接入；本地测试包不会被表述为已签名发行版。
+本机打包生成当前系统、当前CPU架构的应用，不能从 macOS 交叉生成可运行的 Windows 包。Windows 包是便携目录，不是安装程序；尚未接入 Windows 代码签名、安装程序与自动升级。正式对外发行的 macOS 签名、公证和自动更新也待接入。

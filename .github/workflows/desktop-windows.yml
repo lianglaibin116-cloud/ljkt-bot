@@ -1,0 +1,46 @@
+name: Windows desktop package
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: windows-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-windows-x64:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build desktop runtime
+        run: pnpm bot:desktop:build
+
+      - name: Package Windows application
+        run: pnpm bot:desktop:package
+
+      - name: Upload portable Windows application
+        uses: actions/upload-artifact@v4
+        with:
+          name: LingjingClassroomBot-Windows-x64
+          path: desktop/release/灵境课堂 Bot-win32-x64/
+          if-no-files-found: error
+          retention-days: 30
