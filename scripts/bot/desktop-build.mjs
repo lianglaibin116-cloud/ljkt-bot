@@ -38,7 +38,9 @@ const build = join(root, 'desktop/build');
 rmSync(build, { recursive: true, force: true });
 mkdirSync(join(build, 'app'), { recursive: true });
 const packagedServer = join(build, 'server');
-const pendingWindowsLinks = [];
+const workspaceNodeModules = join(root, 'node_modules');
+const copiedEntries = new Set();
+const activeEntries = new Set();
 const isWithinDirectory = (directory, candidate) => {
   const pathFromDirectory = relative(directory, candidate);
   return (
@@ -48,59 +50,66 @@ const isWithinDirectory = (directory, candidate) => {
       !isAbsolute(pathFromDirectory))
   );
 };
+function getPackagedTarget(candidate, source) {
+  if (isWithinDirectory(standalone, candidate)) {
+    return join(packagedServer, relative(standalone, candidate));
+  }
+  if (isWithinDirectory(workspaceNodeModules, candidate)) {
+    return join(packagedServer, 'node_modules', relative(workspaceNodeModules, candidate));
+  }
+  throw new Error(`Standalone dependency escaped the workspace runtime: ${source} -> ${candidate}`);
+}
 // pnpm's standalone node_modules can contain absolute symlinks back into
-// .next/standalone. Preserve the dependency layout and rewrite those links as
-// relative links within the package. Resolving every link to a shared realpath
-// breaks peer dependency lookup because Node resolves modules from real paths.
+// .next/standalone or the workspace node_modules store. Mirror only the linked
+// workspace package into the packaged runtime, preserving pnpm's virtual-store
+// paths so peer dependency lookup continues to work.
 function copyStandaloneEntry(source, target) {
-  const stat = lstatSync(source);
-  if (stat.isSymbolicLink()) {
-    const link = readlinkSync(source);
-    const resolvedLink = resolve(dirname(source), link);
-    if (!isWithinDirectory(standalone, resolvedLink)) {
-      throw new Error(`Standalone dependency escaped the runtime: ${source} -> ${link}`);
-    }
-    mkdirSync(dirname(target), { recursive: true });
-    if (process.platform === 'win32') {
-      pendingWindowsLinks.push({
-        source,
-        target,
-        resolvedLink,
-        isDirectory: statSync(source).isDirectory(),
-      });
+  const entryKey = `${resolve(source)}\0${resolve(target)}`;
+  if (copiedEntries.has(entryKey) || activeEntries.has(entryKey)) return;
+  activeEntries.add(entryKey);
+  try {
+    const stat = lstatSync(source);
+    if (stat.isSymbolicLink()) {
+      const link = readlinkSync(source);
+      const resolvedLink = resolve(dirname(source), link);
+      const packagedTarget = getPackagedTarget(resolvedLink, source);
+      copyStandaloneEntry(resolvedLink, packagedTarget);
+      mkdirSync(dirname(target), { recursive: true });
+      const isDirectory = statSync(resolvedLink).isDirectory();
+      if (process.platform === 'win32' && isDirectory) {
+        symlinkSync(packagedTarget, target, 'junction');
+      } else if (process.platform === 'win32') {
+        copyFileSync(packagedTarget, target);
+      } else {
+        symlinkSync(
+          relative(dirname(target), packagedTarget),
+          target,
+          isDirectory ? 'dir' : 'file',
+        );
+      }
+      copiedEntries.add(entryKey);
       return;
     }
-    symlinkSync(
-      relative(dirname(target), join(packagedServer, relative(standalone, resolvedLink))),
-      target,
-      statSync(source).isDirectory() ? 'dir' : 'file',
-    );
-    return;
-  }
 
-  if (stat.isDirectory()) {
-    mkdirSync(target, { recursive: true, mode: stat.mode & 0o777 });
-    for (const name of readdirSync(source).sort()) {
-      copyStandaloneEntry(join(source, name), join(target, name));
+    if (stat.isDirectory()) {
+      mkdirSync(target, { recursive: true, mode: stat.mode & 0o777 });
+      for (const name of readdirSync(source).sort()) {
+        copyStandaloneEntry(join(source, name), join(target, name));
+      }
+      chmodSync(target, stat.mode & 0o777);
+      copiedEntries.add(entryKey);
+      return;
     }
-    chmodSync(target, stat.mode & 0o777);
-    return;
-  }
 
-  mkdirSync(dirname(target), { recursive: true });
-  copyFileSync(source, target);
-  chmodSync(target, stat.mode & 0o777);
+    mkdirSync(dirname(target), { recursive: true });
+    copyFileSync(source, target);
+    chmodSync(target, stat.mode & 0o777);
+  } finally {
+    activeEntries.delete(entryKey);
+  }
+  copiedEntries.add(entryKey);
 }
 copyStandaloneEntry(standalone, packagedServer);
-for (const { source, target, resolvedLink, isDirectory } of pendingWindowsLinks) {
-  const realTarget = realpathSync(source);
-  if (!isWithinDirectory(standalone, realTarget)) {
-    throw new Error(`Standalone dependency escaped the runtime: ${source} -> ${realTarget}`);
-  }
-  const packagedTarget = join(packagedServer, relative(standalone, realTarget));
-  if (isDirectory) symlinkSync(packagedTarget, target, 'junction');
-  else copyFileSync(realTarget, target);
-}
 const packagedServerReal = realpathSync(packagedServer);
 const runtimeRequire = createRequire(join(packagedServerReal, 'server.js'));
 for (const dependency of ['next', 'next/dist/server/lib/start-server']) {
