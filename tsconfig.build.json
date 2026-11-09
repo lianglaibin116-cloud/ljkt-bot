@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  // `exclude` replaces the inherited list; keep shared entries in sync with tsconfig.json.
+  "exclude": [
+    "node_modules",
+    ".upgrade-backups",
+    ".worktrees",
+    "videos",
+    "dist",
+    "packages/*/src",
+    "packages/docs",
+    "openclaw",
+    "e2e",
+    "render-service",
+    "desktop/build",
+    "desktop/release",
+    "tests",
+    "eval",
+    "packages/@openmaic/*/test"
+  ]
+}

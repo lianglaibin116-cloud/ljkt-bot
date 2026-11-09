@@ -1,0 +1,9 @@
+{
+  "name": "ljkt-bot-desktop",
+  "productName": "灵境课堂 Bot",
+  "version": "0.2.0",
+  "description": "灵境课堂独立桌面教学助手",
+  "author": "黑龙江波安特教育科技有限公司",
+  "license": "MIT",
+  "main": "main.cjs"
+}

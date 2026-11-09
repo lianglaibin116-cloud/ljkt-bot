@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "platform": "darwin-arm64",
+  "source_directory_unchanged": true,
+  "source_files_checked": 3219,
+  "typecheck_passed": true,
+  "bot_unit_tests": {
+    "passed": 11,
+    "failed": 0
+  },
+  "preserved_feature_tests": {
+    "passed": 142,
+    "failed": 0
+  },
+  "browser_tests": {
+    "passed": 3,
+    "failed": 0
+  },
+  "packaged_desktop": {
+    "title": "灵境课堂",
+    "composer": true,
+    "historyReady": true,
+    "workspace": true,
+    "storageError": false,
+    "nodeExposed": false,
+    "bridge": true,
+    "packaged": true,
+    "testedAt": "2026-10-31T16:05:37.991Z"
+  },
+  "real_paid_model_generation_tested": false,
+  "application": "desktop/release/灵境课堂 Bot-darwin-arm64/灵境课堂 Bot.app",
+  "formal_code_signing_and_notarization": false,
+  "windows_package_built": false,
+  "real_packaged_api_validation": {
+    "127.0.0.1:30310": 400,
+    "localhost:30310": 400
+  },
+  "repeat_build_verified": true,
+  "mic_usage_description_present": true
+}

@@ -1,0 +1,32 @@
+{
+  "stage_directory": "/private/tmp/ljkt-bot-seed-adjilj9b",
+  "target_directory": "/Users/sy/ljkt-bot",
+  "source_files": 3219,
+  "source_bytes": 122636607,
+  "original_source_hash_and_mtime_unchanged": true,
+  "original_git_status_unchanged": true,
+  "copy_links_to_original": 0,
+  "intentionally_derived_files": [
+    "package.json",
+    ".gitignore",
+    "README.md",
+    "playwright.config.ts",
+    "playwright.teacher.config.ts",
+    "docker-compose.yml",
+    "render-service/src/config.ts"
+  ],
+  "dependencies_installed": false,
+  "full_build_tested": false,
+  "desktop_installer_built": false,
+  "unchanged_copied_files_verified": 3212,
+  "new_launcher_syntax_checked": true,
+  "copy_verifier_syntax_checked": true,
+  "reserved_and_invalid_port_rejection_checked": true,
+  "missing_dependencies_instruction_checked": true,
+  "default_application_port": 3010,
+  "browser_test_port": 3012,
+  "docker_project": "ljkt-bot",
+  "destination_written": true,
+  "delivered_files": 3230,
+  "delivered_file_hashes_verified": true
+}

@@ -1,0 +1,10 @@
+<svg width="470" height="104" viewBox="0 0 470 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="8" width="88" height="88" rx="25" fill="#315846"/>
+  <path d="M34 25H56L70 39V75C70 78.3137 67.3137 81 64 81H34C30.6863 81 28 78.3137 28 75V31C28 27.6863 30.6863 25 34 25Z" fill="#F8F8F3"/>
+  <path d="M56 25V35C56 38.3137 58.6863 41 62 41H70" stroke="#315846" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M38 51H59M38 60H59M38 69H52" stroke="#6B8A72" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="68" cy="72" r="12" fill="#E2C98E" stroke="#315846" stroke-width="3"/>
+  <path d="M68 65V72L72 75" stroke="#315846" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="112" y="59" fill="#294B38" font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="42" font-weight="700" letter-spacing="2">灵境课堂</text>
+  <text x="115" y="84" fill="#718077" font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="13" font-weight="600" letter-spacing="2.2">教师课件制作平台</text>
+</svg>

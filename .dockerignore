@@ -1,0 +1,47 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# build output
+.next
+out
+build
+dist
+
+# git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# env & secrets
+.env*
+!.env.example
+server-providers*.yml
+
+# misc
+assets
+*.md
+*.pdf
+*.pem
+.DS_Store
+.vercel
+coverage
+logs
+data
+docs
+.claude
+.upgrade-backups
+.codegraph
+.codex
+.agents
+.worktrees
+videos
+test-results
+playwright-report
+
+# isolated MP4 render service — built as its own image (render-service/Dockerfile),
+# never part of the main app image.
+render-service

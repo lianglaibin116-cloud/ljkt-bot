@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-01",
+  "issue": "Long chat does not scroll; task output not visible in right pane",
+  "changes": [
+    "Constrain grid row and pane heights to the window",
+    "Scroll only the conversation pane and preserve user review position",
+    "Give each generation task a separate draft key",
+    "Wait for the frame model settings before starting generation",
+    "Keep failed Bot task drafts available for retry"
+  ],
+  "source_project_unchanged": true,
+  "source_files_checked": 3219,
+  "bot_unit_tests_passed": 14,
+  "browser_tests_passed": 6,
+  "production_build_passed": true,
+  "actual_paid_outline_generation_tested": false,
+  "model_credentials_and_chat_history_reset": false,
+  "packaged_desktop_smoke_passed": true,
+  "application_reopened": true,
+  "follow_up_fixes": [
+    "Package app and generation Markdown prompt templates for desktop standalone runtime",
+    "Resolve generation templates from the running application directory, not a build-machine absolute path",
+    "Return Bot generation pages to the current Bot conversation instead of embedding the web homepage",
+    "Exclude previous desktop build and release directories from Next file tracing"
+  ],
+  "standalone_prompt_build_passed": true,
+  "prompt_assets_present_in_package": true,
+  "packaged_prompt_resolution_passed": true,
+  "desktop_package_rebuilt": true,
+  "desktop_health_ready": true
+}
