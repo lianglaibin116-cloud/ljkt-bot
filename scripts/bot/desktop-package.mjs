@@ -23,6 +23,7 @@ import sharp from 'sharp';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const build = join(root, 'desktop/build');
+const releaseDir = resolve(root, process.env.LJKT_BOT_RELEASE_DIR ?? 'desktop/release');
 const isWithinDirectory = (directory, candidate) => {
   const pathFromDirectory = relative(directory, candidate);
   return (
@@ -87,7 +88,7 @@ const electronVersion = JSON.parse(
 ).version;
 const output = await packager({
   dir: join(build, 'app'),
-  out: join(root, 'desktop/release'),
+  out: releaseDir,
   overwrite: true,
   name: '灵境课堂 Bot',
   executableName: 'LingjingBot',

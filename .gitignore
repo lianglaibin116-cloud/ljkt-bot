@@ -116,6 +116,7 @@ render-service/.owner-bound-parent-*/
 /.bot-logs/
 /desktop/dist/
 /desktop/release/
+/desktop/release-*/
 
 # Independent desktop build and test outputs
 /desktop/build/

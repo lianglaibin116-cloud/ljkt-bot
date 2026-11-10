@@ -1156,7 +1156,7 @@
     "pdfParseFailed": "PDF 解析失败",
     "analyzingCourseMaterial": "解析文档",
     "analyzingCourseMaterialDesc": "正在提取文档结构和内容...",
-    "courseMaterialLoadFailed": "无法加载课程材料，请重试",
+    "courseMaterialLoadFailed": "本机附件数据已丢失，无法加载课程材料。请回到原对话重新上传附件，再重新创建制作任务。",
     "courseMaterialParseFailed": "课程材料解析失败",
     "streamNotReadable": "无法读取生成数据流",
     "generatingOutlines": "生成课程大纲",

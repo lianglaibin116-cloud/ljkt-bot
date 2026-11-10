@@ -1156,7 +1156,7 @@
     "pdfParseFailed": "PDF parsing failed",
     "analyzingCourseMaterial": "Analyzing documents",
     "analyzingCourseMaterialDesc": "Extracting document structure and content...",
-    "courseMaterialLoadFailed": "Failed to load course material, please try again",
+    "courseMaterialLoadFailed": "The local attachment data is missing. Return to the original chat, upload the file again, and create a new course task.",
     "courseMaterialParseFailed": "Course material parsing failed",
     "streamNotReadable": "Unable to read generation stream",
     "generatingOutlines": "Drafting Course Outline",

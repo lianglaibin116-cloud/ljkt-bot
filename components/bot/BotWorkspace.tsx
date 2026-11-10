@@ -1081,7 +1081,14 @@ export default function BotWorkspace() {
         const oldTasks = await listBotTaskCheckpoints(previous.id);
         await Promise.allSettled(oldTasks.map((task) => deleteBotTaskCheckpoint(task.id)));
         await Promise.allSettled(
-          (previous.materials ?? []).map((material) => deleteDocumentBlob(material.storageKey)),
+          Array.from(
+            new Set([
+              ...(previous.materials ?? []).map((material) => material.storageKey),
+              ...previous.messages.flatMap((message) =>
+                (message.materials ?? []).map((material) => material.storageKey),
+              ),
+            ]),
+          ).map((storageKey) => deleteDocumentBlob(storageKey)),
         );
       }
       await saveRestoredBotTasks(restored.tasks);
@@ -1145,9 +1152,14 @@ export default function BotWorkspace() {
                   try {
                     await deleteBotThread(item.id);
                     await Promise.allSettled(
-                      (item.materials ?? []).map((material) =>
-                        deleteDocumentBlob(material.storageKey),
-                      ),
+                      Array.from(
+                        new Set([
+                          ...(item.materials ?? []).map((material) => material.storageKey),
+                          ...item.messages.flatMap((message) =>
+                            (message.materials ?? []).map((material) => material.storageKey),
+                          ),
+                        ]),
+                      ).map((storageKey) => deleteDocumentBlob(storageKey)),
                     );
                     setThreads((items) => items.filter((value) => value.id !== item.id));
                     if (item.id === thread.id) {
@@ -1461,7 +1473,6 @@ export default function BotWorkspace() {
                         setThreadMaterials((items) =>
                           items.filter((value) => value.id !== item.id),
                         );
-                        void deleteDocumentBlob(item.storageKey);
                       }}
                     >
                       <X size={12} />
