@@ -158,7 +158,15 @@ for (const requiredPrompt of [
     throw new Error(`Desktop prompt asset missing from standalone package: ${requiredPrompt}`);
   }
 }
-for (const name of ['main.cjs', 'preload.cjs', 'service.cjs', 'package.json'])
+for (const name of [
+  'main.cjs',
+  'preload.cjs',
+  'service.cjs',
+  'server-supervisor.cjs',
+  'download-manager.cjs',
+  'register-ipc.cjs',
+  'package.json',
+])
   cpSync(join(root, 'desktop', name), join(build, 'app', name));
 cpSync(join(root, 'LICENSE'), join(build, 'app', 'LICENSE'));
 console.log(

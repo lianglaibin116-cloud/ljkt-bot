@@ -742,7 +742,9 @@
   flex-wrap: wrap;
   gap: 8px;
 }
-.ljbot-avatar-options button {
+.ljbot-avatar-options button,
+.ljbot-avatar-options .ljbot-avatar-choice {
+  position: relative;
   min-width: 74px;
   padding: 7px 8px 6px;
   border: 1px solid #e5e6de;
@@ -755,11 +757,24 @@
   font-size: 10px;
   cursor: pointer;
 }
-.ljbot-avatar-options button.is-selected {
+.ljbot-avatar-options .ljbot-avatar-choice.is-selected {
   border-color: #3f725a;
   background: #eef5ef;
   color: #315e49;
   box-shadow: 0 0 0 2px #d8e8dc;
+}
+.ljbot-avatar-choice input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.ljbot-avatar-choice:has(input:focus-visible) {
+  outline: 2px solid #315f4c;
+  outline-offset: 3px;
+}
+.ljbot-avatar-choice span {
+  white-space: nowrap;
 }
 .ljbot-avatar-options img {
   display: block;

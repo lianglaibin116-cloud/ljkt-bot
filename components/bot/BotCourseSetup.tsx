@@ -11,6 +11,14 @@ import { useSettingsStore } from '@/lib/store/settings';
 import type { BotAction } from '@/lib/bot/contracts';
 
 type PrepareCourseAction = Extract<BotAction, { type: 'prepare-course' }>;
+const TEACHER_AVATARS = [
+  { path: '/avatars/teacher-2.png', label: '女教师' },
+  { path: '/avatars/assist-2.png', label: '男助教' },
+  { path: '/avatars/clown-2.png', label: '活泼型' },
+  { path: '/avatars/thinker-2.png', label: '思考型' },
+  { path: '/avatars/curious-2.png', label: '亲和型' },
+  { path: '/avatars/note-taker-2.png', label: '沉稳型' },
+] as const;
 export interface BotCourseSetupOptions {
   teacherAvatarPath: string;
   learnerAvatarPath: string;
@@ -38,7 +46,7 @@ export function BotCourseSetup({ action, onCancel, onOpenSettings, onStart }: Bo
   const [title, setTitle] = useState(action.title);
   const [requirement, setRequirement] = useState(action.requirement);
   const [webSearch, setWebSearch] = useState(webSearchDefault);
-  const teacherAvatarPath = '/avatars/teacher-2.png';
+  const [teacherAvatarPath, setTeacherAvatarPath] = useState<string>(TEACHER_AVATARS[0].path);
   const learnerAvatarPath = '/avatars/user.png';
   const [voiceKey, setVoiceKey] = useState('');
   const [previewState, setPreviewState] = useState<'idle' | 'loading' | 'playing'>('idle');
@@ -316,6 +324,31 @@ export function BotCourseSetup({ action, onCancel, onOpenSettings, onStart }: Bo
           placeholder="补充学段、课时、教学目标、内容重点或材料使用要求…"
         />
       </label>
+
+      <div className="ljbot-create-section">
+        <div className="ljbot-create-section-title">
+          <BookOpen size={16} /> 教师形象
+        </div>
+        <p className="ljbot-create-caption">选择本课程 AI 教师的形象；互动和学生资料设置当前保持关闭。</p>
+        <div className="ljbot-avatar-options" role="radiogroup" aria-label="AI 教师形象">
+          {TEACHER_AVATARS.map((avatar) => (
+            <label
+              className={`ljbot-avatar-choice ${teacherAvatarPath === avatar.path ? 'is-selected' : ''}`}
+              key={avatar.path}
+            >
+              <input
+                type="radio"
+                name="ljkt-bot-teacher-avatar"
+                value={avatar.path}
+                checked={teacherAvatarPath === avatar.path}
+                onChange={() => setTeacherAvatarPath(avatar.path)}
+              />
+              <img src={avatar.path} alt="" />
+              <span>{avatar.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
 
       <div className="ljbot-create-section">
         <div className="ljbot-create-section-title">

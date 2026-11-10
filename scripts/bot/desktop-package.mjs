@@ -35,7 +35,15 @@ const isWithinDirectory = (directory, candidate) => {
 };
 if (!existsSync(join(build, 'server/.next/BUILD_ID')))
   throw new Error('Run pnpm bot:desktop:build first.');
-for (const name of ['main.cjs', 'preload.cjs', 'service.cjs', 'package.json'])
+for (const name of [
+  'main.cjs',
+  'preload.cjs',
+  'service.cjs',
+  'server-supervisor.cjs',
+  'download-manager.cjs',
+  'register-ipc.cjs',
+  'package.json',
+])
   cpSync(join(root, 'desktop', name), join(build, 'app', name));
 let icon;
 if (process.platform === 'darwin') {
