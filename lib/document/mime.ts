@@ -53,6 +53,13 @@ const DOCUMENT_FORMATS: readonly DocumentFormat[] = [
   },
   { id: 'txt', mime: 'text/plain', extensions: ['.txt'], label: 'TXT' },
   {
+    id: 'html',
+    mime: 'text/html',
+    extensions: ['.html', '.htm'],
+    aliasMimes: ['application/xhtml+xml'],
+    label: 'HTML',
+  },
+  {
     id: 'markdown',
     mime: 'text/markdown',
     extensions: ['.md', '.markdown'],
@@ -173,7 +180,7 @@ export const MINERU_CLOUD_MIMES: readonly string[] = [
 ];
 
 /** Local text extractor — no external dependency. */
-export const PLAIN_TEXT_MIMES: readonly string[] = [M.txt, M.markdown, 'text/x-markdown'];
+export const PLAIN_TEXT_MIMES: readonly string[] = [M.txt, M.markdown, 'text/x-markdown', M.html];
 
 /**
  * AliDocMind (LLM version) image formats per the official contract:

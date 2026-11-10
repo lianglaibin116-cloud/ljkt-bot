@@ -848,8 +848,8 @@ export default function BotWorkspace() {
       setError('单次最多8份材料，每份不超过50MB。请分批添加。');
       return;
     }
-    if (additions.some((file) => !/\.(pdf|pptx|docx|txt|md)$/i.test(file.name))) {
-      setError('支持 PDF、PPTX、Word、TXT 和 Markdown 教学材料。');
+    if (additions.some((file) => !/\.(pdf|pptx|docx|txt|md|html|htm)$/i.test(file.name))) {
+      setError('支持 PDF、PPTX、Word、TXT、Markdown 和 HTML 教学材料。');
       return;
     }
     setUploading(true);
@@ -1492,7 +1492,7 @@ export default function BotWorkspace() {
                   type="file"
                   hidden
                   multiple
-                  accept=".pdf,.pptx,.docx,.txt,.md"
+                  accept=".pdf,.pptx,.docx,.txt,.md,.html,.htm"
                   onChange={(event) => void upload(event.target.files)}
                 />
                 <button

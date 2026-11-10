@@ -61,7 +61,7 @@ const DOCUMENT_EXTRACTOR_MANIFEST: Record<string, DocumentExtractorManifestEntry
   'plain-text': {
     id: 'plain-text',
     displayName: 'Plain Text',
-    version: '1',
+    version: '2',
     supportedMimeTypes: PLAIN_TEXT_MIMES,
     capabilities: {
       text: true,
