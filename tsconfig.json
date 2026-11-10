@@ -48,6 +48,7 @@
     "e2e",
     "render-service",
     "desktop/build",
-    "desktop/release"
+    "desktop/release",
+    "desktop/release-*"
   ]
 }

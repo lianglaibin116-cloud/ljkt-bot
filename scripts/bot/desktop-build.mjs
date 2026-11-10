@@ -74,6 +74,10 @@ function getPackagedTarget(candidate, source) {
 // workspace package into the packaged runtime, preserving pnpm's virtual-store
 // paths so peer dependency lookup continues to work.
 function copyStandaloneEntry(source, target) {
+  if (isWithinDirectory(standalone, resolve(source))) {
+    const relativeSource = relative(standalone, resolve(source)).split(sep).join("/");
+    if (/^desktop\/(?:build(?:\/|$)|release(?:\/|-|$))/.test(relativeSource)) return;
+  }
   const entryKey = `${resolve(source)}\0${resolve(target)}`;
   if (copiedEntries.has(entryKey) || activeEntries.has(entryKey)) return;
   activeEntries.add(entryKey);
