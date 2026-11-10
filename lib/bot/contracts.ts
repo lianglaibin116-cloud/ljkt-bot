@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { SessionDocumentSource } from '@/lib/types/generation';
 
+export const MAX_BOT_MATERIAL_TEXT_CHARS = 2_000_000;
+
 export const courseActionSchema = z.object({
   type: z.literal('open-course'),
   courseId: z.string().min(1).max(200),
@@ -38,6 +40,7 @@ export interface BotMessageAction {
 export interface BotMaterial extends SessionDocumentSource {
   extractedText?: string;
   extractedPageCount?: number;
+  extractedTextLength?: number;
   extractionTruncated?: boolean;
   extractionError?: string;
 }

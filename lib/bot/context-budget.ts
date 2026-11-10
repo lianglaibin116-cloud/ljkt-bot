@@ -166,27 +166,180 @@ export function buildCourseContext(
   return `${boundedHeader}\n相关课件内容：\n${included.join('\n\n')}${omitted ? `\n另有 ${omitted} 页未纳入本轮上下文，请勿据此推断其内容。` : ''}`;
 }
 
-export function buildMaterialContext(materials: BotMaterial[], tokenBudget: number): string {
-  let remaining = tokenBudget;
+const MATERIAL_CHUNK_CHARS = 600;
+const MATERIAL_QUERY_STOPWORDS = new Set([
+  '根据',
+  '依据',
+  '按照',
+  '基于',
+  '上传',
+  '附件',
+  '材料',
+  '资料',
+  '课件',
+  '课程',
+  '教学',
+  '内容',
+  '框架',
+  '要求',
+  '制作',
+  '生成',
+  '创建',
+  '整理',
+  '全文',
+  '完整',
+  '这个',
+  '那个',
+  '本轮',
+  '需要',
+  '可以',
+  '符合',
+  '相关',
+  '帮助',
+  '怎么',
+  '如何',
+  '请帮',
+  '用户',
+  '进行',
+]);
+
+interface MaterialChunk {
+  index: number;
+  start: number;
+  end: number;
+  text: string;
+}
+
+function splitMaterialText(value: string): MaterialChunk[] {
+  const chunks: MaterialChunk[] = [];
+  let cursor = 0;
+  while (cursor < value.length) {
+    let end = Math.min(value.length, cursor + MATERIAL_CHUNK_CHARS);
+    if (end < value.length) {
+      const boundaries = [
+        value.lastIndexOf('\n\n', end),
+        value.lastIndexOf('\n', end),
+        value.lastIndexOf('。', end),
+        value.lastIndexOf('；', end),
+        value.lastIndexOf('. ', end),
+      ];
+      const boundary = Math.max(...boundaries);
+      if (boundary >= cursor + Math.floor(MATERIAL_CHUNK_CHARS * 0.55)) {
+        end = boundary + (value.startsWith('\n\n', boundary) ? 2 : value[boundary] === ' ' ? 2 : 1);
+      }
+    }
+    const text = value.slice(cursor, end).trim();
+    if (text) chunks.push({ index: chunks.length + 1, start: cursor, end, text });
+    cursor = Math.max(end, cursor + 1);
+  }
+  return chunks;
+}
+
+function materialTerms(prompt: string): string[] {
+  return keywords(prompt).filter(
+    (term) => !MATERIAL_QUERY_STOPWORDS.has(term) && term.length <= 32,
+  );
+}
+
+function spreadChunks(chunks: MaterialChunk[], budget: number): MaterialChunk[] {
+  if (!chunks.length) return [];
+  const average =
+    chunks.reduce((total, chunk) => total + estimateTextTokens(chunk.text), 0) / chunks.length;
+  const count = Math.max(1, Math.min(chunks.length, Math.floor(budget / Math.max(1, average))));
+  if (count >= chunks.length) return chunks;
+  if (count === 1) return [chunks[Math.floor((chunks.length - 1) / 2)]];
+  return Array.from(
+    { length: count },
+    (_, index) => chunks[Math.round((index * (chunks.length - 1)) / (count - 1))]!,
+  );
+}
+
+function scoreMaterialChunk(chunk: MaterialChunk, terms: string[]): number {
+  const text = chunk.text.toLowerCase();
+  return terms.reduce(
+    (score, term) => (text.includes(term.toLowerCase()) ? score + Math.min(term.length, 5) : score),
+    0,
+  );
+}
+
+export function buildMaterialContext(
+  materials: BotMaterial[],
+  tokenBudget: number,
+  prompt = '',
+): string {
+  if (!materials.length || tokenBudget <= 0) return '';
+  const note =
+    '附件说明：原始文件保存在本机；以下是根据本轮问题检索的原文片段，并非全文。大纲和课件制作会重新解析原始附件。';
+  const noteCost = estimateTextTokens(note);
+  let remaining = Math.max(0, tokenBudget - noteCost - 45);
+  const terms = materialTerms(prompt);
   const sections: string[] = [];
   let omitted = 0;
-  for (const [index, material] of materials.entries()) {
-    const header = `【资料 ${index + 1}：${material.name}${material.extractedPageCount ? `，${material.extractedPageCount} 页` : ''}${material.extractionTruncated ? '，保存的正文已截取' : ''}】\n`;
+
+  for (let index = 0; index < materials.length; index++) {
+    const material = materials[index];
+    const fullText = material.extractedText ?? '';
+    const header =
+      '【资料 ' +
+      (index + 1) +
+      '：' +
+      material.name +
+      (material.extractedPageCount ? '，' + material.extractedPageCount + ' 页' : '') +
+      '，全文 ' +
+      (material.extractedTextLength ?? fullText.length) +
+      ' 字符' +
+      (material.extractionTruncated ? '，本机文本索引已截取' : '') +
+      '】';
     const headerCost = estimateTextTokens(header);
-    if (remaining <= headerCost + 30) {
+    const availableForMaterial = Math.floor(remaining / (materials.length - index));
+    if (!fullText || availableForMaterial <= headerCost + 25) {
       omitted++;
       continue;
     }
-    const excerpt = takeWithinTokenBudget(material.extractedText ?? '', remaining - headerCost);
-    if (excerpt.text) {
-      sections.push(`${header}${excerpt.text}`);
-      remaining -= headerCost + estimateTextTokens(excerpt.text);
-      if (excerpt.truncated) omitted++;
+
+    const chunks = splitMaterialText(fullText);
+    const chunkBudget = availableForMaterial - headerCost;
+    const scored = chunks.map((chunk) => ({ chunk, score: scoreMaterialChunk(chunk, terms) }));
+    const matching = scored.filter((item) => item.score > 0);
+    const candidates = matching.length
+      ? matching
+          .sort((left, right) => right.score - left.score || left.chunk.start - right.chunk.start)
+          .map((item) => item.chunk)
+      : spreadChunks(chunks, chunkBudget);
+    const chosen: string[] = [];
+    let materialUsed = headerCost;
+    for (const chunk of candidates) {
+      const label =
+        '片段 ' +
+        chunk.index +
+        '/' +
+        chunks.length +
+        '（原文字符 ' +
+        (chunk.start + 1) +
+        '–' +
+        chunk.end +
+        '）：\n';
+      const labelCost = estimateTextTokens(label);
+      const excerpt = takeWithinTokenBudget(chunk.text, chunkBudget - materialUsed - labelCost);
+      if (!excerpt.text) continue;
+      chosen.push(label + excerpt.text);
+      materialUsed += labelCost + estimateTextTokens(excerpt.text);
+      if (materialUsed >= availableForMaterial - 20) break;
+    }
+    if (chosen.length) {
+      sections.push(header + '\n' + chosen.join('\n\n'));
+      remaining -= materialUsed;
+      if (chosen.length < chunks.length || matching.length < chunks.length)
+        omitted += chunks.length - chosen.length;
     } else {
       omitted++;
     }
   }
-  return `${sections.join('\n\n')}${omitted ? `\n\n另有 ${omitted} 份资料或正文部分未纳入本轮上下文；可继续提问指定资料或章节。` : ''}`;
+
+  const footer = omitted
+    ? '\n另有 ' + omitted + ' 个原文片段未放入本轮上下文；可指定章节或关键词继续追问。'
+    : '';
+  return [note, ...sections, footer].filter(Boolean).join('\n\n');
 }
 
 export function selectCourseDirectory<T extends { id: string; name: string; sceneCount: number }>(

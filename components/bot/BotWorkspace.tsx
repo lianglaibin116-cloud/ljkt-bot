@@ -42,6 +42,7 @@ import { extractCourseDocumentSource } from '@/lib/course-documents/source';
 import { deleteBotThread, listBotThreads, saveBotThread } from '@/lib/bot/conversations';
 import {
   actionPath,
+  MAX_BOT_MATERIAL_TEXT_CHARS,
   readBotEvents,
   type BotAction,
   type BotMaterial,
@@ -459,6 +460,7 @@ export default function BotWorkspace() {
     const attachmentSnapshot: SessionDocumentSource[] = materials.map(
       ({
         extractedText: _text,
+        extractedTextLength: _textLength,
         extractedPageCount: _pageCount,
         extractionTruncated: _truncated,
         extractionError: _error,
@@ -507,10 +509,12 @@ export default function BotWorkspace() {
       const inputBudget = Math.max(2500, Math.min(30000, contextWindow - outputBudget - 1500));
       const courseLimit = Math.max(20, Math.min(150, Math.floor(inputBudget / 100)));
       const selectedCourses = selectCourseDirectory(courses, prompt, selectedCourse, courseLimit);
-      setReadingMaterials(materials.some((item) => !item.extractedText));
+      const needsMaterialExtraction = (item: BotMaterial) =>
+        !item.extractedText || (item.extractionTruncated && item.extractedTextLength === undefined);
+      setReadingMaterials(materials.some(needsMaterialExtraction));
       const parsedMaterials = await Promise.all(
         materials.map(async (material) => {
-          if (material.extractedText) return material;
+          if (!needsMaterialExtraction(material)) return material;
           const blob = await loadDocumentBlob(material.storageKey);
           if (!blob) throw new Error(`本机找不到材料《${material.name}》，请重新添加后再发送。`);
           const settings = useSettingsStore.getState();
@@ -543,8 +547,9 @@ export default function BotWorkspace() {
           }
           return {
             ...material,
-            extractedText: text.slice(0, 20000),
-            extractionTruncated: text.length > 20000,
+            extractedText: text.slice(0, MAX_BOT_MATERIAL_TEXT_CHARS),
+            extractedTextLength: text.length,
+            extractionTruncated: text.length > MAX_BOT_MATERIAL_TEXT_CHARS,
             extractedPageCount: Number(result?.data?.metadata?.pageCount) || undefined,
             extractionError: undefined,
           };
@@ -568,7 +573,7 @@ export default function BotWorkspace() {
         ? Math.min(7000, Math.floor(remainingContext * 0.38))
         : 0;
       const courseBudget = selectedCourse ? Math.min(4500, Math.floor(remainingContext * 0.24)) : 0;
-      const materialContext = buildMaterialContext(parsedMaterials, materialBudget);
+      const materialContext = buildMaterialContext(parsedMaterials, materialBudget, prompt);
       let courseContext: string | undefined;
       if (selectedCourse) {
         const saved = await loadStageData(selectedCourse);
@@ -1435,12 +1440,20 @@ export default function BotWorkspace() {
                     key={item.id}
                     title={
                       item.extractionError ||
-                      (item.extractedText ? '正文已保存，可在后续追问中引用' : '发送时自动解析')
+                      (item.extractedText
+                        ? item.extractionTruncated
+                          ? '已保存可检索正文片段；原始附件会在大纲和课件生成时重新解析'
+                          : '已保存全文提取文本；Bot 会按问题检索相关段落'
+                        : '发送时自动解析原始附件')
                     }
                   >
                     <FileText size={13} />
                     {item.name}
-                    {item.extractedText ? ' · 已读取' : ''}
+                    {item.extractedText
+                      ? item.extractionTruncated
+                        ? ' · 部分已索引'
+                        : ' · 全文已索引'
+                      : ''}
                     <button
                       type="button"
                       title={`移除 ${item.name}`}

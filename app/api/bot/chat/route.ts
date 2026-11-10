@@ -8,6 +8,7 @@ import { modelAuthorizationResponse } from '@/lib/server/api-response';
 import { isTrustedLoopbackRequestOrigin } from '@/lib/server/loopback-request-origin';
 import { botActionSchema, botChatRequestSchema, type BotEvent } from '@/lib/bot/contracts';
 import { BOT_SYSTEM_PROMPT, createBotTools } from '@/lib/bot/tools';
+import { createFallbackCourseAction } from '@/lib/bot/task-intent';
 
 const log = createLogger('BotChat');
 
@@ -87,6 +88,8 @@ export async function POST(req: NextRequest) {
             controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'));
         };
         try {
+          let assistantText = '';
+          let preparedCourse = false;
           const result = streamLLM(
             {
               model: resolved.model,
@@ -102,7 +105,10 @@ export async function POST(req: NextRequest) {
           );
           for await (const part of result.fullStream) {
             if (abort.signal.aborted) break;
-            if (part.type === 'text-delta') send({ type: 'text', text: part.text });
+            if (part.type === 'text-delta') {
+              assistantText += part.text;
+              send({ type: 'text', text: part.text });
+            }
             if (
               part.type === 'tool-result' &&
               part.output &&
@@ -110,11 +116,27 @@ export async function POST(req: NextRequest) {
               'action' in part.output
             ) {
               const action = botActionSchema.parse(part.output.action);
+              if (action.type === 'prepare-course') preparedCourse = true;
               send({ type: 'action', id: part.toolCallId, action });
             }
             if (part.type === 'error') throw part.error;
             if (part.type === 'tool-error')
               send({ type: 'text', text: '\n任务准备失败，请检查模型配置后重试。\n' });
+          }
+          const latestPrompt = body.messages.at(-1)?.content ?? '';
+          if (!preparedCourse) {
+            const fallback = createFallbackCourseAction(
+              latestPrompt,
+              body.materialNames ?? [],
+              assistantText,
+            );
+            if (fallback) {
+              send({ type: 'action', id: `fallback-${requestId}`, action: fallback });
+              send({
+                type: 'text',
+                text: '\n已根据你的要求准备制作任务卡，点击卡片进入大纲审阅。',
+              });
+            }
           }
           send({ type: 'done' });
         } catch (error) {

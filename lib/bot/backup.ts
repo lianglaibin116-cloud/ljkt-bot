@@ -1,6 +1,11 @@
 import JSZip from 'jszip';
 import { z } from 'zod';
-import { botActionSchema, type BotMaterial, type BotThread } from './contracts';
+import {
+  MAX_BOT_MATERIAL_TEXT_CHARS,
+  botActionSchema,
+  type BotMaterial,
+  type BotThread,
+} from './contracts';
 import { listBotTaskCheckpoints, type BotTaskCheckpoint } from './tasks';
 import { deleteDocumentBlob, loadDocumentBlob, storeDocumentBlob } from '@/lib/utils/image-storage';
 
@@ -18,8 +23,9 @@ const materialSchema = z.object({
   assetId: z.string().max(500).optional(),
   contentDigest: z.string().max(200).optional(),
   providerId: z.string().max(100).optional(),
-  extractedText: z.string().max(20000).optional(),
+  extractedText: z.string().max(MAX_BOT_MATERIAL_TEXT_CHARS).optional(),
   extractedPageCount: z.number().int().nonnegative().optional(),
+  extractedTextLength: z.number().int().nonnegative().max(20_000_000).optional(),
   extractionTruncated: z.boolean().optional(),
   extractionError: z.string().max(1000).optional(),
 });
