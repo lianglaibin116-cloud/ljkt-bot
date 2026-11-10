@@ -11,9 +11,9 @@ import { PGlite } from '@electric-sql/pglite';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-import { PgAgentSessionStore, ensureAgentSessionSchema } from '@openmaic/storage/agent-session/pg';
-import { ensureAgentSessionMaterialSchema } from '@openmaic/storage/material/pg';
-import type { Queryable } from '@openmaic/storage/asset/pg';
+import { PgAgentSessionStore, ensureAgentSessionSchema } from '@ljkt/storage/agent-session/pg';
+import { ensureAgentSessionMaterialSchema } from '@ljkt/storage/material/pg';
+import type { Queryable } from '@ljkt/storage/asset/pg';
 import { setMaterialByteStoreForTests } from '@/lib/server/materials/bytes';
 import { ensureOwnerMaterialSchema } from '@/lib/persistence/owner-materials';
 

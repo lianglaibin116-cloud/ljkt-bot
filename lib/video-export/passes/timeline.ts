@@ -20,7 +20,7 @@ import type {
   PlayVideoAction,
   SpotlightAction,
   LaserAction,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 import {
   resolveActionTimeline,
   getDescriptor,

@@ -1,0 +1,17 @@
+appId: com.boante.lingjing.bot
+productName: 灵境课堂 Bot
+directories:
+  output: desktop/release/installers
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: LingjingBot-${version}-Windows-x64-Setup.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 灵境课堂 Bot

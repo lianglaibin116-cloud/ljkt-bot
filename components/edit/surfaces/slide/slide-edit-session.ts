@@ -27,7 +27,7 @@ import {
   type EditorHistory,
   type EditorOperation,
   type EditorTransaction,
-} from '@openmaic/editor/core';
+} from '@ljkt/editor/core';
 import { commitSlideEdit } from '@/lib/edit/scene-edit-bridge';
 import { migrateSlideContent } from '@/lib/edit/slide-schema';
 import type { SlideEditHistory } from '@/lib/edit/slide-ops';
@@ -173,7 +173,7 @@ export const useSlideEditSession = create<SlideEditSessionState>((set, get) => {
       }
       // The legacy Canvas still emits complete snapshots while the renderer
       // editor is feature-flagged. Keep this compatibility bridge isolated
-      // to that fallback until its React surface moves into @openmaic/editor.
+      // to that fallback until its React surface moves into @ljkt/editor.
       replace(
         commitSlideEdit(history as unknown as SlideEditHistory, next) as unknown as EditorHistory,
       );

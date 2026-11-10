@@ -20,8 +20,8 @@
  * App-side / impure: reaches into Dexie records, the renderer snapshot, and the
  * DOM — outside the `lib/video-export/**` purity boundary by design.
  */
-import { slideToPng } from '@openmaic/renderer/snapshot';
-import type { PPTElement, PPTVideoElement, Slide } from '@openmaic/dsl';
+import { slideToPng } from '@ljkt/renderer/snapshot';
+import type { PPTElement, PPTVideoElement, Slide } from '@ljkt/dsl';
 import type { VideoTimeline } from '@/lib/video-export';
 import type { Scene, SlideContent } from '@/lib/types/stage';
 import { isMediaPlaceholder } from '@/lib/store/media-generation';

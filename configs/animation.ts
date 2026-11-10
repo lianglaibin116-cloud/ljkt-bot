@@ -1,4 +1,4 @@
-import type { TurningMode } from '@openmaic/dsl';
+import type { TurningMode } from '@ljkt/dsl';
 
 export const ANIMATION_DEFAULT_DURATION = 1000;
 export const ANIMATION_DEFAULT_TRIGGER = 'click';

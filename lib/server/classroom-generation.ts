@@ -11,7 +11,7 @@ import {
   withGenerationRetry,
   type AICallFn,
   type AgentInfo,
-} from '@openmaic/generation';
+} from '@ljkt/generation';
 import { createSceneWithActions } from '@/lib/server/scene-generation';
 import { generatePBLV2Project } from '@/lib/pbl/v2/agents/planner';
 import { getDefaultAgents } from '@/lib/orchestration/registry/store';

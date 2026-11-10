@@ -1,6 +1,6 @@
 'use client';
 
-import type { PPTElementOutline } from '@openmaic/dsl';
+import type { PPTElementOutline } from '@ljkt/dsl';
 import { useElementOutline } from './hooks/useElementOutline';
 
 export interface ElementOutlineProps {

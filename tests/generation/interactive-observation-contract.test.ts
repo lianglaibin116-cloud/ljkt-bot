@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { generateSceneContent } from '../../packages/@openmaic/generation/src/scene-generator';
-import type { SceneOutline } from '../../packages/@openmaic/generation/src/index';
+import { generateSceneContent } from '../../packages/@ljkt/generation/src/scene-generator';
+import type { SceneOutline } from '../../packages/@ljkt/generation/src/index';
 const outline = (widgetType: SceneOutline['widgetType']): SceneOutline => ({
   id: 'observation-test',
   type: 'interactive',

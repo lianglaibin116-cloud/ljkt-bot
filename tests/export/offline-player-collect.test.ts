@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Slide, SpeechAction } from '@openmaic/dsl';
+import type { Slide, SpeechAction } from '@ljkt/dsl';
 import type { Scene } from '@/lib/types/stage';
 const mocks = vi.hoisted(() => ({
   snapshot: vi.fn(),
@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   stored: vi.fn(),
   row: vi.fn(),
 }));
-vi.mock('@openmaic/renderer/snapshot', () => ({ slideToPng: mocks.snapshot }));
+vi.mock('@ljkt/renderer/snapshot', () => ({ slideToPng: mocks.snapshot }));
 vi.mock('@/lib/media/resolve-audio-bytes', () => ({ resolveAudioBlob: mocks.audio }));
 vi.mock('@/lib/media/resolve-stored-bytes', () => ({ resolveStoredBytes: mocks.stored }));
 vi.mock('@/lib/utils/database', () => ({ db: { audioFiles: { get: mocks.row } } }));

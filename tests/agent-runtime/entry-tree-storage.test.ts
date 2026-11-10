@@ -4,7 +4,7 @@ import {
   ensureAgentSessionSchema,
   type Queryable,
   type WithTransaction,
-} from '@openmaic/storage/agent-session/pg';
+} from '@ljkt/storage/agent-session/pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Pool } from 'pg';
 

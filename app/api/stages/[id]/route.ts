@@ -19,7 +19,7 @@
  */
 import type { NextRequest } from 'next/server';
 
-import { DocumentNotFoundError, DocumentVersionError, type MaicDocument } from '@openmaic/storage';
+import { DocumentNotFoundError, DocumentVersionError, type MaicDocument } from '@ljkt/storage';
 
 import { isAgentRuntimeConfigured } from '@/lib/config/feature-flags';
 import { apiError } from '@/lib/server/api-response';
@@ -36,7 +36,7 @@ type Params = { params: Promise<{ id: string }> };
 function isStoreValidationError(error: unknown): error is Error {
   return (
     error instanceof Error &&
-    error.message.startsWith('@openmaic/storage:') &&
+    error.message.startsWith('@ljkt/storage:') &&
     !(error instanceof DocumentNotFoundError) &&
     !(error instanceof DocumentVersionError)
   );

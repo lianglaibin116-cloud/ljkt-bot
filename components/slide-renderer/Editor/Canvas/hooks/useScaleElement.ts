@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useCanvasStore } from '@/lib/store';
 import { useKeyboardStore } from '@/lib/store/keyboard';
-import type { PPTElement, PPTLineElement, PPTImageElement, PPTShapeElement } from '@openmaic/dsl';
+import type { PPTElement, PPTLineElement, PPTImageElement, PPTShapeElement } from '@ljkt/dsl';
 import {
   OperateResizeHandlers,
   type AlignmentLineProps,

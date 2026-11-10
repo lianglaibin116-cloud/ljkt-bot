@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Eraser, History, Minimize2, PencilLine, RotateCcw } from 'lucide-react';
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import type { WhiteboardElementReference } from '@/lib/types/chat';
 import { ElementPickOverlay } from '@/components/canvas/slide-element-pick-overlay';
 import {

@@ -41,8 +41,8 @@ import { basename } from 'node:path';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { createMaterialId } from '@openmaic/storage';
-import type { ConnectableQueryable } from '@openmaic/storage/server/reference';
+import { createMaterialId } from '@ljkt/storage';
+import type { ConnectableQueryable } from '@ljkt/storage/server/reference';
 
 import { isAgentRuntimeConfigured } from '@/lib/config/feature-flags';
 import { apiError } from '@/lib/server/api-response';

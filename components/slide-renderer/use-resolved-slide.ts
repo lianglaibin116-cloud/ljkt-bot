@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Slide } from '@openmaic/dsl';
+import type { Slide } from '@ljkt/dsl';
 import type { MediaTask } from '@/lib/store/media-generation';
 import { useMediaStageId } from '@/lib/contexts/media-stage-context';
 import { useMayGenerateForStage } from '@/lib/classroom/generation-permission';

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { BrowserKVStore } from '@openmaic/storage';
+import { BrowserKVStore } from '@ljkt/storage';
 
 import { getLearnerKey, LEARNER_KEY_KV_KEY } from '@/lib/runtime/learner-key';
 

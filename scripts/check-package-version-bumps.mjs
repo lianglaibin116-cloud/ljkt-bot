@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { OPENMAIC_PACKAGES, assertPackageListIsComplete } from './openmaic-packages.mjs';
+import { LJKT_PACKAGES, assertPackageListIsComplete } from './ljkt-packages.mjs';
 
 const REGISTRY = 'https://registry.npmjs.org';
 
@@ -49,7 +49,7 @@ const ignoredInputOverrides = {
 // Built from the shared package list rather than spelled out again, so a new
 // package cannot be silently exempt from this gate by being absent here.
 const ignoredPackageInputs = Object.fromEntries(
-  OPENMAIC_PACKAGES.map((name) => [name, ignoredInputOverrides[name] ?? commonIgnoredInputs]),
+  LJKT_PACKAGES.map((name) => [name, ignoredInputOverrides[name] ?? commonIgnoredInputs]),
 );
 
 const usage = [
@@ -174,7 +174,7 @@ function compareVersions(left, right) {
 }
 
 function packageDirectory(name) {
-  return `packages/@openmaic/${name}`;
+  return `packages/@ljkt/${name}`;
 }
 
 /** Whether any publishable input of `name` differs between `base` and HEAD. */
@@ -222,7 +222,7 @@ function failIfAny(failures, headline) {
  * Retired paths stay until the base branch no longer reaches a revision that
  * used them.
  */
-const DSL_VERSION_SOURCES = ['packages/@openmaic/dsl/src/version.ts'];
+const DSL_VERSION_SOURCES = ['packages/@ljkt/dsl/src/version.ts'];
 
 /**
  * The two SERIALIZED-FORMAT versions the dsl owns. They are deliberately
@@ -282,7 +282,7 @@ function caretEscapeVersion(version) {
  * A change to a serialized-format version requires a dsl package version
  * increase that the dependents' caret range will NOT admit.
  *
- * The dependents declare `@openmaic/dsl` as `workspace:^`, published as a
+ * The dependents declare `@ljkt/dsl` as `workspace:^`, published as a
  * caret. That range is what stops a consumer installing two copies of the dsl,
  * but it also means any version the caret admits reaches them without a release
  * of their own — so an admitted bump is free to change what they can read.
@@ -498,7 +498,7 @@ function runDiffMode(base) {
 
   failIfAny(
     failures,
-    'Every @openmaic publishable package change must ship with a new package version:',
+    'Every @ljkt publishable package change must ship with a new package version:',
   );
   console.log('Package version check passed.');
 }
@@ -593,7 +593,7 @@ function runReleaseMode() {
   const releases = [];
 
   for (const name of Object.keys(ignoredPackageInputs)) {
-    const packageName = `@openmaic/${name}`;
+    const packageName = `@ljkt/${name}`;
     const manifest = join(repositoryRoot, packageDirectory(name), 'package.json');
 
     let local;
@@ -660,7 +660,7 @@ function runReleaseMode() {
     releases.push({ package: packageName, version: local.raw });
   }
 
-  failIfAny(failures, 'Refusing to publish @openmaic packages:');
+  failIfAny(failures, 'Refusing to publish @ljkt packages:');
 
   const planPath = process.env.RELEASE_PLAN_PATH;
   if (planPath) {

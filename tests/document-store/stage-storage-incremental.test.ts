@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DocumentVersionError } from '@openmaic/storage';
+import { DocumentVersionError } from '@ljkt/storage';
 
 const {
   loadDocument,

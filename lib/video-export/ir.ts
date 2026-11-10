@@ -23,10 +23,10 @@
  * consumer (or the `emit` pass' own self-check) can validate any emitted JSON
  * against {@link VideoTimelineSchema}.
  *
- * Pure: depends only on `@openmaic/dsl` (the `SceneType` set) and `zod`.
+ * Pure: depends only on `@ljkt/dsl` (the `SceneType` set) and `zod`.
  */
 import { z } from 'zod';
-import { SCENE_TYPES } from '@openmaic/dsl';
+import { SCENE_TYPES } from '@ljkt/dsl';
 
 /** Manifest `schema` tag — stable across versions; the shape is versioned by {@link VIDEO_TIMELINE_VERSION}. */
 export const VIDEO_TIMELINE_SCHEMA = 'openmaic.videoTimeline';

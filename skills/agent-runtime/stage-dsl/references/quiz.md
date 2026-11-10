@@ -2,7 +2,7 @@
 
 This chapter describes the persisted quiz structure at `scene.content`.
 
-It is derived from `@openmaic/dsl`'s `QuizContent`, `QuizQuestion`, and
+It is derived from `@ljkt/dsl`'s `QuizContent`, `QuizQuestion`, and
 `QuizOption` contracts, the quiz editor operations, and the document write
 validator. It states only behavior those sources establish.
 

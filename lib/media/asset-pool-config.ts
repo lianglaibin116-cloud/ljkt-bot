@@ -1,4 +1,4 @@
-import type { AssetMeta, AssetRef, BinaryBlob } from '@openmaic/dsl';
+import type { AssetMeta, AssetRef, BinaryBlob } from '@ljkt/dsl';
 
 /** Common browser-facing surface implemented by local and HTTP asset stores. */
 export interface AssetPoolStore {

@@ -77,7 +77,7 @@ import { FolderCard } from '@/components/discovery/folder-card';
 import { NewFolderDialog } from '@/components/discovery/folder-dialogs';
 import { MoveToFolderMenu } from '@/components/discovery/move-to-folder-menu';
 import { SlideThumbnail } from '@/components/slide-renderer/SlideThumbnail';
-import type { SchoolCourseProfile, Slide } from '@openmaic/dsl';
+import type { SchoolCourseProfile, Slide } from '@ljkt/dsl';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';

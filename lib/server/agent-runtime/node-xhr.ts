@@ -1,5 +1,5 @@
 /**
- * Minimal XMLHttpRequest for Node. `@openmaic/importer` bundles pdfjs +
+ * Minimal XMLHttpRequest for Node. `@ljkt/importer` bundles pdfjs +
  * stream-http, both of which do `new XMLHttpRequest()` against the global
  * object. Node 18+ has fetch but no XHR, and `new global.XMLHttpRequest`
  * throws "XMLHttpRequest is not a constructor".

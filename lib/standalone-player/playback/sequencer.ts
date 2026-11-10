@@ -19,7 +19,7 @@
  *
  * DOM work (audio/video elements, the iframe) sits behind {@link SequencerPorts}.
  */
-import type { SlideEffects } from '@openmaic/renderer';
+import type { SlideEffects } from '@ljkt/renderer';
 import type { ManifestAction } from '@/lib/export/classroom-zip-types';
 import type { StandaloneAction } from '@/lib/export/standalone-html/prepare-manifest';
 import {

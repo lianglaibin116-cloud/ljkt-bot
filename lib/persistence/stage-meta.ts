@@ -1,5 +1,5 @@
-import { DocumentNotFoundError } from '@openmaic/storage';
-import type { Queryable } from '@openmaic/storage/document/pg';
+import { DocumentNotFoundError } from '@ljkt/storage';
+import type { Queryable } from '@ljkt/storage/document/pg';
 
 export interface StageMetaRow {
   stageId: string;

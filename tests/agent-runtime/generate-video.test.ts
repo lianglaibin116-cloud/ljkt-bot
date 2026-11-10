@@ -43,7 +43,7 @@ import { createFakeAssetStore } from './_fake-asset-store';
 import { makeDocument, makeSlideScene } from './_stage-fixtures';
 import { createFakeDocumentStore } from './_fake-document-store';
 import type { AppScene } from '@/lib/types/stage';
-import type { PPTVideoElement } from '@openmaic/dsl';
+import type { PPTVideoElement } from '@ljkt/dsl';
 import { resolveVideoMediaForElement } from '@/lib/media/media-task-resolution';
 
 const providerConfig = {

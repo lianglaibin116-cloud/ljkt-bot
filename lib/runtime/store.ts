@@ -9,7 +9,7 @@ import '@/lib/persistence/bootstrap';
  * Client-only: the store lazily opens IndexedDB. Server code must not import
  * this module without injecting its own `RuntimeStore`.
  */
-import { BrowserRuntimeStore, type RuntimeStore } from '@openmaic/storage';
+import { BrowserRuntimeStore, type RuntimeStore } from '@ljkt/storage';
 
 import { registerRuntimeStorageResetHook, resolveConfiguredRuntimeStore } from './config';
 import { APP_RUNTIME_PAYLOAD_VALIDATORS } from './payload-validators';

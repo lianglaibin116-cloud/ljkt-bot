@@ -1,7 +1,7 @@
 import '@/lib/persistence/bootstrap';
 
-import type { AssetMeta, BinaryBlob } from '@openmaic/dsl';
-import { BrowserAssetStore } from '@openmaic/storage';
+import type { AssetMeta, BinaryBlob } from '@ljkt/dsl';
+import { BrowserAssetStore } from '@ljkt/storage';
 import {
   isAssetPoolServerBacked,
   registerAssetPoolStorageResetHook,

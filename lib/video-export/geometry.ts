@@ -5,7 +5,7 @@
  * segments (spotlight/laser) can carry the target's position into the IR. This
  * is a faithful reimplementation of the runtime's calculation — the app copy
  * (`lib/utils/geometry.ts`) imports a host-app path and the packaged copy
- * (`@openmaic/renderer`) pulls a render backend, so both are unreachable under
+ * (`@ljkt/renderer`) pulls a render backend, so both are unreachable under
  * this module's purity boundary. The math is ~15 lines and must stay identical
  * to the runtime's, so it is mirrored here rather than imported.
  *
@@ -13,9 +13,9 @@
  * independent of a slide's own `viewportSize`/`viewportRatio`, so we do the same
  * — the spotlight/laser overlays position against this same base.
  *
- * Pure: type-only import from `@openmaic/dsl`.
+ * Pure: type-only import from `@ljkt/dsl`.
  */
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import type { PercentageGeometry } from './ir';
 
 /** Height ratio the runtime derives the vertical base from (16:9). */

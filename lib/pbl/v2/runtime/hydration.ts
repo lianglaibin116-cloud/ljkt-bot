@@ -1,5 +1,5 @@
-import { BrowserKVStore, type KVStore, type RuntimeStore } from '@openmaic/storage';
-import type { RuntimeRecord } from '@openmaic/dsl';
+import { BrowserKVStore, type KVStore, type RuntimeStore } from '@ljkt/storage';
+import type { RuntimeRecord } from '@ljkt/dsl';
 import { isEqual } from 'lodash';
 
 import { getLearnerKey } from '@/lib/runtime/learner-key';

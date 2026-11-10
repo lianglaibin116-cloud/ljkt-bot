@@ -12,7 +12,7 @@
  *
  * Pure: no IO; reads only the scene's canvas elements.
  */
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import type { CompilerScene, GeometryProbe } from '../deps';
 import { findElementGeometry, findElementPlacement } from '../geometry';
 import type { Diagnostic, EffectSegment, VideoSegment, VideoTimelineScene } from '../ir';

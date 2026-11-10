@@ -10,7 +10,7 @@
  * store state outside the export contract, just as it is for runtime/renderers.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { AssetManifestEntry } from '@openmaic/dsl';
+import type { AssetManifestEntry } from '@ljkt/dsl';
 import type { MediaIndexEntry } from '@/lib/export/classroom-zip-types';
 import type { Scene } from '@/lib/types/stage';
 import { canonicalArchiveMedia, type ArchiveMediaKind } from '@/lib/video-export/archive-media';

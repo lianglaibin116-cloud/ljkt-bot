@@ -27,8 +27,8 @@
 import { nanoid } from 'nanoid';
 import { Type, type Static } from 'typebox';
 import type { AgentTool } from '@earendil-works/pi-agent-core';
-import type { DocumentStore, MaicDocument } from '@openmaic/storage';
-import type { GeneratedAgentConfig, Stage } from '@openmaic/dsl';
+import type { DocumentStore, MaicDocument } from '@ljkt/storage';
+import type { GeneratedAgentConfig, Stage } from '@ljkt/dsl';
 
 import type { Scene } from '@/lib/types/stage';
 import { normalizeVoiceDesign } from '@/lib/audio/voice-design';

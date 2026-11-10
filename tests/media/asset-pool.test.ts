@@ -1,5 +1,5 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { HttpAssetStore } from '@openmaic/storage';
+import { HttpAssetStore } from '@ljkt/storage';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 describe('getAssetPool', () => {
@@ -46,7 +46,7 @@ describe('getAssetPool', () => {
     vi.stubGlobal('indexedDB', indexedDB);
     const first = getAssetPool();
     const second = getAssetPool();
-    const { BrowserAssetStore } = await import('@openmaic/storage');
+    const { BrowserAssetStore } = await import('@ljkt/storage');
 
     expect(second).toBe(first);
     expect(first).toBeInstanceOf(BrowserAssetStore);

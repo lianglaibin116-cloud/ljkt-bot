@@ -1,5 +1,5 @@
 import type { AgentTool } from '@earendil-works/pi-agent-core';
-import type { AssetStore } from '@openmaic/storage';
+import type { AssetStore } from '@ljkt/storage';
 import { nanoid } from 'nanoid';
 import { Type, type Static } from 'typebox';
 
@@ -493,7 +493,7 @@ export async function patchStageVideoPlaceholder(
       // The element was bound to THIS job on purpose, so its result is what
       // has to resolve. This is the classic chain's
       // `normalizeGeneratedVideoRefs`
-      // (`packages/@openmaic/generation/src/scene-generator.ts:437-440`, which
+      // (`packages/@ljkt/generation/src/scene-generator.ts:437-440`, which
       // deletes `mediaRef` whenever a non-generated `src` is set) expressed for
       // the one transition this patch performs; that function is private to the
       // generation package and keyed on outline vocabulary, so the rule is

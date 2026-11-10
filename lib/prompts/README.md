@@ -1,7 +1,7 @@
 # `lib/prompts`
 
 File-based prompt loader + templates for the runtime orchestration layer and
-app-only outline modes. Generation templates live in `@openmaic/generation`.
+app-only outline modes. Generation templates live in `@ljkt/generation`.
 
 ## Directory layout
 
@@ -40,7 +40,7 @@ Conditional blocks read from the same `variables` record passed to
 - **Placeholder names use `camelCase`.** Example: `{{agentName}}`, `{{stateContext}}`.
 - **Template IDs use `kebab-case`.** Example: `agent-system`, `interactive-outlines`.
 - Package-owned generation templates follow the same placeholder conventions;
-  edit them under `packages/@openmaic/generation/templates/`.
+  edit them under `packages/@ljkt/generation/templates/`.
 
 ## Adding a new prompt
 
@@ -77,7 +77,7 @@ This is intentional for partial-render scenarios but means a typo in a
 placeholder name ships literal `{{…}}` text to the LLM. Defence:
 
 - Tests in `tests/prompts/templates.test.ts` and
-  `packages/@openmaic/generation/test/` assert that fully rendered app and
+  `packages/@ljkt/generation/test/` assert that fully rendered app and
   generation prompts contain no surviving `{{…}}` tokens. Keep those checks
   passing when adding variables.
 - `{{snippet:name}}` lookups **throw** on a missing snippet file rather than

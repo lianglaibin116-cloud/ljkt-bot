@@ -286,7 +286,7 @@ which explains most "it looks right in one place and wrong in another" reports.
 
 | | **Playback renderer** | **Preview renderer** |
 | --- | --- | --- |
-| Code | the in-app element components (`components/slide-renderer/components/element/*`, mounted by `components/slide-renderer/Editor/ScreenElement.tsx`) | `@openmaic/renderer`'s `SlideCanvas` |
+| Code | the in-app element components (`components/slide-renderer/components/element/*`, mounted by `components/slide-renderer/Editor/ScreenElement.tsx`) | `@ljkt/renderer`'s `SlideCanvas` |
 | Where it runs | the classroom page the learner watches — **the default** | page thumbnails (`components/slide-renderer/SlideThumbnail.tsx`), and playback too when `NEXT_PUBLIC_MAIC_PLAYBACK_RENDERER_ENABLED` is on (off by default) |
 | Stylesheet for rich text | **none** — only the global CSS reset, browser defaults, and your inline styles | ships its own `.slide-renderer-prose` rules with the canvas |
 

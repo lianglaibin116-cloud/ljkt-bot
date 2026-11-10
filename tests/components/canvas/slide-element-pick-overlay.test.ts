@@ -3,7 +3,7 @@
 import { act, createElement, createRef, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import type { Scene } from '@/lib/types/stage';
 
 const translations: Record<string, string> = {

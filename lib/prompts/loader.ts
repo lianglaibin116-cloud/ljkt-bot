@@ -15,7 +15,7 @@ import { createLogger } from '@/lib/logger';
 import {
   loadSnippet as loadGenerationSnippet,
   type SnippetId as GenerationSnippetId,
-} from '@openmaic/generation';
+} from '@ljkt/generation';
 const log = createLogger('PromptLoader');
 
 /**

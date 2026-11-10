@@ -47,7 +47,7 @@ import {
 } from '@/lib/server/provider-config';
 import { normalizeUrlForStrictFetch } from '@/lib/server/ssrf-guard';
 import { createPinnedAgent } from '@/lib/server/pinned-dispatcher';
-import type { AgentSessionMaterial } from '@openmaic/storage';
+import type { AgentSessionMaterial } from '@ljkt/storage';
 
 import { createWebMaterial } from './session-materials';
 import { isSessionUrlAllowed } from './session-urls';

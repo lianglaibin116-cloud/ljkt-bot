@@ -6,13 +6,13 @@
  * prompt where supported, or as the seed for a registered/cloned voice
  * (see `voice-registration.ts`). Nothing here is VoxCPM-specific.
  *
- * The type itself lives in `@openmaic/dsl` (it is part of the persisted
+ * The type itself lives in `@ljkt/dsl` (it is part of the persisted
  * `GeneratedAgentConfig` contract, so the roster's voice travels with the
  * stage document); this module re-exports it and owns the runtime helpers.
  */
-import type { VoiceDesign } from '@openmaic/dsl';
+import type { VoiceDesign } from '@ljkt/dsl';
 
-export type { VoiceDesign } from '@openmaic/dsl';
+export type { VoiceDesign } from '@ljkt/dsl';
 
 const VOICE_DESIGN_PROMPT_MAX_CHARS = 200;
 

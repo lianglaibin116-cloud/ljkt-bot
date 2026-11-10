@@ -57,7 +57,7 @@ import { exitProPlaybackToStandalone } from '@/lib/workbench/pro-playback-exit';
  * neutral loading shell and edit, so a hosted first paint can never be
  * playback. Deliberately not a third
  * `StageMode` — `StageMode` lives in the
- * published `@openmaic/dsl` and is persisted with the stage, whereas "this is
+ * published `@ljkt/dsl` and is persisted with the stage, whereas "this is
  * rendered inside the workspace right now" is view state that must not outlive
  * the tab.
  *

@@ -1,4 +1,4 @@
-import type { QuizQuestion } from '@openmaic/dsl';
+import type { QuizQuestion } from '@ljkt/dsl';
 
 export interface OfflineMedia {
   kind: 'video' | 'audio';

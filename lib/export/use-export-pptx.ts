@@ -19,7 +19,7 @@ import {
   type PPTElementShadow,
   type PPTElementLink,
   type TableCell,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 import type { Scene, SlideContent } from '@/lib/types/stage';
 import type { SpeechAction } from '@/lib/types/action';
 import {

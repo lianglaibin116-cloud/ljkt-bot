@@ -1,5 +1,5 @@
 {
-  "name": "@openmaic/render-service",
+  "name": "@ljkt/render-service",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,8 +17,8 @@
   "dependencies": {
     "@hono/node-server": "^1.13.7",
     "@hyperframes/producer": "^0.7.107",
-    "@openmaic/dsl": "0.11.0",
-    "@openmaic/renderer": "0.1.4",
+    "@ljkt/dsl": "0.11.0",
+    "@ljkt/renderer": "0.1.4",
     "echarts": "^6.0.0",
     "esbuild": "0.28.1",
     "fflate": "^0.8.2",

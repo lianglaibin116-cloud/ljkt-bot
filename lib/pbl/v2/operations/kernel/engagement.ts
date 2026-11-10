@@ -1,2 +1,2 @@
 /** Compatibility barrel for package-owned PBL engagement primitives. */
-export * from '@openmaic/generation/browser';
+export * from '@ljkt/generation/browser';

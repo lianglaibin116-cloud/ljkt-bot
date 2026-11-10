@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import type { StatelessChatRequest } from '@/lib/types/chat';
 import {
   ElementReferenceValidationError,

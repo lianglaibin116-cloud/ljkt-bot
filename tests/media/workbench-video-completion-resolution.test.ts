@@ -16,7 +16,7 @@
  * where the document holds the ids and no task exists in memory.
  */
 import { describe, expect, it } from 'vitest';
-import type { PPTVideoElement, Slide } from '@openmaic/dsl';
+import type { PPTVideoElement, Slide } from '@ljkt/dsl';
 
 import { patchStageVideoPlaceholder } from '@/lib/server/agent-runtime/generate-video';
 import { collectUnresolvedMediaPlaceholders } from '@/lib/server/agent-runtime/generation-tools';

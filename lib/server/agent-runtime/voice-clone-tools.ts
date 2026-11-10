@@ -36,7 +36,7 @@ import {
   createMaterialId,
   type AgentSessionMaterial,
   type CreateAgentSessionMaterialInput,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 import { Type } from 'typebox';
 
 import type { RegisteredVoiceInfo } from '@/lib/audio/voice-catalog';

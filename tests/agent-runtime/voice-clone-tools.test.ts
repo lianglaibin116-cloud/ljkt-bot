@@ -18,7 +18,7 @@ import { spawnSync } from 'node:child_process';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgentSessionMaterial } from '@openmaic/storage';
+import type { AgentSessionMaterial } from '@ljkt/storage';
 import type { AgentTool } from '@earendil-works/pi-agent-core';
 import type { VoiceRegistrationAdapter } from '@/lib/audio/voice-registration';
 

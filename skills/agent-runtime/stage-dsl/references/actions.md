@@ -5,7 +5,7 @@ Actions are the ordered playback verbs at `scene.actions`.
 They are separate from `scene.content`: content says what the page contains;
 actions say what happens over time.
 
-This chapter is derived from the shared `@openmaic/dsl` Action union,
+This chapter is derived from the shared `@ljkt/dsl` Action union,
 `applyActionEdit`, and the scene validators.
 
 ## Root and ordering

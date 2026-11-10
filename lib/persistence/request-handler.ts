@@ -6,7 +6,7 @@ import {
   createStorageHttpHandler,
   DEFAULT_SIGNED_URL_TTL_SECONDS,
   type AssetIndirectByteEgress,
-} from '@openmaic/storage/server';
+} from '@ljkt/storage/server';
 
 import { validateAppScene, validateAppStage } from '@/lib/document-store/validators';
 import { createLogger } from '@/lib/logger';
@@ -342,7 +342,7 @@ async function handlePersistenceRequestInner(
 
       const response =
         access === 'not-found'
-          ? jsonError(404, 'DOCUMENT_NOT_FOUND', '@openmaic/storage: document not found')
+          ? jsonError(404, 'DOCUMENT_NOT_FOUND', '@ljkt/storage: document not found')
           : await runNodeHandler(
               await createPersistenceHandler(connectionString, ownerId, access, deps.poolFactory),
               request,

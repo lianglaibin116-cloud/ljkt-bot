@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { DOMParser } from 'linkedom';
 import { describe, expect, it } from 'vitest';
-import type { PPTLineElement, Slide } from '@openmaic/dsl';
+import type { PPTLineElement, Slide } from '@ljkt/dsl';
 import { buildPptxBlob } from '@/lib/export/use-export-pptx';
 
 describe('PPTX line geometry', () => {

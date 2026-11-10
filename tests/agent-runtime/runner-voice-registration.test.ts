@@ -19,7 +19,7 @@
  */
 import type { AgentEvent, AgentMessage } from '@earendil-works/pi-agent-core';
 import { InMemorySessionRepo, Session } from '@earendil-works/pi-agent-core';
-import type { AgentSessionMaterial, ClaimedAgentSession } from '@openmaic/storage';
+import type { AgentSessionMaterial, ClaimedAgentSession } from '@ljkt/storage';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { VoiceRegistrationAdapter } from '@/lib/audio/voice-registration';

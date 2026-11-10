@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Slide } from '@openmaic/dsl';
+import type { Slide } from '@ljkt/dsl';
 import type { Scene } from '@/lib/types/stage';
 
 const mocks = vi.hoisted(() => ({

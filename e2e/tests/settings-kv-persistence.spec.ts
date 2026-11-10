@@ -3,7 +3,7 @@ import { HomePage } from '../pages/home.page';
 import { createSettingsStorage, SETTINGS_KV_KEY } from '../fixtures/test-data/settings';
 
 /**
- * The settings store persists through the `@openmaic/storage` KVStore, and does
+ * The settings store persists through the `@ljkt/storage` KVStore, and does
  * not migrate pre-cutover data. These two cases pin both facts: a store whose
  * data is already in the KV scope loads it, and a store still holding the old
  * raw `settings-storage` blob has it ignored and purged rather than migrated.

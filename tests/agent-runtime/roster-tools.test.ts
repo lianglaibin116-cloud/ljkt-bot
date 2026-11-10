@@ -18,7 +18,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgentTool } from '@earendil-works/pi-agent-core';
-import type { GeneratedAgentConfig } from '@openmaic/dsl';
+import type { GeneratedAgentConfig } from '@ljkt/dsl';
 
 import {
   buildRosterTools,

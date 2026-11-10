@@ -4,7 +4,7 @@
  * The pure normalization helpers are re-exported from the package and pinned
  * here (WHATWG normalization, prose stripping, malformed/non-http rejection).
  * The origin-comparison semantics live in the package's contract suite
- * (packages/@openmaic/storage/test/agent-session-url-contract.ts); this file
+ * (packages/@ljkt/storage/test/agent-session-url-contract.ts); this file
  * pins that the adapter resolves the package store and delegates with the
  * exact arguments, including the producer source.
  */

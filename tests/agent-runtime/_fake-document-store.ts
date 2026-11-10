@@ -17,7 +17,7 @@ import type {
   DocumentStore,
   MaicDocument,
   StageFreshnessManifestStore,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 
 import type { AppStage } from '@/lib/document-store/persistence-types';
 import type { AppScene } from '@/lib/types/stage';
@@ -118,13 +118,13 @@ export function createFakeDocumentStore(): FakeDocumentStore {
     },
     async putStage(stageId: string, stage: AppStage) {
       const doc = docs.get(stageId);
-      if (!doc) throw new Error('@openmaic/storage: document not found');
+      if (!doc) throw new Error('@ljkt/storage: document not found');
       docs.set(stageId, { ...doc, stage });
       bumpStage(stageId);
     },
     async putScene(stageId: string, scene: AppScene) {
       const doc = docs.get(stageId);
-      if (!doc) throw new Error('@openmaic/storage: document not found');
+      if (!doc) throw new Error('@ljkt/storage: document not found');
       docs.set(stageId, {
         ...doc,
         scenes: [...doc.scenes.filter((s) => s.id !== scene.id), scene].sort(

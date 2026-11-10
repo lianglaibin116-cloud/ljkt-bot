@@ -13,8 +13,8 @@ import {
   generateSceneContent,
   buildVisionUserContent,
   partitionImagesForVision,
-} from '@openmaic/generation';
-import type { AgentInfo } from '@openmaic/generation';
+} from '@ljkt/generation';
+import type { AgentInfo } from '@ljkt/generation';
 import type {
   GeneratedSlideContent,
   SceneOutline,

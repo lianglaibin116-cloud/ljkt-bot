@@ -13,10 +13,10 @@
  *
  * The allowlists below were derived empirically:
  *   - the ProseMirror schemas in `lib/prosemirror/schema` and in
- *     `@openmaic/editor`'s text schema (marks/nodes → their `toDOM` output),
+ *     `@ljkt/editor`'s text schema (marks/nodes → their `toDOM` output),
  *   - the renderer text/shape/table element components,
  *   - real stage/scene fixtures in `eval/`, `tests/` and the
- *     `@openmaic/editor` round-trip tests,
+ *     `@ljkt/editor` round-trip tests,
  *   - actual KaTeX HTML snapshots rendered with the repo's `katex`.
  *
  * LaTeX elements persist a `html` snapshot produced by

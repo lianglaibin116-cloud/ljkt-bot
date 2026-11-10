@@ -1,4 +1,4 @@
-import { DocumentVersionError, type DocumentStore } from '@openmaic/storage';
+import { DocumentVersionError, type DocumentStore } from '@ljkt/storage';
 
 import type { Scene, Stage } from '@/lib/types/stage';
 

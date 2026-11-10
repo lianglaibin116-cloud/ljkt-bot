@@ -1,5 +1,5 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
-import { AgentSessionLeaseLostError } from '@openmaic/storage';
+import { AgentSessionLeaseLostError } from '@ljkt/storage';
 import { describe, expect, it, vi } from 'vitest';
 
 import {

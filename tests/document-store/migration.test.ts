@@ -1,11 +1,11 @@
-import { DSL_VERSION } from '@openmaic/dsl';
+import { DSL_VERSION } from '@ljkt/dsl';
 import {
   BrowserDocumentStore,
   HttpDocumentStore,
   type DocumentStore,
   type KVScope,
   type KVStore,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 import { IDBFactory } from 'fake-indexeddb';
 import { describe, expect, test, vi } from 'vitest';
 

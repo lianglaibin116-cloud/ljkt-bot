@@ -4,9 +4,9 @@
  *
  * Moved verbatim from the app's `lib/playback/engine-cursor.ts` so the app
  * runtime and the video exporter walk scenes identically. Pure — types come
- * from `@openmaic/dsl`, no runtime dependencies.
+ * from `@ljkt/dsl`, no runtime dependencies.
  */
-import type { Action, SceneCore } from '@openmaic/dsl';
+import type { Action, SceneCore } from '@ljkt/dsl';
 
 /**
  * Synthetic dwell beat yielded for a scene that carries no actions. It is an

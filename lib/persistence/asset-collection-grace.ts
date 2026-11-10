@@ -1,4 +1,4 @@
-import { DEFAULT_ASSET_COLLECTION_GRACE_MS } from '@openmaic/storage';
+import { DEFAULT_ASSET_COLLECTION_GRACE_MS } from '@ljkt/storage';
 
 /**
  * The reclamation grace this process runs with.

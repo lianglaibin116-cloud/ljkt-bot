@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * Mock the renderer snapshot so the frame path is testable in plain Node (the
- * real `@openmaic/renderer/snapshot` needs a build + DOM). `slideToPng` records
+ * real `@ljkt/renderer/snapshot` needs a build + DOM). `slideToPng` records
  * the slide it was handed so tests can assert which media the frame captured.
  */
 const capturedSlides: Array<{
@@ -14,7 +14,7 @@ const mediaOwnerMocks = vi.hoisted(() => ({
     fn(null),
   ),
 }));
-vi.mock('@openmaic/renderer/snapshot', () => ({
+vi.mock('@ljkt/renderer/snapshot', () => ({
   slideToPng: vi.fn(
     async (slide: {
       elements: Array<Record<string, unknown>>;

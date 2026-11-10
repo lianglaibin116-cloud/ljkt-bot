@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
-import { PgAssetStore, ensureAssetSchema, type Queryable } from '@openmaic/storage/asset/pg';
+import { PgAssetStore, ensureAssetSchema, type Queryable } from '@ljkt/storage/asset/pg';
 
 import { lazyAssetByteStore } from '@/lib/persistence/asset-byte-store';
 
 /**
  * The registry's own duck-type predicate for a transaction-pinned byte writer
- * (packages/@openmaic/storage/src/asset/pg.ts `hasTransactionalWriter`), kept
+ * (packages/@ljkt/storage/src/asset/pg.ts `hasTransactionalWriter`), kept
  * in sync here so the app-level wrapper is pinned to the exact check the
  * registry performs.
  */

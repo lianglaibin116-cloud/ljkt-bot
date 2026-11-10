@@ -18,7 +18,7 @@ import type { MediaFileRecord } from '@/lib/utils/database';
 import { unmarkStageDeleted } from '@/lib/utils/deleted-stages';
 import type { GeneratedAgentConfig, Scene, Stage } from '@/lib/types/stage';
 import type { DocumentMigrationDeps } from '@/lib/document-store/migration';
-import type { PPTElement, Slide } from '@openmaic/dsl';
+import type { PPTElement, Slide } from '@ljkt/dsl';
 import {
   collectDocumentMediaElements,
   withDocumentLegacyVideoRecovery,

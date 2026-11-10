@@ -12,7 +12,7 @@ import {
   type AgentSessionEntry,
   type AgentSessionEntryTreeHandle,
   type AgentSessionMeta,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 
 import { getAgentSessionStore } from './store';
 

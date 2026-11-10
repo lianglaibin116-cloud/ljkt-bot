@@ -52,7 +52,7 @@
  *   third would be the opposite of this change, so the funnel and the mirror are
  *   supplied by the caller and merely sequenced here.
  */
-import type { AssetMeta } from '@openmaic/dsl';
+import type { AssetMeta } from '@ljkt/dsl';
 
 import { createLogger } from '@/lib/logger';
 import { putAsset } from '@/lib/media/asset-pool';

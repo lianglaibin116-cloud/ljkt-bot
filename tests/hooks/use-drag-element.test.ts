@@ -2,7 +2,7 @@
 import { act, createElement, useState, type RefObject } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { PPTElement, PPTLineElement, PPTTextElement } from '@openmaic/dsl';
+import type { PPTElement, PPTLineElement, PPTTextElement } from '@ljkt/dsl';
 import type { AlignmentLineProps } from '@/lib/types/edit';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useKeyboardStore } from '@/lib/store/keyboard';

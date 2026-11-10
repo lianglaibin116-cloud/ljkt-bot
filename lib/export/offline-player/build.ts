@@ -1,4 +1,4 @@
-import type { Slide, SpeechAction } from '@openmaic/dsl';
+import type { Slide, SpeechAction } from '@ljkt/dsl';
 import type { Scene } from '@/lib/types/stage';
 import { collectAssetRefs } from '../inline-assets';
 import { prepareOfflineInteraction } from './bridge';

@@ -13,7 +13,7 @@
  * and, for the two persist keys, best-effort purged.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BrowserKVStore } from '@openmaic/storage';
+import { BrowserKVStore } from '@ljkt/storage';
 
 const backing = new Map<string, string>();
 const localStorageStub: Storage = {

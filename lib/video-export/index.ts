@@ -8,7 +8,7 @@
  * is a downstream consumer of the IR, added in a later phase.
  *
  * Purity is machine-enforced by an eslint boundary on `lib/video-export/**`
- * (allows only `@openmaic/dsl`, `zod`, in-folder relatives, and the sibling
+ * (allows only `@ljkt/dsl`, `zod`, in-folder relatives, and the sibling
  * `lib/choreography` spec — no `@/` host paths, no React/DOM/render backend), so
  * the compiler stays interpretable in pure Node.
  *

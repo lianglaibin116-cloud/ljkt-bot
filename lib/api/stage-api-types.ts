@@ -5,7 +5,7 @@
  */
 
 import type { Stage, Scene, SceneContent, SceneType, StageMode } from '@/lib/types/stage';
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import type { Action } from '@/lib/types/action';
 
 // ==================== Type Definitions ====================

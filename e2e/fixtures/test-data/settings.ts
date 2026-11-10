@@ -1,5 +1,5 @@
 /**
- * Where the settings store lands once persisted: the `@openmaic/storage`
+ * Where the settings store lands once persisted: the `@ljkt/storage`
  * browser KVStore namespaces `<namespace>:<scope>:<key>`, and the store
  * declares the `account` scope.
  *

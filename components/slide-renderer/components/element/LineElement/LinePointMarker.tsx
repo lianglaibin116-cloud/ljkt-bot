@@ -1,4 +1,4 @@
-import type { LinePoint } from '@openmaic/dsl';
+import type { LinePoint } from '@ljkt/dsl';
 
 type NonEmptyLinePoint = Exclude<LinePoint, ''>;
 

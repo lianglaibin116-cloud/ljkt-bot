@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { BookOpenCheck, CheckCircle2 } from 'lucide-react';
-import type { SchoolCourseProfile } from '@openmaic/dsl';
+import type { SchoolCourseProfile } from '@ljkt/dsl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

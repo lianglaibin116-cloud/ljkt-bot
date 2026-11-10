@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import { useAnimate } from 'motion/react';
-import type { PPTVideoElement } from '@openmaic/dsl';
+import type { PPTVideoElement } from '@ljkt/dsl';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useMediaStageId } from '@/lib/contexts/media-stage-context';

@@ -1,6 +1,6 @@
 'use client';
 
-import type { PPTVideoElement } from '@openmaic/dsl';
+import type { PPTVideoElement } from '@ljkt/dsl';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useMediaStageId } from '@/lib/contexts/media-stage-context';
 import { mediaFailureNoticeKey } from '@/lib/media/media-failure';

@@ -51,7 +51,7 @@ const scope = [
   'tests/fixtures/interactive-visual-contract.ts',
   'app/api/stages/[id]/freshness/route.ts',
   'app/api/stages/[id]/scenes/route.ts',
-  'packages/@openmaic/generation/src/browser.ts',
+  'packages/@ljkt/generation/src/browser.ts',
 ];
 const steps = [
   ['engine-contract', ['scripts/check-node-engine-contract.mjs']],

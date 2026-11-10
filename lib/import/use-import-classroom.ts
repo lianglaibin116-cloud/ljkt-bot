@@ -22,7 +22,7 @@ import { putAsset } from '@/lib/media/asset-pool';
 import { isServerBackedMediaPersistence } from '@/lib/persistence/media-persistence';
 import { isStorageFullFailure } from '@/lib/media/media-failure';
 import type JSZip from 'jszip';
-import type { AssetMeta, Slide } from '@openmaic/dsl';
+import type { AssetMeta, Slide } from '@ljkt/dsl';
 import type { Stage } from '@/lib/types/stage';
 
 const log = createLogger('ImportClassroom');

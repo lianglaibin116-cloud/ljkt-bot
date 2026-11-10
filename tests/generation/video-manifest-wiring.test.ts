@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { generateSceneContent, type AICallFn } from '@openmaic/generation';
+import { generateSceneContent, type AICallFn } from '@ljkt/generation';
 import type { GeneratedSlideContent, SceneOutline } from '@/lib/types/generation';
 
 describe('video manifest wiring', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { RuntimeRecord } from '@openmaic/dsl';
+import type { RuntimeRecord } from '@ljkt/dsl';
 
 import { foldPBLRuntime } from '@/lib/pbl/v2/runtime/fold';
 import { MAX_ENGAGEMENT_EVENTS } from '@/lib/pbl/v2/operations/kernel/engagement';

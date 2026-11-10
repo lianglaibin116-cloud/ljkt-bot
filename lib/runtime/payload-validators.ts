@@ -1,5 +1,5 @@
-import { isChatMessageSkeleton, isQuizAttemptSkeleton } from '@openmaic/dsl';
-import type { RuntimePayloadValidator } from '@openmaic/storage';
+import { isChatMessageSkeleton, isQuizAttemptSkeleton } from '@ljkt/dsl';
+import type { RuntimePayloadValidator } from '@ljkt/storage';
 
 import { whiteboardRuntimePayloadValidator } from '@/lib/whiteboard/runtime/validate';
 

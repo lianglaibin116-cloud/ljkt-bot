@@ -9,7 +9,7 @@ import { POST } from '@/app/api/bot/chat/route';
 const request = (body: unknown, origin = 'http://localhost:3010') =>
   new NextRequest('http://localhost:3010/api/bot/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', origin },
+    headers: { 'Content-Type': 'application/json', host: 'localhost:3010', origin },
     body: JSON.stringify(body),
   });
 const input = { messages: [{ role: 'user', content: '制作勾股定理课程' }], courses: [] };

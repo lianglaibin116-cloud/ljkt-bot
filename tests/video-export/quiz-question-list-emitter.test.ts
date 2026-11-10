@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { Action } from '@openmaic/dsl';
+import type { Action } from '@ljkt/dsl';
 import {
   compileVideoTimeline,
   emitHyperframes,

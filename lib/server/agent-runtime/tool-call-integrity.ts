@@ -1,6 +1,6 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
 import type { AssistantMessage, ToolCall, ToolResultMessage } from '@earendil-works/pi-ai';
-import { AgentSessionLeaseLostError } from '@openmaic/storage';
+import { AgentSessionLeaseLostError } from '@ljkt/storage';
 
 export interface PendingToolCall {
   id: string;

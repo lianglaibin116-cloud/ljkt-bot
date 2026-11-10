@@ -4,17 +4,17 @@ import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { OPENMAIC_PACKAGES, readManifest } from './openmaic-packages.mjs';
+import { LJKT_PACKAGES, readManifest } from './ljkt-packages.mjs';
 
 const DIGESTS_FILE = 'SHA256SUMS';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 function expectedArtifacts() {
-  return OPENMAIC_PACKAGES.map((shortName) => {
+  return LJKT_PACKAGES.map((shortName) => {
     const manifest = readManifest(shortName);
     return {
       shortName,
-      name: `@openmaic/${shortName}`,
+      name: `@ljkt/${shortName}`,
       version: manifest.version,
       filename: `openmaic-${shortName}-${manifest.version}.tgz`,
     };

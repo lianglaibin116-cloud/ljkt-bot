@@ -1,4 +1,4 @@
-import type { PPTElement, PPTVideoElement, Slide } from '@openmaic/dsl';
+import type { PPTElement, PPTVideoElement, Slide } from '@ljkt/dsl';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { getVideoMediaRefForElement } from '@/lib/media/video-manifest';
 import { isConcreteMediaAddress } from '@/lib/media/resolve-media-ref';

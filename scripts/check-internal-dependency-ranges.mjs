@@ -1,17 +1,17 @@
 import {
   INTERNAL_DEPENDENTS,
-  OPENMAIC_PACKAGES,
+  LJKT_PACKAGES,
   assertPackageListIsComplete,
   readManifest,
-} from './openmaic-packages.mjs';
+} from './ljkt-packages.mjs';
 
 /**
- * An owned @openmaic package may be declared as a dependency of another exactly
+ * An owned @ljkt package may be declared as a dependency of another exactly
  * once, in `dependencies`, as `workspace:^`.
  *
  * WHY `workspace:^`. pnpm publishes `workspace:*` as an EXACT pin, so a
  * consumer installing two dependents that were released at different times gets
- * two copies of `@openmaic/dsl`. The dsl carries the schema, the validators and
+ * two copies of `@ljkt/dsl`. The dsl carries the schema, the validators and
  * the version constants, so two copies mean a document produced against one
  * instance can be validated by the other instance's schema revision.
  * `workspace:^` publishes as `^<version>` and lets one copy satisfy both.
@@ -42,7 +42,7 @@ import {
  * that a serialized-format change must cross the dependents' caret boundary.
  */
 
-const OWNED = new Set(OPENMAIC_PACKAGES.map((name) => `@openmaic/${name}`));
+const OWNED = new Set(LJKT_PACKAGES.map((name) => `@ljkt/${name}`));
 
 /** Published constraint fields in which an owned package must never appear. */
 const FORBIDDEN_FIELDS = ['peerDependencies', 'optionalDependencies'];
@@ -56,14 +56,14 @@ function report(headline, problems) {
 // itself is wrong there is nothing meaningful to say about what it contains.
 const listProblems = assertPackageListIsComplete();
 if (listProblems.length > 0) {
-  report('The shared @openmaic package list has drifted:', listProblems);
+  report('The shared @ljkt package list has drifted:', listProblems);
 }
 
 const failures = [];
 /** package name -> every owned dependency it declares in `dependencies`. */
 const seen = new Map();
 
-for (const name of OPENMAIC_PACKAGES) {
+for (const name of LJKT_PACKAGES) {
   const manifest = readManifest(name);
 
   for (const [dependency, range] of Object.entries(manifest.dependencies ?? {})) {
@@ -72,11 +72,11 @@ for (const name of OPENMAIC_PACKAGES) {
     // owned dependency behind whichever happened to be declared last.
     seen.set(name, [...(seen.get(name) ?? []), dependency]);
     if (range === 'workspace:^') {
-      console.log(`@openmaic/${name}: dependencies.${dependency} = ${range}`);
+      console.log(`@ljkt/${name}: dependencies.${dependency} = ${range}`);
       continue;
     }
     failures.push(
-      `@openmaic/${name} declares dependencies."${dependency}" as ${JSON.stringify(range)}. ` +
+      `@ljkt/${name} declares dependencies."${dependency}" as ${JSON.stringify(range)}. ` +
         'Use "workspace:^": the "workspace:*" form publishes as an exact pin, which forces ' +
         'consumers to install a second copy of that package alongside its siblings.',
     );
@@ -86,7 +86,7 @@ for (const name of OPENMAIC_PACKAGES) {
     for (const dependency of Object.keys(manifest[field] ?? {})) {
       if (!OWNED.has(dependency)) continue;
       failures.push(
-        `@openmaic/${name} declares ${field}."${dependency}". An owned @openmaic package may ` +
+        `@ljkt/${name} declares ${field}."${dependency}". An owned @ljkt package may ` +
           'be declared exactly once, in `dependencies`. A second published constraint here ' +
           'can pin the same package exactly while `dependencies` still reads as a caret, ' +
           'which reintroduces the duplicate copy this check exists to prevent.',
@@ -105,9 +105,9 @@ for (const [name, expected] of Object.entries(INTERNAL_DEPENDENTS)) {
   const observed = seen.get(name);
   if (observed === undefined) {
     failures.push(
-      `@openmaic/${name} no longer declares any owned @openmaic dependency in \`dependencies\`; ` +
+      `@ljkt/${name} no longer declares any owned @ljkt dependency in \`dependencies\`; ` +
         `it was expected to depend on ${expectedDependencies.join(', ')}. If that is intended, update ` +
-        'INTERNAL_DEPENDENTS in scripts/openmaic-packages.mjs — this check must not go quiet ' +
+        'INTERNAL_DEPENDENTS in scripts/ljkt-packages.mjs — this check must not go quiet ' +
         'on its own.',
     );
     continue;
@@ -118,7 +118,7 @@ for (const [name, expected] of Object.entries(INTERNAL_DEPENDENTS)) {
     observedDependencies.some((dependency, index) => dependency !== expectedDependencies[index])
   ) {
     failures.push(
-      `@openmaic/${name} declares owned dependencies (${observedDependencies.join(', ')}), but ` +
+      `@ljkt/${name} declares owned dependencies (${observedDependencies.join(', ')}), but ` +
         `INTERNAL_DEPENDENTS expects (${expectedDependencies.join(', ')}).`,
     );
   }
@@ -127,8 +127,8 @@ for (const [name, expected] of Object.entries(INTERNAL_DEPENDENTS)) {
 for (const [name, observed] of seen) {
   if (name in INTERNAL_DEPENDENTS) continue;
   failures.push(
-    `@openmaic/${name} declares the owned dependency ${observed.join(', ')} but is absent from ` +
-      'INTERNAL_DEPENDENTS in scripts/openmaic-packages.mjs, so nothing checks how it is ' +
+    `@ljkt/${name} declares the owned dependency ${observed.join(', ')} but is absent from ` +
+      'INTERNAL_DEPENDENTS in scripts/ljkt-packages.mjs, so nothing checks how it is ' +
       'published. Add it there.',
   );
 }
@@ -137,11 +137,11 @@ for (const [name, observed] of seen) {
 // owned package listed there is a second declaration of a sibling that no
 // consumer resolves, which is precisely how a dependent could stop declaring
 // its dsl dependency while still building and testing against it.
-for (const name of OPENMAIC_PACKAGES) {
+for (const name of LJKT_PACKAGES) {
   for (const dependency of Object.keys(readManifest(name).devDependencies ?? {})) {
     if (!OWNED.has(dependency)) continue;
     failures.push(
-      `@openmaic/${name} declares devDependencies."${dependency}". An owned @openmaic package ` +
+      `@ljkt/${name} declares devDependencies."${dependency}". An owned @ljkt package ` +
         'belongs in `dependencies` and nowhere else: a devDependency is not published as a ' +
         'constraint, so it would satisfy the workspace link while the tarball declared no ' +
         'dependency on it at all.',
@@ -150,7 +150,7 @@ for (const name of OPENMAIC_PACKAGES) {
 }
 
 if (failures.length > 0) {
-  report('Internal @openmaic dependency declarations are not in the required shape:', failures);
+  report('Internal @ljkt dependency declarations are not in the required shape:', failures);
 }
 
 console.log(

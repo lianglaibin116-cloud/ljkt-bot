@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SlideThumbnail } from '@/components/slide-renderer/SlideThumbnail';
-import type { Slide } from '@openmaic/dsl';
+import type { Slide } from '@ljkt/dsl';
 import type { FolderRecord } from '@/lib/utils/database';
 import type { DeleteFolderMode } from '@/lib/utils/stage-storage';
 

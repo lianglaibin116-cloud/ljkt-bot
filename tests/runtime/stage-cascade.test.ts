@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { BrowserRuntimeStore, type RuntimeStore } from '@openmaic/storage';
+import { BrowserRuntimeStore, type RuntimeStore } from '@ljkt/storage';
 
 import { deleteStageRuntimeSafely } from '@/lib/runtime/store';
 

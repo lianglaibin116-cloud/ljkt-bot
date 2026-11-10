@@ -8,9 +8,9 @@ import type {
   PPTShapeElement,
   PPTTableElement,
   PPTTextElement,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 import type { AgentTool, AgentToolResult } from '@earendil-works/pi-agent-core';
-import { RuntimeAppendConflictError } from '@openmaic/storage';
+import { RuntimeAppendConflictError } from '@ljkt/storage';
 import { Type, type Static, type TSchema } from 'typebox';
 import { Value } from 'typebox/value';
 import { createHash } from 'node:crypto';

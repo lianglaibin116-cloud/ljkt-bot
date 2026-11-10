@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const isVercelBuild = Boolean(process.env.VERCEL);
-const isTeacherAcceptance = process.env.OPENMAIC_LOCAL_ACCEPTANCE === '1';
+const isTeacherAcceptance = process.env.LJKT_LOCAL_ACCEPTANCE === '1';
 
 const nextConfig: NextConfig = {
   env: {
@@ -27,10 +27,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/*': [
       'lib/prompts/**',
-      'packages/@openmaic/generation/templates/**',
-      'packages/@openmaic/generation/snippets/**',
+      'packages/@ljkt/generation/templates/**',
+      'packages/@ljkt/generation/snippets/**',
       'lib/server/agent-runtime/import-pptx-worker.mjs',
-      'skills/openmaic/**',
+      'skills/ljkt/**',
       'skills/agent-runtime/**',
       // Loaded through a runtime-only `import('undici')` (see the LLM
       // dispatcher in lib/ai/providers.ts and the Google proxy transport), so
@@ -60,7 +60,7 @@ const nextConfig: NextConfig = {
   typescript: {
     tsconfigPath: process.env.NODE_ENV === 'production' ? 'tsconfig.build.json' : 'tsconfig.json',
   },
-  transpilePackages: ['mathml2omml', 'pptxgenjs', '@openmaic/importer'],
+  transpilePackages: ['mathml2omml', 'pptxgenjs', '@ljkt/importer'],
   // These agent packages do a runtime `import(specifier)` with a computed
   // specifier (to lazily load node:fs/os/path without breaking browser/Vite
   // builds). webpack can't statically analyze that and bundling it throws
@@ -71,8 +71,8 @@ const nextConfig: NextConfig = {
   serverExternalPackages: [
     '@earendil-works/pi-ai',
     '@earendil-works/pi-agent-core',
-    '@openmaic/generation',
-    // Optional peers of @openmaic/storage, reached through deliberately
+    '@ljkt/generation',
+    // Optional peers of @ljkt/storage, reached through deliberately
     // untraced dynamic imports. Externalizing keeps them out of the bundle,
     // and the static anchor in lib/persistence/asset-byte-store.ts gets them
     // traced into the standalone image -- without it, S3 mode and redirect
@@ -84,7 +84,7 @@ const nextConfig: NextConfig = {
     // Resolve named barrel exports to their actual modules before webpack
     // traverses unused Node-only siblings in the shared package entrypoints.
     // This is import optimization, not a fallback/polyfill for Node APIs.
-    optimizePackageImports: ['@openmaic/storage'],
+    optimizePackageImports: ['@ljkt/storage'],
     proxyClientMaxBodySize: '200mb',
   },
   async headers() {

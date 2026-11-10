@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { GeneratedSceneContent, SceneOutline } from '@openmaic/generation';
+import type { GeneratedSceneContent, SceneOutline } from '@ljkt/generation';
 import type { StageAPI } from '@/lib/api/stage-api';
 import { createSceneWithActions } from '@/lib/server/scene-generation';
 

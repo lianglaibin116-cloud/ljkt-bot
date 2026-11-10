@@ -1,4 +1,4 @@
-import { BrowserKVStore, type KVStore } from '@openmaic/storage';
+import { BrowserKVStore, type KVStore } from '@ljkt/storage';
 
 const STORAGE_GENERATION_KEY = 'document-storage-generation';
 let defaultKv: KVStore | undefined;

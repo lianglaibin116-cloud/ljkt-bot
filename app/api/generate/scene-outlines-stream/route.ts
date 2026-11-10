@@ -23,9 +23,9 @@ import {
   buildOutlinePrompt,
   uniquifyMediaElementIds,
   formatTeacherPersonaForPrompt,
-} from '@openmaic/generation';
-import type { AgentInfo } from '@openmaic/generation';
-import { DEFAULT_LANGUAGE_DIRECTIVE } from '@openmaic/generation';
+} from '@ljkt/generation';
+import type { AgentInfo } from '@ljkt/generation';
+import { DEFAULT_LANGUAGE_DIRECTIVE } from '@ljkt/generation';
 import { MAX_PDF_CONTENT_CHARS, MAX_VISION_IMAGES } from '@/lib/constants/generation';
 import { nanoid } from 'nanoid';
 import type {
@@ -73,7 +73,7 @@ function extractLanguageDirective(buffer: string): string | null {
 const COURSE_TITLE_RE = /"courseTitle"\s*:\s*"((?:[^"\\]|\\.)*)"/;
 
 // Normalize a captured title identically to the non-streaming parser
-// (@openmaic/generation outline parser): ignore whitespace-only titles and cap
+// (@ljkt/generation outline parser): ignore whitespace-only titles and cap
 // length defensively so a hallucinating model cannot push a blank or unbounded
 // value into the stage name. Returning null lets callers fall back / keep scanning.
 function normalizeStreamedTitle(raw: string): string | null {

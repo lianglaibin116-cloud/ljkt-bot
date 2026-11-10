@@ -4,7 +4,7 @@
  *
  * Two things were renderer-specific and are now not:
  *
- * 1. WHICH attribute names an element. Only the `@openmaic/editor` package
+ * 1. WHICH attribute names an element. Only the `@ljkt/editor` package
  *    renderer emits `data-element-id` / `data-select-element-id` /
  *    `data-context-element-id`, and it is behind a flag — so on the DEFAULT
  *    legacy canvas (and on every playback screen) the hit-test found nothing

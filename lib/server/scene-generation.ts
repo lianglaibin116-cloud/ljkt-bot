@@ -1,5 +1,5 @@
 /**
- * App adapters around the store-independent @openmaic/generation scene layer.
+ * App adapters around the store-independent @ljkt/generation scene layer.
  */
 
 import type { LanguageModel } from 'ai';
@@ -16,7 +16,7 @@ import {
   type GeneratedSceneContent,
   type SceneGenerationContext,
   type SceneOutline,
-} from '@openmaic/generation';
+} from '@ljkt/generation';
 import { callLLM } from '@/lib/ai/llm';
 import type { StageAPI } from '@/lib/api/stage-api';
 import { createLogger } from '@/lib/logger';

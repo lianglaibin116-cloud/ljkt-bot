@@ -1,4 +1,4 @@
-import type { AICallFn } from '@openmaic/generation';
+import type { AICallFn } from '@ljkt/generation';
 
 import { callLLM } from '@/lib/ai/llm';
 import type { LlmStage } from '@/lib/server/model-routes';

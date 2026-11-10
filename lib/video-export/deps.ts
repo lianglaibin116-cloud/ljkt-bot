@@ -12,7 +12,7 @@
  * synchronous fold, which is what makes it trivially unit-testable — a stub is a
  * literal object, not a Promise-returning mock.
  *
- * Pure: types only, from `@openmaic/dsl`.
+ * Pure: types only, from `@ljkt/dsl`.
  */
 import type {
   SpeechAction,
@@ -23,7 +23,7 @@ import type {
   SceneCore,
   SceneType,
   PPTElement,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 import type { PercentageGeometry } from './ir';
 import type { InteractiveHtmlFailure } from './interactive-static';
 

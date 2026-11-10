@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-import { DocumentNotFoundError, DocumentVersionError } from '@openmaic/storage';
+import { DocumentNotFoundError, DocumentVersionError } from '@ljkt/storage';
 
 import { createFakeDocumentStore } from './_fake-document-store';
 import { FIXED_NOW, makeDocument, makeSlideScene } from './_stage-fixtures';
@@ -136,12 +136,12 @@ describe('PATCH /api/stages/[id]', () => {
   });
 
   it('answers 400 with the store message when the saved document is invalid', async () => {
-    mocks.fakeStore!.failNextSaveWith(new Error('@openmaic/storage: invalid stage: /name: x'));
+    mocks.fakeStore!.failNextSaveWith(new Error('@ljkt/storage: invalid stage: /name: x'));
     const response = await call(PATCH, jsonInit('PATCH', { name: 'X' }));
     expect(response.status).toBe(400);
     const body = await response.json();
     expect(body.errorCode).toBe('INVALID_REQUEST');
-    expect(body.details).toContain('@openmaic/storage: invalid stage');
+    expect(body.details).toContain('@ljkt/storage: invalid stage');
   });
 
   it('answers 400 for a future-version document', async () => {
@@ -210,7 +210,7 @@ describe('PUT /api/stages/[id]', () => {
   });
 
   it('answers 400 when the document fails store validation', async () => {
-    mocks.fakeStore!.failNextSaveWith(new Error('@openmaic/storage: invalid scene: /id'));
+    mocks.fakeStore!.failNextSaveWith(new Error('@ljkt/storage: invalid scene: /id'));
     const response = await call(PUT, jsonInit('PUT', makeDocument(STAGE_ID, 'X')));
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({ errorCode: 'INVALID_REQUEST' });

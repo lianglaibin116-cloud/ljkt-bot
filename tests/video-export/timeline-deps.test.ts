@@ -27,7 +27,7 @@ vi.mock('@/lib/utils/database', () => ({
 // records the calls so tests can assert which elements were measured, and
 // returns a canned content-box geometry.
 const measureCalls: Array<{ elementIds: string[] }> = [];
-vi.mock('@openmaic/renderer/snapshot', () => ({
+vi.mock('@ljkt/renderer/snapshot', () => ({
   measureSlideElementGeometry: vi.fn(async (_slide: unknown, elementIds: string[]) => {
     measureCalls.push({ elementIds: [...elementIds] });
     return new Map(

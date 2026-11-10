@@ -20,6 +20,16 @@ import { createRequire } from 'node:module';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const pnpmCli = process.env.npm_execpath;
+const rendererResult = spawnSync(
+  pnpmCli ? process.execPath : process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
+  pnpmCli ? [pnpmCli, 'bot:renderer:build'] : ['bot:renderer:build'],
+  {
+    cwd: root,
+    stdio: 'inherit',
+    shell: !pnpmCli && process.platform === 'win32',
+  },
+);
+if (rendererResult.status !== 0) process.exit(rendererResult.status ?? 1);
 const result = spawnSync(
   pnpmCli ? process.execPath : process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
   pnpmCli ? [pnpmCli, 'bot:build'] : ['bot:build'],
@@ -124,8 +134,8 @@ for (const [source, target] of [
   // Dynamic filesystem prompt loaders need their Markdown in the packaged
   // server working directory, independent of the source checkout.
   ['lib/prompts', 'lib/prompts'],
-  ['packages/@openmaic/generation/templates', 'packages/@openmaic/generation/templates'],
-  ['packages/@openmaic/generation/snippets', 'packages/@openmaic/generation/snippets'],
+  ['packages/@ljkt/generation/templates', 'packages/@ljkt/generation/templates'],
+  ['packages/@ljkt/generation/snippets', 'packages/@ljkt/generation/snippets'],
   ['skills', 'skills'],
   [
     'lib/server/agent-runtime/import-pptx-worker.mjs',
@@ -137,8 +147,8 @@ for (const [source, target] of [
 for (const requiredPrompt of [
   'lib/prompts/templates/interactive-outlines/system.md',
   'lib/prompts/templates/task-engine-outlines/system.md',
-  'packages/@openmaic/generation/templates/requirements-to-outlines/system.md',
-  'packages/@openmaic/generation/snippets/interactive-visual-reliability.md',
+  'packages/@ljkt/generation/templates/requirements-to-outlines/system.md',
+  'packages/@ljkt/generation/snippets/interactive-visual-reliability.md',
 ]) {
   if (!existsSync(join(build, 'server', requiredPrompt))) {
     throw new Error(`Desktop prompt asset missing from standalone package: ${requiredPrompt}`);

@@ -1,6 +1,6 @@
 'use client';
 
-import type { PPTShapeElement, ShapeText } from '@openmaic/dsl';
+import type { PPTShapeElement, ShapeText } from '@ljkt/dsl';
 import { useElementOutline } from '../hooks/useElementOutline';
 import { useElementShadow } from '../hooks/useElementShadow';
 import { useElementFlip } from '../hooks/useElementFlip';

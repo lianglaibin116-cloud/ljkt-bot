@@ -6,7 +6,7 @@
  * the instruction is present in the prompt the planner receives.)
  */
 import { describe, expect, it } from 'vitest';
-import { loadPBLV2Prompt } from '@openmaic/generation';
+import { loadPBLV2Prompt } from '@ljkt/generation';
 
 describe('planner-system prompt — instructor learner-facing intro spec', () => {
   const prompt = loadPBLV2Prompt('planner-system');

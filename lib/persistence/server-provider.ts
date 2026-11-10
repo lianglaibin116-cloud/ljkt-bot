@@ -1,10 +1,10 @@
-import { PgAssetStore, ensureAssetSchema } from '@openmaic/storage/asset/pg';
-import { PgDocumentStore, ensureDocumentSchema } from '@openmaic/storage/document/pg';
-import { PgRuntimeStore, ensureSchema } from '@openmaic/storage/runtime/pg';
+import { PgAssetStore, ensureAssetSchema } from '@ljkt/storage/asset/pg';
+import { PgDocumentStore, ensureDocumentSchema } from '@ljkt/storage/document/pg';
+import { PgRuntimeStore, ensureSchema } from '@ljkt/storage/runtime/pg';
 import {
   nodePostgresTransaction,
   type ConnectableQueryable,
-} from '@openmaic/storage/server/reference';
+} from '@ljkt/storage/server/reference';
 import { Pool } from 'pg';
 
 import { validateAppScene, validateAppStage } from '@/lib/document-store/validators';

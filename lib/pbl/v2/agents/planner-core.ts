@@ -11,5 +11,5 @@ export {
   newId,
   normalizeSynthesisChecks,
   plannerCompletionGaps,
-} from '@openmaic/generation';
-export type { PlannerV2Callbacks, PlannerV2ProgressEvent } from '@openmaic/generation';
+} from '@ljkt/generation';
+export type { PlannerV2Callbacks, PlannerV2ProgressEvent } from '@ljkt/generation';

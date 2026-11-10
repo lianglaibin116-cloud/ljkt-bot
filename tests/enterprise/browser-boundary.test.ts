@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { init, parse } from 'es-module-lexer';
 import { describe, expect, it } from 'vitest';
-import { isAbortError, changeOutlineType } from '@openmaic/generation/browser';
+import { isAbortError, changeOutlineType } from '@ljkt/generation/browser';
 
 describe('generation browser entry', () => {
   it('retains actual pure helpers', () => {
@@ -33,7 +33,7 @@ describe('generation browser entry', () => {
         else expect(['jsonrepair']).toContain(name);
       }
     }
-    visit(resolve('packages/@openmaic/generation/dist/browser.js'));
+    visit(resolve('packages/@ljkt/generation/dist/browser.js'));
     expect(visited.size).toBeGreaterThan(5);
   });
 });

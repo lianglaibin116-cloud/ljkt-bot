@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { describe, expect, it } from 'vitest';
-import type { PPTTableElement, Slide, TableCell } from '@openmaic/dsl';
+import type { PPTTableElement, Slide, TableCell } from '@ljkt/dsl';
 import { buildPptxBlob, normalizeRuntimeTableData } from '@/lib/export/use-export-pptx';
 
 const cell = (id: string, text: string): TableCell => ({

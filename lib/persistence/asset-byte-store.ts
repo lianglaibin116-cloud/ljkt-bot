@@ -7,8 +7,8 @@
  * to S3 would drop the blob row and leave the object behind forever, which is
  * the leak the collector exists to close.
  */
-import { PgAssetByteStore } from '@openmaic/storage/asset/pg-bytes';
-import type { AssetByteStore, Queryable } from '@openmaic/storage/asset/pg';
+import { PgAssetByteStore } from '@ljkt/storage/asset/pg-bytes';
+import type { AssetByteStore, Queryable } from '@ljkt/storage/asset/pg';
 
 // Tracing anchors for the standalone build. The store implementations below
 // reach both packages through deliberately untraced dynamic imports (they
@@ -80,7 +80,7 @@ export async function createAssetByteStore(
   queryable: Queryable,
 ): Promise<AssetByteStore> {
   if (!bucket) return new PgAssetByteStore(queryable);
-  const storage = await import('@openmaic/storage/asset/s3-bytes');
+  const storage = await import('@ljkt/storage/asset/s3-bytes');
   return storage.loadS3AssetByteStore(bucket);
 }
 

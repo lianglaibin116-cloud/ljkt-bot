@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import type { PPTCodeElement, CodeLine } from '@openmaic/dsl';
+import type { PPTCodeElement, CodeLine } from '@ljkt/dsl';
 
 // ==================== Shiki Singleton ====================
 

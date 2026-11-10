@@ -8,7 +8,7 @@ import {
 import {
   generateSceneContent,
   normalizeQuizAnswer,
-} from '../packages/@openmaic/generation/src/scene-generator';
+} from '../packages/@ljkt/generation/src/scene-generator';
 import type { QuizQuestion } from '@/lib/types/stage';
 
 const VECTOR_OPTIONS = [

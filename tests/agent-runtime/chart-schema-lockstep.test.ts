@@ -24,7 +24,7 @@ it('keeps chart fields and optionality in lockstep with the actual DSL source', 
       [
         '--input-type=module',
         '-e',
-        "import {generateSchema} from './packages/@openmaic/dsl/scripts/gen-schema.mjs'; console.log(JSON.stringify(generateSchema('Stage')));",
+        "import {generateSchema} from './packages/@ljkt/dsl/scripts/gen-schema.mjs'; console.log(JSON.stringify(generateSchema('Stage')));",
       ],
       { encoding: 'utf8' },
     ),

@@ -15,6 +15,7 @@ const path = require('node:path');
 const net = require('node:net');
 
 app.setName('灵境课堂 Bot');
+if (process.platform === 'win32') app.setAppUserModelId('com.boante.lingjing.bot');
 app.setPath('userData', path.join(app.getPath('appData'), 'LingjingClassroomBot'));
 const isDev = !app.isPackaged && process.argv.includes('--dev');
 const port = Number(process.env.LJKT_BOT_DESKTOP_PORT || '30310');
@@ -299,7 +300,7 @@ async function boot() {
     shell.showItemInFolder(savedPath);
     return true;
   });
-  const home = () => window?.loadURL(`${origin}/bot`);
+  const home = () => window?.loadURL(`${origin}/desktop/index.html`);
   const template = [
     ...(process.platform === 'darwin'
       ? [

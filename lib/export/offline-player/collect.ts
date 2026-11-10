@@ -1,4 +1,4 @@
-import { slideToPng } from '@openmaic/renderer/snapshot';
+import { slideToPng } from '@ljkt/renderer/snapshot';
 import { resolveAudioBlob } from '@/lib/media/resolve-audio-bytes';
 import { resolveStoredBytes } from '@/lib/media/resolve-stored-bytes';
 import { isConcreteMediaAddress } from '@/lib/media/resolve-media-ref';

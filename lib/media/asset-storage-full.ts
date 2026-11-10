@@ -36,7 +36,7 @@
  * Every operation is best-effort: a browser that cannot store this still
  * generates, which is the behaviour that predates the marker.
  */
-import { BrowserKVStore, type KVStore } from '@openmaic/storage';
+import { BrowserKVStore, type KVStore } from '@ljkt/storage';
 
 const KEY_PREFIX = 'asset-storage-full:';
 const DEVICE_SCOPE = 'device' as const;

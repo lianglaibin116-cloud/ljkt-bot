@@ -242,14 +242,14 @@ describe('sanitizeLatexHtml — KaTeX snapshot policy', () => {
 
 describe('sanitizeProseHtml — fidelity over the editor round-trip corpus', () => {
   it('keeps nested marks, links and alignment (editor round-trip fixture)', () => {
-    // Verbatim from packages/@openmaic/editor/test/react/text/prosemirror-schema.test.ts.
+    // Verbatim from packages/@ljkt/editor/test/react/text/prosemirror-schema.test.ts.
     const html =
       '<blockquote><p style="text-align: center"><a href="https://maic.chat"><strong><u><span style="font-size: 28px; color: #ff0000">MAIC</span></u></strong></a></p></blockquote><ol><li><p>One</p></li></ol>';
     expectProseUnchanged(html);
   });
 
   it('keeps lists in the exact shape the renderer emits them', () => {
-    // Verbatim from packages/@openmaic/renderer/test/SlideCanvas.test.tsx.
+    // Verbatim from packages/@ljkt/renderer/test/SlideCanvas.test.tsx.
     expectProseUnchanged('<ul><li>Bullet</li></ul><ol><li>Number</li></ol>');
     expectProseUnchanged(
       '<ul style="list-style-type: disc"><li><p>A</p></li></ul><ol start="3"><li><p>B</p></li></ol>',
@@ -257,14 +257,14 @@ describe('sanitizeProseHtml — fidelity over the editor round-trip corpus', () 
   });
 
   it('keeps paragraph geometry imported from PPTX (round-trip fixture)', () => {
-    // Verbatim from packages/@openmaic/editor/test/react/text/prosemirror-schema.test.ts.
+    // Verbatim from packages/@ljkt/editor/test/react/text/prosemirror-schema.test.ts.
     expectProseUnchanged(
       '<div style="padding: 4.8px 9.6px"><p style="margin-left: 78px; text-indent: -30px; padding-top: 7.3px; margin-top: 8px; margin-bottom: 5px">Text</p></div>',
     );
   });
 
   it('keeps bullet-glyph inline-block spans (round-trip fixture)', () => {
-    // Verbatim from packages/@openmaic/editor/test/react/text/prosemirror-schema.test.ts.
+    // Verbatim from packages/@ljkt/editor/test/react/text/prosemirror-schema.test.ts.
     expectProseUnchanged(
       '<p><span style="display: inline-block; width: 30px; text-indent: 0; box-sizing: border-box">■</span>1954年清华大学首创</p>',
     );
@@ -274,14 +274,14 @@ describe('sanitizeProseHtml — fidelity over the editor round-trip corpus', () 
   });
 
   it('keeps explicit line breaks and run-level spans (round-trip fixture)', () => {
-    // Verbatim from packages/@openmaic/editor/test/react/text/prosemirror-schema.test.ts.
+    // Verbatim from packages/@ljkt/editor/test/react/text/prosemirror-schema.test.ts.
     expectProseUnchanged(
       '<p><span style="font-size: 29.3px">1954年清华大学首创“先进集体”</span><br><span style="font-size: 29.3px">评选制度</span></p>',
     );
   });
 
   it('keeps character spacing, indentation and nowrap (round-trip fixtures)', () => {
-    // Verbatim from packages/@openmaic/editor/test/react/text/prosemirror-schema.test.ts.
+    // Verbatim from packages/@ljkt/editor/test/react/text/prosemirror-schema.test.ts.
     expectProseUnchanged(
       '<p style="text-indent: 78px"><span style="letter-spacing: 1.5pt">Indented text</span></p>',
     );

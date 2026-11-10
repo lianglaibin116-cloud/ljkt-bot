@@ -6,7 +6,7 @@ import type { PBLProjectV2, PBLRole } from '@/lib/pbl/v2/types';
 import type { Action } from '@/lib/types/action';
 import type { QuizContent, Scene, SlideContent } from '@/lib/types/stage';
 import type { WidgetConfig } from '@/lib/types/widgets';
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import {
   containsReadSceneMediaPlaceholder,
   containsReadScenePlaceholderFragment,

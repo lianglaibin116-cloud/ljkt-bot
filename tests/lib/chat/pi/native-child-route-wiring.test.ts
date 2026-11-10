@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NextRequest } from 'next/server';
-import type { RuntimeRecord } from '@openmaic/dsl';
-import { BrowserRuntimeStore } from '@openmaic/storage';
+import type { RuntimeRecord } from '@ljkt/dsl';
+import { BrowserRuntimeStore } from '@ljkt/storage';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 
 import { APP_RUNTIME_PAYLOAD_VALIDATORS } from '@/lib/runtime/payload-validators';

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { resolveImageIds } from '@openmaic/generation';
-import type { GeneratedSlideData } from '@openmaic/generation';
+import { resolveImageIds } from '@ljkt/generation';
+import type { GeneratedSlideData } from '@ljkt/generation';
 
 function imageElement(src: string): GeneratedSlideData['elements'][number] {
   return {

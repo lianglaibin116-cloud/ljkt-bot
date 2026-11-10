@@ -6,7 +6,7 @@
  */
 @import 'tailwindcss' source(none);
 
-@source '../../node_modules/@openmaic/renderer/dist/**/*.js';
+@source '../../node_modules/@ljkt/renderer/dist/**/*.js';
 @source './**/*.{ts,tsx}';
 
 html,

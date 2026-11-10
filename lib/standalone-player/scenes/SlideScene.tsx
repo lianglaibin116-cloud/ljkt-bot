@@ -1,7 +1,7 @@
-import { SlideCanvas, type SlideEffects } from '@openmaic/renderer';
+import { SlideCanvas, type SlideEffects } from '@ljkt/renderer';
 import { useRef } from 'react';
 import { useInlineMath } from '../inline-math';
-import type { PPTVideoElement, Slide } from '@openmaic/dsl';
+import type { PPTVideoElement, Slide } from '@ljkt/dsl';
 import type { StandalonePlayerStrings } from '@/lib/export/standalone-html/contract';
 import type { MediaLibrary } from '../playback/media-library';
 import type { VideoRegistry } from '../playback/media-ports';

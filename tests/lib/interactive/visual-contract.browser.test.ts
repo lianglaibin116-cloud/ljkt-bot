@@ -2,7 +2,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { chromium, type Browser, type Frame, type Page } from '@playwright/test';
 import { INTERACTIVE_VALIDATION_DRIVER } from '@/lib/interactive/validate-generated-html';
-import { findInteractiveScriptSyntaxFailure } from '../../../packages/@openmaic/generation/src/interactive-script-validator';
+import { findInteractiveScriptSyntaxFailure } from '../../../packages/@ljkt/generation/src/interactive-script-validator';
 import { interactiveVisualFixture } from '../../fixtures/interactive-visual-contract';
 
 describe.skipIf(process.env.INTERACTIVE_VISUAL_BROWSER !== '1')(

@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useMemo } from 'react';
-import type { PPTLineElement } from '@openmaic/dsl';
+import type { PPTLineElement } from '@ljkt/dsl';
 import { getLineElementPath } from '@/lib/utils/element';
 import { useElementShadow } from '../hooks/useElementShadow';
 import { LinePointMarker } from './LinePointMarker';

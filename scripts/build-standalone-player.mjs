@@ -5,7 +5,7 @@
  * The standalone HTML export inlines these files into every exported
  * classroom, so the export itself needs no bundler:
  *
- * - player.min.js        the player app (React + @openmaic/renderer), one IIFE
+ * - player.min.js        the player app (React + @ljkt/renderer), one IIFE
  * - player-charts.min.js the ECharts runtime for chart elements; the export
  *                        adds it only when a slide contains a chart
  * - player.min.css       Tailwind 4 output for the player and the renderer's

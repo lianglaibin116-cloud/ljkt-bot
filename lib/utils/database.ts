@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable, type Table } from 'dexie';
-import { migrate } from '@openmaic/dsl';
+import { migrate } from '@ljkt/dsl';
 import type {
   Scene,
   SceneType,
@@ -22,7 +22,7 @@ import type { VoiceDesign } from '@/lib/audio/voice-design';
 import type { UIMessage } from 'ai';
 import { createLogger } from '@/lib/logger';
 import { beginStageRuntimeDeletionSafely, getRuntimeStore } from '@/lib/runtime/store';
-import type { RuntimeStore } from '@openmaic/storage';
+import type { RuntimeStore } from '@ljkt/storage';
 import {
   withRuntimeStorageExclusiveLock,
   withRuntimeStorageExclusiveLockUntilSettled,
@@ -31,7 +31,7 @@ import {
 import type { ChatStorageOptions } from './chat-storage';
 import type { AppDocument } from '@/lib/document-store';
 import type { CourseDocument } from '@/lib/course-documents/types';
-import { BrowserKVStore } from '@openmaic/storage';
+import { BrowserKVStore } from '@ljkt/storage';
 import { clearAssetPool } from '@/lib/media/asset-pool';
 import { clearPendingMediaAllocations } from '@/lib/media/pending-media-allocations';
 
@@ -81,7 +81,7 @@ export interface StageRecord {
  * Folder table - User-created folders for grouping courses.
  *
  * Folder membership is device-local organization metadata, not part of the
- * course document itself (which is owned by the `@openmaic/storage`
+ * course document itself (which is owned by the `@ljkt/storage`
  * DocumentStore in a separate database). It lives in this Dexie database
  * alongside the legacy tables. See {@link StageFolderMembership}.
  */

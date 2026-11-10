@@ -7,14 +7,14 @@
  * at a PGlite-backed store with a single module mock, exactly like the
  * reference product's `getDb()` seam.
  */
-import { PgUserSkillStore, ensureUserSkillSchema } from '@openmaic/storage/skill/pg';
+import { PgUserSkillStore, ensureUserSkillSchema } from '@ljkt/storage/skill/pg';
 
 import { getServerPersistenceProvider } from '@/lib/persistence/server-provider';
 
-import type { Queryable, WithTransaction } from '@openmaic/storage/skill/pg';
+import type { Queryable, WithTransaction } from '@ljkt/storage/skill/pg';
 import type { Pool } from 'pg';
 
-export type { Queryable, WithTransaction } from '@openmaic/storage/skill/pg';
+export type { Queryable, WithTransaction } from '@ljkt/storage/skill/pg';
 
 interface UserSkillStoreState {
   connectionString?: string;

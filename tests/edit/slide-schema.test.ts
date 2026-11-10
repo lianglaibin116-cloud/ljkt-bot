@@ -6,7 +6,7 @@ import {
   migrateSlideContent,
 } from '@/lib/edit/slide-schema';
 import type { InteractiveContent, Scene, SlideContent } from '@/lib/types/stage';
-import type { Slide } from '@openmaic/dsl';
+import type { Slide } from '@ljkt/dsl';
 
 // `teacherActions` was removed from InteractiveContent and from every
 // WidgetConfig variant; legacy persisted documents still carry it both at the

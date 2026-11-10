@@ -1,6 +1,6 @@
 'use client';
 
-import { ElementTypes, type PPTElement } from '@openmaic/dsl';
+import { ElementTypes, type PPTElement } from '@ljkt/dsl';
 import { useMemo } from 'react';
 
 import { BaseImageElement } from '../components/element/ImageElement/BaseImageElement';

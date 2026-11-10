@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import type { PPTVideoElement, Slide } from '@openmaic/dsl';
+import type { PPTVideoElement, Slide } from '@ljkt/dsl';
 import type { StageStore } from '@/lib/api/stage-api';
 import { ActionEngine } from '@/lib/action/engine';
 import { useCanvasStore } from '@/lib/store/canvas';

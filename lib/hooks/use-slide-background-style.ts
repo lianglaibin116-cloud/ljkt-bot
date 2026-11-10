@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { SlideBackground } from '@openmaic/dsl';
+import type { SlideBackground } from '@ljkt/dsl';
 import { useMediaStageId } from '@/lib/contexts/media-stage-context';
 import { renderableMediaUrl, useResolvedMediaRef } from '@/lib/media/resolve-media-ref';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';

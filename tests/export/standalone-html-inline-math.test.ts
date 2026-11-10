@@ -12,11 +12,11 @@ vi.mock('parse-srcset', async (importOriginal) => {
     },
   };
 });
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import {
   createTextDocument,
   serializeTextDocument,
-} from '../../packages/@openmaic/editor/src/react/text/prosemirror/document';
+} from '../../packages/@ljkt/editor/src/react/text/prosemirror/document';
 import { renderInlineMath } from '@/lib/standalone-player/inline-math';
 import { sanitizeSlideRichText } from '@/lib/export/standalone-html/rich-text';
 import type { SlideContent } from '@/lib/types/stage';

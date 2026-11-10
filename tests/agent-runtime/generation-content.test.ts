@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PPTElement, Slide } from '@openmaic/dsl';
+import type { PPTElement, Slide } from '@ljkt/dsl';
 import { toGenerationContent } from '@/lib/server/agent-runtime/generation-content';
 import type { SlideContent } from '@/lib/types/stage';
 import { legacyPBLSceneFixture } from '@/tests/fixtures/pbl-v1-scene';

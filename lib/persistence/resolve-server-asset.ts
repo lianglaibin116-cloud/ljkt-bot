@@ -12,7 +12,7 @@
  * exceeds the caller-supplied cap, rejected before any bytes are read), or
  * resolved.
  */
-import { AssetNotFoundError, toAssetId, type AssetPrincipal } from '@openmaic/storage';
+import { AssetNotFoundError, toAssetId, type AssetPrincipal } from '@ljkt/storage';
 
 import { authenticatePersistenceHeaders } from './server-auth';
 import { getServerPersistenceProvider } from './server-provider';

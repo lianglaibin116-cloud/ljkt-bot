@@ -13,7 +13,7 @@ import {
   type AgentSessionMeta,
   type AgentSessionUserMessage,
   type ClaimedAgentSession,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 
 import { buildAgent } from '@/lib/agent/runtime/build-agent';
 import { createCallLlmStreamFn } from '@/lib/agent/runtime/stream-fn';

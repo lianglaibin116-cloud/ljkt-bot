@@ -18,7 +18,7 @@ import { resolve } from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 
-import { PgUserSkillStore, ensureUserSkillSchema } from '@openmaic/storage/skill/pg';
+import { PgUserSkillStore, ensureUserSkillSchema } from '@ljkt/storage/skill/pg';
 
 // The tools reach the store through `getUserSkillStore()` (user-skill-store.ts),
 // exactly as they do in the runner. Pointing that at PGlite exercises the real

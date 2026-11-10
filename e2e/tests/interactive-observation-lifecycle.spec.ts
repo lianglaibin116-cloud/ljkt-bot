@@ -246,7 +246,7 @@ test('a report that defeats recursion settles the sample instead of hanging it',
 
 // Execute the publication example that is actually included in generation prompts.
 const publicationExample = readFileSync(
-  'packages/@openmaic/generation/snippets/interactive-observation.md',
+  'packages/@ljkt/generation/snippets/interactive-observation.md',
   'utf8',
 ).match(/```javascript\n(function publishState[\s\S]*?)```/)![1];
 for (const failure of ['cycle', 'bigint', 'oversize', 'undefined'] as const) {

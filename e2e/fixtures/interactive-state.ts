@@ -30,7 +30,7 @@ export async function seedDatabase(
   options: {
     html?: string;
     modelId?: string;
-    whiteboard?: import('@openmaic/dsl').Whiteboard[];
+    whiteboard?: import('@ljkt/dsl').Whiteboard[];
   } = {},
 ) {
   const settings = JSON.parse(SETTINGS_STORAGE);

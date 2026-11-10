@@ -17,8 +17,8 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
-import { ensureAssetSchema } from '@openmaic/storage/asset/pg';
-import { ensureDocumentSchema } from '@openmaic/storage/document/pg';
+import { ensureAssetSchema } from '@ljkt/storage/asset/pg';
+import { ensureDocumentSchema } from '@ljkt/storage/document/pg';
 
 import {
   buildCurriculumTools,

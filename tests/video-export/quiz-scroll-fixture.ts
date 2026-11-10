@@ -1,4 +1,4 @@
-import type { Action } from '@openmaic/dsl';
+import type { Action } from '@ljkt/dsl';
 import type { CompilerScene, QuizLayoutMeasurement } from '@/lib/video-export';
 
 export const QUIZ_SCROLL_TITLE =

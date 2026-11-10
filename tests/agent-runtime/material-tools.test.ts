@@ -10,7 +10,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import type { AgentTool } from '@earendil-works/pi-agent-core';
-import type { AgentSessionMaterial } from '@openmaic/storage';
+import type { AgentSessionMaterial } from '@ljkt/storage';
 
 import { buildMaterialTools, MATERIAL_TOOL_NAMES } from '@/lib/server/agent-runtime/material-tools';
 

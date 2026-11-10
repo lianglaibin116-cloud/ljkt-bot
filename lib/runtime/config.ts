@@ -1,4 +1,4 @@
-import type { RuntimeStore } from '@openmaic/storage';
+import type { RuntimeStore } from '@ljkt/storage';
 
 export interface RuntimeStorageOptions {
   /** A RuntimeStore instance, or a factory evaluated lazily until it first succeeds. */

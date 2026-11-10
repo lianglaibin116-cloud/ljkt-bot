@@ -1,4 +1,4 @@
-import type { PPTElement, RuntimeRecord, Whiteboard } from '@openmaic/dsl';
+import type { PPTElement, RuntimeRecord, Whiteboard } from '@ljkt/dsl';
 import { describe, expect, it } from 'vitest';
 
 import { foldWhiteboardRuntimeRecords } from '@/lib/whiteboard/runtime/fold';

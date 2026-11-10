@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { RuntimeSessionStatus } from '@openmaic/dsl';
+import type { RuntimeSessionStatus } from '@ljkt/dsl';
 import type { UIMessage } from 'ai';
 
 import type { ChatMessageMetadata, ChatSession } from '@/lib/types/chat';

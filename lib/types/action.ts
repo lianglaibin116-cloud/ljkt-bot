@@ -1,7 +1,7 @@
 // Unified Action System.
 //
 // The Action contract — the playback verb set agents use to drive a
-// presentation — now lives in `@openmaic/dsl` and is re-exported below, so the
+// presentation — now lives in `@ljkt/dsl` and is re-exported below, so the
 // runtime engine, renderer, importer, and this app all share one source of
 // truth. Both the online (streaming) and offline (playback) paths consume the
 // same Action types.
@@ -10,7 +10,7 @@
 // existing `import { … } from '@/lib/types/action'` callers keep working
 // unchanged.
 
-import type { SpeechAction as DslSpeechAction } from '@openmaic/dsl';
+import type { SpeechAction as DslSpeechAction } from '@ljkt/dsl';
 
 /** Compatibility shape for server classroom payloads created before audioUrl was removed. */
 export type LegacySpeechAction = DslSpeechAction & { audioUrl?: string };
@@ -41,9 +41,9 @@ export type {
   Action,
   ActionType,
   PercentageGeometry,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 
 // The action-category lists are runtime values (plain arrays), so they must be
 // value re-exported — a bare `export type {}` would erase them and leave the
 // imports as `undefined` at runtime.
-export { FIRE_AND_FORGET_ACTIONS, SLIDE_ONLY_ACTIONS, SYNC_ACTIONS } from '@openmaic/dsl';
+export { FIRE_AND_FORGET_ACTIONS, SLIDE_ONLY_ACTIONS, SYNC_ACTIONS } from '@ljkt/dsl';

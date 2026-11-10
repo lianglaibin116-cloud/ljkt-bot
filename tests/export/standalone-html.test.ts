@@ -82,7 +82,7 @@ import {
 } from '@/lib/export/standalone-html/limits';
 import type { ClassroomManifest, ManifestAction } from '@/lib/export/classroom-zip-types';
 import type { Scene } from '@/lib/types/stage';
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import { legacyPBLSceneFixture } from '../fixtures/pbl-v1-scene';
 import {
   DEFAULT_FIXTURE_MEDIA,

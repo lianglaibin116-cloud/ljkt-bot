@@ -47,7 +47,7 @@ function escapeHtml(value: string): string {
 /** The stored form of one formula. */
 function storedFormula(latex: string): string {
   // Any length is kept as a formula. Typesetting is bounded where it happens
-  // (`MAX_INLINE_MATH_SOURCE` in @openmaic/renderer, shared by the editor):
+  // (`MAX_INLINE_MATH_SOURCE` in @ljkt/renderer, shared by the editor):
   // a longer source is shown as its LaTeX text there, and the stored form
   // keeps the marker so the formula is never lost.
   const escaped = escapeHtml(latex);

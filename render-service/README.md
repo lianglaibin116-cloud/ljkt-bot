@@ -1,4 +1,4 @@
-# @openmaic/render-service
+# @ljkt/render-service
 
 Isolated MP4 render service for OpenMAIC's classroom video export (issue #866).
 

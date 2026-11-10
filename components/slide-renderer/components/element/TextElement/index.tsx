@@ -4,7 +4,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { debounce } from 'lodash';
 import { useCanvasStore } from '@/lib/store';
 import { useHistorySnapshot } from '@/lib/hooks/use-history-snapshot';
-import type { PPTTextElement } from '@openmaic/dsl';
+import type { PPTTextElement } from '@ljkt/dsl';
 import { useElementShadow } from '../hooks/useElementShadow';
 import { ElementOutline } from '../ElementOutline';
 import { ProsemirrorEditor } from '../ProsemirrorEditor';

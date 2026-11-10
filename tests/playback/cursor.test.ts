@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { BrowserKVStore } from '@openmaic/storage';
+import { BrowserKVStore } from '@ljkt/storage';
 
 import {
   clearCursor,

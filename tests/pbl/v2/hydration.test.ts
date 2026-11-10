@@ -5,8 +5,8 @@ import type {
   RuntimeRecord,
   RuntimeRecordInit,
   RuntimeSession,
-} from '@openmaic/dsl';
-import { BrowserRuntimeStore, type RuntimeSessionInit, type RuntimeStore } from '@openmaic/storage';
+} from '@ljkt/dsl';
+import { BrowserRuntimeStore, type RuntimeSessionInit, type RuntimeStore } from '@ljkt/storage';
 
 import { applyInstructorEvent } from '@/components/scene-renderers/pbl/v2/apply-instructor-event';
 import { recordEvent } from '@/lib/pbl/v2/operations/kernel/engagement';
@@ -38,7 +38,7 @@ import {
   type PBLRuntimeStorePayload,
 } from '@/lib/pbl/v2/runtime/record-payloads';
 import { makeScene, type Scene } from '@/lib/types/stage';
-import type { KVScope, KVStore } from '@openmaic/storage';
+import type { KVScope, KVStore } from '@ljkt/storage';
 import type { PBLProjectV2, PBLRuntimeEvent } from '@/lib/pbl/v2/types';
 import { withRuntimeStorageExclusiveLock } from '@/lib/utils/chat-storage-lock';
 import { legacyPBLSceneFixture } from '@/tests/fixtures/pbl-v1-scene';

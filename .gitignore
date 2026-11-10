@@ -33,7 +33,7 @@ CLAUDE.local.md
 /build
 /dist
 
-# generated: synced from packages/@openmaic/importer/dist for runtime URL import
+# generated: synced from packages/@ljkt/importer/dist for runtime URL import
 /public/vendor/maic-importer
 /public/vendor/interactive-katex
 /public/vendor/interactive
@@ -120,4 +120,5 @@ render-service/.owner-bound-parent-*/
 
 # Independent desktop build and test outputs
 /desktop/build/
+/public/desktop/
 /test-results/bot/

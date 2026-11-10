@@ -6,17 +6,17 @@ import type {
   PPTLatexElement,
   PPTTableElement,
   PPTTextElement,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 import { useClipImage as useAppClipImage } from '@/components/slide-renderer/components/element/ImageElement/useClipImage';
 import { imageFiltersToCss as appImageFiltersToCss } from '@/components/slide-renderer/components/element/ImageElement/useFilter';
 import { BaseLatexElement } from '@/components/slide-renderer/components/element/LatexElement/BaseLatexElement';
 import { LatexElement } from '@/components/slide-renderer/components/element/LatexElement';
 import { BaseTextElement } from '@/components/slide-renderer/components/element/TextElement/BaseTextElement';
 import { StaticTable } from '@/components/slide-renderer/components/element/TableElement/StaticTable';
-import { useClipImage as usePackageClipImage } from '../../packages/@openmaic/renderer/src/elements/image/useClipImage';
-import { imageFiltersToCss as packageImageFiltersToCss } from '../../packages/@openmaic/renderer/src/elements/image/useFilter';
-import { BaseTextElement as PackageBaseTextElement } from '../../packages/@openmaic/renderer/src/elements/text/BaseTextElement';
-import { StaticTable as PackageStaticTable } from '../../packages/@openmaic/renderer/src/elements/table/StaticTable';
+import { useClipImage as usePackageClipImage } from '../../packages/@ljkt/renderer/src/elements/image/useClipImage';
+import { imageFiltersToCss as packageImageFiltersToCss } from '../../packages/@ljkt/renderer/src/elements/image/useFilter';
+import { BaseTextElement as PackageBaseTextElement } from '../../packages/@ljkt/renderer/src/elements/text/BaseTextElement';
+import { StaticTable as PackageStaticTable } from '../../packages/@ljkt/renderer/src/elements/table/StaticTable';
 
 const roundRectImage = {
   id: 'img-1',

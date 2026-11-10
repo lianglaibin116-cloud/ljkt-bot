@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseJsonResponse } from '@openmaic/generation';
+import { parseJsonResponse } from '@ljkt/generation';
 
 describe('json-repair targeted fixes', () => {
   it('repairs quoted key-value fragments such as "height: 76"', () => {

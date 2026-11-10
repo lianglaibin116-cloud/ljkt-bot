@@ -15,7 +15,7 @@
  */
 import type { AgentTool } from '@earendil-works/pi-agent-core';
 import { InMemorySessionRepo, Session } from '@earendil-works/pi-agent-core';
-import type { ClaimedAgentSession } from '@openmaic/storage';
+import type { ClaimedAgentSession } from '@ljkt/storage';
 import { Type } from 'typebox';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

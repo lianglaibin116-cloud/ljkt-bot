@@ -9,7 +9,7 @@ import {
   type ShapePathFormulasKeys,
   type TextType,
   type WidgetType,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 import { parseHTML } from 'linkedom/worker';
 import {
   defaultTreeAdapter,

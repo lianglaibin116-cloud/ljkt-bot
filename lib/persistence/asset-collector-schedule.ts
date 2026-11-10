@@ -28,12 +28,12 @@ import {
   AssetCollector,
   AssetReferenceTrackingNotEnabledError,
   StorageLockUnavailableError,
-} from '@openmaic/storage/asset/collector';
-import { ensureAssetSchema } from '@openmaic/storage/asset/pg';
+} from '@ljkt/storage/asset/collector';
+import { ensureAssetSchema } from '@ljkt/storage/asset/pg';
 import {
   nodePostgresTransaction,
   type ConnectableQueryable,
-} from '@openmaic/storage/server/reference';
+} from '@ljkt/storage/server/reference';
 import { Pool } from 'pg';
 
 import { resolveAssetCollectionGraceMs } from '@/lib/persistence/asset-collection-grace';

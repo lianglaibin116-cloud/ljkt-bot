@@ -4,7 +4,7 @@ import { join, relative, sep } from 'node:path';
 import { inflateRawSync } from 'node:zlib';
 import JSZip from 'jszip';
 import { dump as dumpYaml, load as loadYaml } from 'js-yaml';
-import { UserSkillError, validateUserSkillInput, type UserSkillFields } from '@openmaic/storage';
+import { UserSkillError, validateUserSkillInput, type UserSkillFields } from '@ljkt/storage';
 
 export const openClawSkillDir = join(process.cwd(), 'skills', 'openmaic');
 export const builtinSkillsDir = join(process.cwd(), 'skills', 'agent-runtime');

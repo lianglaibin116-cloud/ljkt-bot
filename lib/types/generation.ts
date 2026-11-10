@@ -7,7 +7,7 @@
 
 import type { ActionType } from './action';
 import type { MediaGenerationRequest } from '@/lib/media/types';
-import type { SchoolCourseProfile } from '@openmaic/dsl';
+import type { SchoolCourseProfile } from '@ljkt/dsl';
 
 // ==================== PDF Image Types ====================
 
@@ -199,7 +199,7 @@ export interface SceneOutline {
 
 // ==================== Stage 3 Output: Generated Content ====================
 
-import type { PPTElement, SlideBackground } from '@openmaic/dsl';
+import type { PPTElement, SlideBackground } from '@ljkt/dsl';
 import type { QuizQuestion } from './stage';
 
 /**

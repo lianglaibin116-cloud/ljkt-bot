@@ -6,7 +6,7 @@ const sourcePath = resolve(
   process.cwd(),
   'components/edit/surfaces/slide/RendererEditorCanvas.tsx',
 );
-const editorReadmePath = resolve(process.cwd(), 'packages/@openmaic/editor/README.md');
+const editorReadmePath = resolve(process.cwd(), 'packages/@ljkt/editor/README.md');
 const packageSmokePath = resolve(process.cwd(), 'scripts/smoke-test-package-tarballs.mjs');
 
 describe('renderer editor app boundary', () => {
@@ -51,7 +51,7 @@ describe('renderer editor app boundary', () => {
     expect(readme).toContain(
       'setHistory((current) => applyEditorTransaction(current, transaction))',
     );
-    expect(readme).toContain("import '@openmaic/renderer/fonts.css';");
+    expect(readme).toContain("import '@ljkt/renderer/fonts.css';");
     expect(readme).toContain("import 'katex/dist/katex.min.css';");
     expect(readme).toContain('Tailwind 4');
   });
@@ -59,9 +59,9 @@ describe('renderer editor app boundary', () => {
   it('smoke-tests every published editor entry from packed artifacts', () => {
     const smoke = readFileSync(packageSmokePath, 'utf8');
 
-    expect(smoke).toContain("from '@openmaic/editor';");
-    expect(smoke).toContain("from '@openmaic/editor/core';");
-    expect(smoke).toContain("from '@openmaic/editor/react';");
-    expect(smoke).toContain("from '@openmaic/editor/ui';");
+    expect(smoke).toContain("from '@ljkt/editor';");
+    expect(smoke).toContain("from '@ljkt/editor/core';");
+    expect(smoke).toContain("from '@ljkt/editor/react';");
+    expect(smoke).toContain("from '@ljkt/editor/ui';");
   });
 });

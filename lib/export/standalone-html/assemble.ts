@@ -246,7 +246,7 @@ export function assembleStandaloneHtmlParts(input: StandaloneHtmlInput): string[
     `<meta http-equiv="Content-Security-Policy" content="${csp}">`,
     '<meta name="referrer" content="no-referrer">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<meta name="generator" content="OpenMAIC">',
+    '<meta name="generator" content="LJKT Bot">',
     `<title>${escapeHtmlText(title)}</title>`,
     styles,
     `<style>${FALLBACK_STYLE}</style>`,

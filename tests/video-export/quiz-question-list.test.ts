@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Action } from '@openmaic/dsl';
+import type { Action } from '@ljkt/dsl';
 import {
   compileVideoTimeline,
   prepareQuizQuestionList,

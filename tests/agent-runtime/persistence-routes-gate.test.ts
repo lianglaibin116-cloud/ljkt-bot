@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-import type { AgentSessionMaterial } from '@openmaic/storage';
+import type { AgentSessionMaterial } from '@ljkt/storage';
 
 import { createFakeDocumentStore } from './_fake-document-store';
 import { makeDocument, makeSlideScene } from './_stage-fixtures';

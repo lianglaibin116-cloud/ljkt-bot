@@ -10,7 +10,7 @@
  * Client-only: the default KV store lazily touches `localStorage`. Server
  * code must not import this without injecting its own `KVStore`.
  */
-import { BrowserKVStore, type KVStore } from '@openmaic/storage';
+import { BrowserKVStore, type KVStore } from '@ljkt/storage';
 
 import { registerRuntimeStorageResetHook, resolveConfiguredLearnerKey } from './config';
 

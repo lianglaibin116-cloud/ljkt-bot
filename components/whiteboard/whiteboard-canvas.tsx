@@ -11,12 +11,12 @@ import {
   useImperativeHandle,
 } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ElementTypes, type PPTElement, type Whiteboard } from '@openmaic/dsl';
+import { ElementTypes, type PPTElement, type Whiteboard } from '@ljkt/dsl';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { ScreenElement } from '@/components/slide-renderer/Editor/ScreenElement';
 import { normalizeWhiteboardViewportRatio } from '@/lib/whiteboard/viewport';
 import { useI18n } from '@/lib/hooks/use-i18n';
-import { createTextProseStyles } from '@openmaic/renderer';
+import { createTextProseStyles } from '@ljkt/renderer';
 
 const WHITEBOARD_PROSE_STYLES = createTextProseStyles(
   '.whiteboard-screen-canvas .screen-element .slide-renderer-prose',

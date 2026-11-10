@@ -18,7 +18,7 @@
  *
  * Pure: no IO beyond the injected dependencies.
  */
-import type { SceneType, PlayVideoAction, Action } from '@openmaic/dsl';
+import type { SceneType, PlayVideoAction, Action } from '@ljkt/dsl';
 import type {
   AssetSource,
   CompileConfig,

@@ -17,7 +17,7 @@
  *
  * This is an **application-layer convention about what this application puts
  * into the pool**, not a validator for the pool's id domain. That domain is
- * deliberately unconstrained (see `@openmaic/storage`'s `toAssetId`, and note
+ * deliberately unconstrained (see `@ljkt/storage`'s `toAssetId`, and note
  * that the prefix constant is deliberately not exported from that package, so
  * a validator cannot be grown from it): the pool will happily store and return
  * an id of any shape. Nothing here decides what a *valid* id looks like — only

@@ -2,11 +2,11 @@
  * Widget Configuration Types for Ultra Interaction Mode
  */
 
-import type { WidgetConfigBase } from '@openmaic/dsl';
+import type { WidgetConfigBase } from '@ljkt/dsl';
 
 // ==================== Base Types ====================
 
-export type { WidgetType } from '@openmaic/dsl';
+export type { WidgetType } from '@ljkt/dsl';
 
 // ==================== Simulation Widget ====================
 

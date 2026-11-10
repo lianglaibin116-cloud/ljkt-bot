@@ -25,8 +25,8 @@ vi.mock('@/lib/config/feature-flags', () => ({
   resolveVocationalActive: mocks.resolveVocationalActive,
 }));
 
-vi.mock('@openmaic/generation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@openmaic/generation')>()),
+vi.mock('@ljkt/generation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@ljkt/generation')>()),
   applyOutlineFallbacks: mocks.applyOutlineFallbacks,
   generateSceneContent: mocks.generateSceneContent,
   generateSceneActions: mocks.generateSceneActions,
@@ -289,7 +289,7 @@ describe('scene API retry boundary', () => {
   it('preserves the provider status carried by a PBLGenerationError', async () => {
     vi.resetModules();
     const providerError = Object.assign(new Error('provider rate limited'), { statusCode: 429 });
-    const { PBLGenerationError } = await import('@openmaic/generation');
+    const { PBLGenerationError } = await import('@ljkt/generation');
     mocks.generateSceneContent.mockRejectedValueOnce(
       new PBLGenerationError('PBL planners failed', {
         cause: providerError,

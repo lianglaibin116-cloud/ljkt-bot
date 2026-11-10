@@ -1,5 +1,5 @@
-import { DSL_VERSION, migrate } from '@openmaic/dsl';
-import { BrowserKVStore, type DocumentStore, type KVStore } from '@openmaic/storage';
+import { DSL_VERSION, migrate } from '@ljkt/dsl';
+import { BrowserKVStore, type DocumentStore, type KVStore } from '@ljkt/storage';
 import isEqual from 'lodash/isEqual';
 
 import type { AppScene } from '@/lib/types/stage';
@@ -321,7 +321,7 @@ function assertValidDestination(stageId: string, document: AppDocument): void {
  * shape and are expected to key on `scene.type` and pass app kinds through
  * untouched. This is the deliberate asymmetry with `outline`, which the DSL owns
  * no contract for at all.
- * This mirrors `@openmaic/storage`'s private `migrateDocument` in
+ * This mirrors `@ljkt/storage`'s private `migrateDocument` in
  * `document/browser.ts`; changes must be kept in sync.
  */
 export function migrateDocumentForVerification(

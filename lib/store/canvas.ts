@@ -4,7 +4,7 @@ import type { TextAttrs } from '@/lib/prosemirror/utils';
 import { defaultRichTextAttrs } from '@/lib/prosemirror/utils';
 import type { TextFormatPainter, ShapeFormatPainter, CreatingElement } from '@/lib/types/edit';
 import type { PercentageGeometry } from '@/lib/types/action';
-import type { Whiteboard } from '@openmaic/dsl';
+import type { Whiteboard } from '@ljkt/dsl';
 
 /**
  * Spotlight options

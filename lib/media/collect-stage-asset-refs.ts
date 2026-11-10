@@ -1,4 +1,4 @@
-import { enumerateAssetManifest, type Slide } from '@openmaic/dsl';
+import { enumerateAssetManifest, type Slide } from '@ljkt/dsl';
 import { getDocumentStore } from '@/lib/document-store';
 import { createLogger } from '@/lib/logger';
 import type { Scene, Stage } from '@/lib/types/stage';

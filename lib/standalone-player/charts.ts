@@ -1,7 +1,7 @@
 /**
  * Entry of the optional charts script of the standalone player. It registers
  * exactly the ECharts surface the renderer's chart element loads (see
- * `@openmaic/renderer` `chartRuntime`) on a global; the export inlines it only
+ * `@ljkt/renderer` `chartRuntime`) on a global; the export inlines it only
  * for classrooms whose slides contain charts.
  */
 import { init, use } from 'echarts/core';

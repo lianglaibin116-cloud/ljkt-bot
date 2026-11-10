@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { generateSceneContent, type AICallFn } from '@openmaic/generation';
+import { generateSceneContent, type AICallFn } from '@ljkt/generation';
 import type { SceneOutline, GeneratedSlideContent } from '@/lib/types/generation';
 
 const INSTRUCTION = '<<EDIT-INSTRUCTION-SENTINEL>> make it concise';

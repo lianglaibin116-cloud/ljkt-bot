@@ -3,7 +3,7 @@ import {
   type CodeLine,
   type RuntimeRecord,
   type Whiteboard,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 
 import { normalizeWhiteboardViewportRatio } from '@/lib/whiteboard/viewport';
 

@@ -2,8 +2,8 @@ import type { ParsedPdfContent } from '@/lib/types/pdf';
 // Import the narrow server-safe parser modules directly. The public package
 // entry also exports browser rendering helpers that pull PDF.js into the
 // server bundle, where it expects XMLHttpRequest.
-import { buildPresentation } from '../../packages/@openmaic/importer/src/model/Presentation';
-import { parseZip } from '../../packages/@openmaic/importer/src/parser/ZipParser';
+import { buildPresentation } from '../../packages/@ljkt/importer/src/model/Presentation';
+import { parseZip } from '../../packages/@ljkt/importer/src/parser/ZipParser';
 
 type UnknownRecord = Record<string, unknown>;
 

@@ -1,5 +1,5 @@
 /**
- * The app's document-persistence seam over `@openmaic/storage`'s
+ * The app's document-persistence seam over `@ljkt/storage`'s
  * DocumentStore: AppDocument types, validators, legacy canonicalizers, the
  * lazy client store singleton, locked lazy migration, and the device-scoped
  * current-scene position. Distinct from `lib/document/` (server-side content

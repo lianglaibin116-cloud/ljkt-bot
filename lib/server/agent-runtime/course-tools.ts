@@ -28,8 +28,8 @@
  *    `buildRunnerCoursePrompt` (runner-contract.ts).
  */
 import type { AgentTool } from '@earendil-works/pi-agent-core';
-import type { DocumentFolderStore, DocumentStore, MaicDocument } from '@openmaic/storage';
-import type { Stage } from '@openmaic/dsl';
+import type { DocumentFolderStore, DocumentStore, MaicDocument } from '@ljkt/storage';
+import type { Stage } from '@ljkt/dsl';
 
 import type { Scene } from '@/lib/types/stage';
 import { STAGE_WRITER_TOOL_NAMES } from '@/lib/agent-runtime/stage-writer-tools';

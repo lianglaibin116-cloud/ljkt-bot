@@ -1,5 +1,5 @@
-import type { ConnectableQueryable } from '@openmaic/storage/server/reference';
-import type { Queryable } from '@openmaic/storage/document/pg';
+import type { ConnectableQueryable } from '@ljkt/storage/server/reference';
+import type { Queryable } from '@ljkt/storage/document/pg';
 import {
   courseDocumentSchema,
   prepareDocumentSave,

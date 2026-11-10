@@ -9,9 +9,9 @@
  * PostgreSQL, on the two write paths this application actually uses: the full
  * save, and the single-scene write the media write-back issues.
  */
-import type { Scene, Stage } from '@openmaic/dsl';
-import type { MaicDocument } from '@openmaic/storage';
-import { StorageLockUnavailableError } from '@openmaic/storage';
+import type { Scene, Stage } from '@ljkt/dsl';
+import type { MaicDocument } from '@ljkt/storage';
+import { StorageLockUnavailableError } from '@ljkt/storage';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 

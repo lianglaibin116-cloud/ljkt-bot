@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Action } from '@openmaic/dsl';
+import type { Action } from '@ljkt/dsl';
 import { upgradeLegacyPBLConfigToProjectV2, type PBLProjectConfig } from '@/lib/pbl/legacy/read';
 import type { PBLProjectV2 } from '@/lib/pbl/v2/types';
 import {

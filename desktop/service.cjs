@@ -8,7 +8,7 @@ const isDev = process.env.LJKT_BOT_DESKTOP_DEV === '1';
 process.env.NODE_ENV = isDev ? 'development' : 'production';
 process.env.NEXT_TELEMETRY_DISABLED = '1';
 process.env.NEXT_PUBLIC_TEACHER_WORKSPACE_ENABLED = '1';
-process.env.OPENMAIC_LOCAL_ACCEPTANCE = '1';
+process.env.LJKT_LOCAL_ACCEPTANCE = '1';
 let config;
 if (!isDev) {
   const manifest = JSON.parse(

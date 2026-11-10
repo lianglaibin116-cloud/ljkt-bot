@@ -34,7 +34,7 @@
  * resolve (embedded data blocks for the single file; a later variant can ship
  * the same paths as files next to the page).
  */
-import type { PPTElement, Slide } from '@openmaic/dsl';
+import type { PPTElement, Slide } from '@ljkt/dsl';
 import type {
   DiscussionAction,
   LaserAction,
@@ -45,7 +45,7 @@ import type {
   WidgetHighlightAction,
   WidgetRevealAction,
   WidgetSetStateAction,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 import { patchHtmlForIframe } from '@/lib/utils/iframe';
 import {
   analyzeHtmlAssetInventory,

@@ -1,5 +1,5 @@
 import { type NextRequest } from 'next/server';
-import { validateScene } from '@openmaic/dsl';
+import { validateScene } from '@ljkt/dsl';
 import { apiSuccess, apiError, API_ERROR_CODES } from '@/lib/server/api-response';
 import {
   buildRequestOrigin,

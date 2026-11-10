@@ -2,13 +2,13 @@ import { createRequire } from 'node:module';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 /**
- * Assert that @openmaic/storage's PostgreSQL contract suites really exercised a
+ * Assert that @ljkt/storage's PostgreSQL contract suites really exercised a
  * real PostgreSQL, from evidence that cannot be produced by editing the tests.
  *
  * WHY THIS EXISTS AT ALL. The suites already refuse to skip when
  * STORAGE_PG_CONTRACT_REQUIRED=1, but that refusal is a `throw` inside the test
  * modules, so it cannot fire if vitest stops collecting them. Collection is
- * decided by `packages/@openmaic/storage/vitest.config.ts`, and both that file
+ * decided by `packages/@ljkt/storage/vitest.config.ts`, and both that file
  * and the whole `test/` directory are on the ignore list of publishable inputs
  * in `check-package-version-bumps.mjs`. The entire surface those suites live on
  * can therefore be rewritten with no version bump and no release gate noticing.
@@ -59,10 +59,10 @@ import { readFileSync, writeFileSync } from 'node:fs';
  */
 
 const REQUIRED_SUITES = [
-  'packages/@openmaic/storage/test/pg-document-store.pg.test.ts',
-  'packages/@openmaic/storage/test/pg-runtime-store.pg.test.ts',
-  'packages/@openmaic/storage/test/pg-scene-revision.pg.test.ts',
-  'packages/@openmaic/storage/test/pg-asset-store.pg.test.ts',
+  'packages/@ljkt/storage/test/pg-document-store.pg.test.ts',
+  'packages/@ljkt/storage/test/pg-runtime-store.pg.test.ts',
+  'packages/@ljkt/storage/test/pg-scene-revision.pg.test.ts',
+  'packages/@ljkt/storage/test/pg-asset-store.pg.test.ts',
 ];
 
 /**
@@ -148,10 +148,10 @@ if (!contractUrl) {
 
 // The database side -----------------------------------------------------------
 
-// `pg` is a devDependency of @openmaic/storage, not of the repository root, so
+// `pg` is a devDependency of @ljkt/storage, not of the repository root, so
 // resolve it from the package that owns it rather than assuming hoisting.
 const requireFromStorage = createRequire(
-  new URL('../packages/@openmaic/storage/package.json', import.meta.url),
+  new URL('../packages/@ljkt/storage/package.json', import.meta.url),
 );
 const { Client } = requireFromStorage('pg');
 
@@ -241,7 +241,7 @@ for (const suite of REQUIRED_SUITES) {
   if (!entry) {
     failures.push(
       `${suite} did not run, so the PostgreSQL contract is unverified. ` +
-        "Check vitest's `include`/`exclude` in packages/@openmaic/storage/vitest.config.ts.",
+        "Check vitest's `include`/`exclude` in packages/@ljkt/storage/vitest.config.ts.",
     );
     continue;
   }
@@ -309,7 +309,7 @@ for (const table of REQUIRED_TABLES) {
     databaseFailures.push(
       `${table} exists but gained no inserts during this run (before ${before}, after ` +
         `${observed.inserts}), so the suites did not write to this database. Check for a ` +
-        'mocked driver in packages/@openmaic/storage/test/setup.ts, or a stubbed-out suite body.',
+        'mocked driver in packages/@ljkt/storage/test/setup.ts, or a stubbed-out suite body.',
     );
     continue;
   }

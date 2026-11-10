@@ -44,8 +44,8 @@ vi.mock('@/lib/ai/llm', () => ({
     })(),
   }),
 }));
-vi.mock('@openmaic/generation', async (original) => ({
-  ...(await original<typeof import('@openmaic/generation')>()),
+vi.mock('@ljkt/generation', async (original) => ({
+  ...(await original<typeof import('@ljkt/generation')>()),
   generateSceneContent: async (
     _outline: unknown,
     aiCall: (s: string, u: string) => Promise<string>,

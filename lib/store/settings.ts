@@ -1,7 +1,7 @@
 /**
  * Settings Store
  *
- * Global settings, persisted through the `@openmaic/storage` KVStore in the
+ * Global settings, persisted through the `@ljkt/storage` KVStore in the
  * `account` scope. The bulk of this store is the user's provider/model
  * configuration — the canonical `account`-scoped value in the storage contract,
  * and the thing a second device should not have to be told again.

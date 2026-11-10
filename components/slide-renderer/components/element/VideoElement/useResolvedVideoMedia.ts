@@ -1,6 +1,6 @@
 'use client';
 
-import type { PPTVideoElement } from '@openmaic/dsl';
+import type { PPTVideoElement } from '@ljkt/dsl';
 import type { MediaTask } from '@/lib/store/media-generation';
 import { resolveVideoMediaForElement } from '@/lib/media/media-task-resolution';
 import {

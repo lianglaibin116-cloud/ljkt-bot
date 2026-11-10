@@ -6,7 +6,7 @@
  * migration is delegated lazily so importing this module never opens either
  * browser store.
  */
-import { BrowserKVStore, type KVStore } from '@openmaic/storage';
+import { BrowserKVStore, type KVStore } from '@ljkt/storage';
 
 export interface PlaybackCursor {
   sceneId: string;

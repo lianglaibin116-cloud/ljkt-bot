@@ -1,4 +1,4 @@
-import { BrowserRuntimeStore } from '@openmaic/storage';
+import { BrowserRuntimeStore } from '@ljkt/storage';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

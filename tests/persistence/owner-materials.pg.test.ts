@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import type { ConnectableQueryable } from '@openmaic/storage/server/reference';
+import type { ConnectableQueryable } from '@ljkt/storage/server/reference';
 
 import {
   ensureOwnerMaterialSchema,

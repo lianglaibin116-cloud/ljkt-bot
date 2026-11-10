@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { AssetManifestEntry } from '@openmaic/dsl';
+import type { AssetManifestEntry } from '@ljkt/dsl';
 
 const mocks = vi.hoisted(() => ({
   audioRows: new Map<

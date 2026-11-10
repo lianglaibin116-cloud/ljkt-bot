@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from 'react';
 import { CheckCircle2, RotateCcw, XCircle } from 'lucide-react';
-import type { QuizQuestion } from '@openmaic/dsl';
+import type { QuizQuestion } from '@ljkt/dsl';
 import {
   answerIncludesOption,
   gradeChoiceQuestions,

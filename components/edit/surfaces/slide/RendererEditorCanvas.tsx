@@ -1,13 +1,13 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import type { Selection } from '@openmaic/editor/react';
+import type { Selection } from '@ljkt/editor/react';
 import {
   EditableSlideCanvasWithUI,
   type EditorHostCapabilities,
   type EditorTranslate,
-} from '@openmaic/editor/ui';
-import type { EditorTransaction } from '@openmaic/editor/core';
+} from '@ljkt/editor/ui';
+import type { EditorTransaction } from '@ljkt/editor/core';
 import { useResolvedSlide } from '@/components/slide-renderer/use-resolved-slide';
 import { createElementId } from '@/lib/edit/element-id';
 import { useI18n } from '@/lib/hooks/use-i18n';

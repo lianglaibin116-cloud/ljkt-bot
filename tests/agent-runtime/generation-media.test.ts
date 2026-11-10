@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { AgentSessionMaterial } from '@openmaic/storage';
+import type { AgentSessionMaterial } from '@ljkt/storage';
 
 const mocks = vi.hoisted(() => ({
   persist: vi.fn(async () => '/api/classroom-media/stage-a/media/image.png'),

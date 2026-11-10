@@ -3,8 +3,8 @@ import {
   ensureAgentSessionSchema,
   type Queryable,
   type WithTransaction,
-} from '@openmaic/storage/agent-session/pg';
-import { extractObservedUrls } from '@openmaic/storage';
+} from '@ljkt/storage/agent-session/pg';
+import { extractObservedUrls } from '@ljkt/storage';
 import type { Pool } from 'pg';
 
 import { getServerPersistenceProvider } from '@/lib/persistence/server-provider';

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ExternalLink } from 'lucide-react';
-import type { PBLProject } from '@openmaic/dsl';
+import type { PBLProject } from '@ljkt/dsl';
 import type { StandalonePlayerStrings } from '@/lib/export/standalone-html/contract';
 
 interface BriefingMilestone {

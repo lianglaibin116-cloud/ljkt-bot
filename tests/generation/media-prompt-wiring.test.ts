@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { generateSceneContent, generateSceneOutlinesFromRequirements } from '@openmaic/generation';
+import { generateSceneContent, generateSceneOutlinesFromRequirements } from '@ljkt/generation';
 import type { SceneOutline, UserRequirements } from '@/lib/types/generation';
-import type { AICallFn } from '@openmaic/generation';
+import type { AICallFn } from '@ljkt/generation';
 
 describe('media prompt condition wiring', () => {
   test('outline generation passes media enable flags into conditional snippets', async () => {

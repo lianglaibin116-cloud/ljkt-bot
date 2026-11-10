@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Stage } from '@openmaic/dsl';
+import type { Stage } from '@ljkt/dsl';
 import { auditSchoolCourse, canConfirmTeacherReview } from '@/lib/course-quality/audit';
 import type { Scene } from '@/lib/types/stage';
 

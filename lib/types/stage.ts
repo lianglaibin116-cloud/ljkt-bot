@@ -1,7 +1,7 @@
 // Stage and Scene data types.
 //
 // The universal lesson skeleton (Stage / Scene / SceneContent / Whiteboard /
-// VideoManifest / SlideContent / QuizContent / …) now lives in `@openmaic/dsl` and
+// VideoManifest / SlideContent / QuizContent / …) now lives in `@ljkt/dsl` and
 // is re-exported below. `Scene` is generic there: the contract owns the
 // structure and all four persisted content kinds, while richer interactive
 // widget payloads and PBL learner/runtime state are composed in here.
@@ -14,7 +14,7 @@ import type {
   PBLContent as DslPBLContent,
   Scene as DslScene,
   SceneContent as DslSceneContent,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 import type { Action } from '@/lib/types/action';
 import type { WidgetConfig } from '@/lib/types/widgets';
 import type { PBLProjectConfig } from '@/lib/pbl/legacy/read';
@@ -33,26 +33,26 @@ export type {
   QuizOption,
   QuizQuestion,
   QuizContent,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 
 // The two discriminant guards are runtime functions, so they must be value
 // re-exported — a bare `export type {}` erases them and leaves the import as
 // `undefined` at runtime / "cannot be used as a value" at the type level.
-export { isSlideContent, isQuizContent } from '@openmaic/dsl';
+export { isSlideContent, isQuizContent } from '@ljkt/dsl';
 
-// `@openmaic/dsl` inlines the question-type union on `QuizQuestion.type` rather than
+// `@ljkt/dsl` inlines the question-type union on `QuizQuestion.type` rather than
 // exporting a named alias; derive it here so editor quiz code can keep importing
 // `QuizQuestionType` from `@/lib/types/stage`.
-export type QuizQuestionType = import('@openmaic/dsl').QuizQuestion['type'];
+export type QuizQuestionType = import('@ljkt/dsl').QuizQuestion['type'];
 
 // The contract's compatibility-default `SceneContent` is slide | quiz. Reach it
 // under a distinct name; the contract-owned interactive and PBL shapes are
 // widened below before composing the app's full four-way union.
-export type { SceneContent as SceneContentBase } from '@openmaic/dsl';
+export type { SceneContent as SceneContentBase } from '@ljkt/dsl';
 
 // The raw, generic contract Scene is reachable under a distinct name for
 // callers (e.g. read-only renderers) that want the feature-free skeleton.
-export type { Scene as SceneShape } from '@openmaic/dsl';
+export type { Scene as SceneShape } from '@ljkt/dsl';
 
 /**
  * Interactive content - Interactive web page (iframe).
@@ -102,7 +102,7 @@ export type AppScene = DslScene<Action, SceneContent> & {
    * agent tools resolve a scene's outline by identity instead of by the mutable
    * `order`, which Pro-mode insert / reorder / delete rebalances (matching by
    * `order` after a reorder attaches another slide's outline). An app-layer
-   * annotation only — not part of the `@openmaic/dsl` Scene contract. Absent on
+   * annotation only — not part of the `@ljkt/dsl` Scene contract. Absent on
    * inserted scenes and pre-existing data, where callers fall back to a
    * scene-derived outline.
    */

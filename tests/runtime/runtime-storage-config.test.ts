@@ -1,4 +1,4 @@
-import type { KVStore, RuntimeStore } from '@openmaic/storage';
+import type { KVStore, RuntimeStore } from '@ljkt/storage';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 function stubStore(deleteStageRuntime = vi.fn().mockResolvedValue(undefined)): RuntimeStore {
@@ -12,7 +12,7 @@ describe('configureRuntimeStorage', () => {
   });
 
   it('retains the lazy BrowserRuntimeStore singleton by default', async () => {
-    const { BrowserRuntimeStore } = await import('@openmaic/storage');
+    const { BrowserRuntimeStore } = await import('@ljkt/storage');
     const { getRuntimeStore } = await import('@/lib/runtime/store');
 
     const first = getRuntimeStore();

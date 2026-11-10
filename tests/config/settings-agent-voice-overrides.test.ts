@@ -9,7 +9,7 @@
  * reads only the KV scope and does not migrate any legacy raw key.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BrowserKVStore } from '@openmaic/storage';
+import { BrowserKVStore } from '@ljkt/storage';
 
 const storage = new Map<string, string>();
 const localStorageStub = {

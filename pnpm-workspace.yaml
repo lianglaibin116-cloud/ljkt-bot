@@ -1,4 +1,4 @@
 packages:
   - "packages/*"
-  - "packages/@openmaic/*"
+  - "packages/@ljkt/*"
   - "!packages/docs" # standalone docs sub-app: own lockfile, build, deploy

@@ -1,5 +1,5 @@
 /** Agent runtime control plane for durable follow-up messages. */
-import { AgentSessionAccessError } from '@openmaic/storage';
+import { AgentSessionAccessError } from '@ljkt/storage';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 

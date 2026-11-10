@@ -45,9 +45,9 @@
 
 ## 🗞️ 动态
 
-- **2026-08-14** — [v0.3.2 发布！](https://github.com/THU-MAIC/OpenMAIC/releases/tag/v0.3.2) 视频导出加固（确定性 Quiz/PBL 封面、保真度打磨、交互 HTML 捕获、CPU 资源配置）；服务端持久化完成（文档全量切换、一条命令 Postgres 栈、增量保存）并落地资产注册中心；新增 `@openmaic/generation` 包；四种新语言（fr-FR / es-MX / vi-VN 及 432 条审校 zh-TW）；新增 Amazon Bedrock / Atlas Cloud / Claude 搜索与 FunASR 语音识别。查看[更新日志](CHANGELOG.md)。
+- **2026-08-14** — [v0.3.2 发布！](https://github.com/THU-MAIC/OpenMAIC/releases/tag/v0.3.2) 视频导出加固（确定性 Quiz/PBL 封面、保真度打磨、交互 HTML 捕获、CPU 资源配置）；服务端持久化完成（文档全量切换、一条命令 Postgres 栈、增量保存）并落地资产注册中心；新增 `@ljkt/generation` 包；四种新语言（fr-FR / es-MX / vi-VN 及 432 条审校 zh-TW）；新增 Amazon Bedrock / Atlas Cloud / Claude 搜索与 FunASR 语音识别。查看[更新日志](CHANGELOG.md)。
 - **2026-07-21** — [v0.3.1 发布！](https://github.com/THU-MAIC/OpenMAIC/releases/tag/v0.3.1) 一键导出 MP4 课程视频；服务端课堂运行时存储（含 Postgres 参考服务）；编辑器直接操作幻灯片元素（拖拽、缩放、旋转、框选多选）；“Edit with AI”升级（校验式 JSON Patch 编辑、多会话历史）；文档解析扩展（多格式上传、音视频抽取、阿里 DocMind、MinerU）；新增 Azure OpenAI / SearXNG / ComfyUI 与 GPT-5.6 系列模型；动作级播放导航；SSRF 安全加固。查看[更新日志](CHANGELOG.md)。
-- **2026-06-28** — [v0.3.0 发布！](https://github.com/THU-MAIC/OpenMAIC/releases/tag/v0.3.0) 项目式学习（PBL）v2 与课堂界面；“Edit with AI”专业模式编辑智能体；`@openmaic/*` SDK 系列（DSL/渲染器/导入器）发布至 npm；可选的分阶段模型路由；新增 GLM-5.2 / Kimi K2.7 Code / Qwen3.7 Plus·Max 等模型；职业学习任务引擎；新增韩语（ko-KR）；并将开源协议由 AGPL-3.0 调整为 MIT。查看[更新日志](CHANGELOG.md)。
+- **2026-06-28** — [v0.3.0 发布！](https://github.com/THU-MAIC/OpenMAIC/releases/tag/v0.3.0) 项目式学习（PBL）v2 与课堂界面；“Edit with AI”专业模式编辑智能体；`@ljkt/*` SDK 系列（DSL/渲染器/导入器）发布至 npm；可选的分阶段模型路由；新增 GLM-5.2 / Kimi K2.7 Code / Qwen3.7 Plus·Max 等模型；职业学习任务引擎；新增韩语（ko-KR）；并将开源协议由 AGPL-3.0 调整为 MIT。查看[更新日志](CHANGELOG.md)。
 - **2026-06-02** — [v0.2.2 发布！](https://github.com/THU-MAIC/OpenMAIC/releases/tag/v0.2.2) MAIC Editor（v0）专业模式，可轻量编辑生成的幻灯片；生成前可编辑大纲；交互课堂离线导出；新增 Brave/百度/博查/MiniMax 搜索与 Azure STT；新增 Claude Opus 4.8 / MiniMax M3 / Gemini 3.5 Flash 等模型；新增繁体中文（zh-TW）与巴西葡萄牙语（pt-BR）。查看[更新日志](CHANGELOG.md)。
 - **2026-04-26** — [v0.2.1 发布！](https://github.com/THU-MAIC/OpenMAIC/releases/tag/v0.2.1) 接入 [VoxCPM2](https://github.com/OpenBMB/VoxCPM) TTS，支持音色克隆与自动生成音色；新增按模型思考配置；新增课程完成页与作答状态持久化；新增 DeepSeek-V4 / GPT-5.5 / GPT-Image-2 / 小米 MiMo / Hy3 等最新发布的模型。查看[更新日志](CHANGELOG.md)。
 - **2026-04-20** — **v0.2.0 发布！** 深度交互模式 — 3D 可视化、模拟实验、游戏、思维导图、在线编程，动手学习新体验。详见[功能特性](#-功能特性)。
@@ -74,9 +74,9 @@ https://github.com/user-attachments/assets/f4a2f1be-6615-4330-aea1-b86ccf42045e
 > [!TIP]
 > ### <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/openclaw.png" height="28" align="top"/> OpenMAIC Skill — 在你的 Agent 工作台中使用 OpenMAIC，零配置
 >
-> OpenMAIC 提供标准的 [SKILL.md](skills/openmaic/SKILL.md) 格式技能包，除 [OpenClaw](https://github.com/openclaw/openclaw) 外，也支持 Codex、DeepSeek、WorkBuddy 等 Agent 工作台。在 OpenClaw 中你可以直接在飞书、Slack、Discord、Telegram 等 20+ 聊天应用中生成课堂。
+> OpenMAIC 提供标准的 [SKILL.md](skills/ljkt/SKILL.md) 格式技能包，除 [OpenClaw](https://github.com/openclaw/openclaw) 外，也支持 Codex、DeepSeek、WorkBuddy 等 Agent 工作台。在 OpenClaw 中你可以直接在飞书、Slack、Discord、Telegram 等 20+ 聊天应用中生成课堂。
 >
-> 1. OpenClaw：`clawhub install openmaic`，或者直接跟你的 Claw 说 *"安装 OpenMAIC skill"*；其他工作台：把仓库中的 `skills/openmaic/` 文件夹（或打包后的 zip）导入对应智能体工作台即可使用
+> 1. OpenClaw：`clawhub install openmaic`，或者直接跟你的 Claw 说 *"安装 OpenMAIC skill"*；其他工作台：把仓库中的 `skills/ljkt/` 文件夹（或打包后的 zip）导入对应智能体工作台即可使用
 > 2. 选一种模式：
 >    - **托管模式** — 在 [open.maic.chat](https://open.maic.chat/) 获取访问码，无需本地部署
 >    - **本地部署** — Skill 会引导你逐步完成 clone、配置和启动
@@ -380,9 +380,9 @@ NEXT_PUBLIC_PERSISTENCE=1 NEXT_PUBLIC_PERSISTENCE_TOKEN=openmaic-local-dev docke
 
 单个资产 principal 最多可持有 `ASSET_QUOTA_BYTES`（默认 10 GiB）的**存活**资产——待定且未过期的，或仍被某个文档引用的——超出后拒绝新的分配；该上限由存储层在写事务内、按 principal 的 advisory lock 强制执行，并发上传无法越过。在按用户划分的资产 principal 落地之前，所有调用方共享同一个 principal，因此这是一个部署级而非用户级的上限——而它值得存在，因为本部署放行的任何调用方都能触达分配。设置 `ASSET_QUOTA_BYTES=0` 可完全关闭配额并在别处限制存储，零的任何写法都有效。取值不是非负整数时服务端会拒绝启动，而不是退回默认值，这样写错的上限会让进程停下，而不是悄悄跑在一个没人选择的限制上。
 
-资产字节默认直接出站（内嵌路由把字节写入响应体）。设置 `ASSET_BYTE_EGRESS=redirect` 可选择**间接出站**：字节 `GET` 会在字节层支持签名（S3 支持；PostgreSQL 字节列不支持，回退为直接返回字节）时返回一个短时效的签名 S3 URL。间接出站有两个对象存储前提：bucket 的 CORS 需允许本应用来源并在签名响应上暴露 `Content-Type`；签名身份需持有 bucket 的 `s3:ListBucket`，缺失的 key 才能以 `404 NoSuchKey` 而非 `403` 返回。相关取舍见[资产 HTTP 契约](packages/@openmaic/storage/docs/asset-http-contract.md)。
+资产字节默认直接出站（内嵌路由把字节写入响应体）。设置 `ASSET_BYTE_EGRESS=redirect` 可选择**间接出站**：字节 `GET` 会在字节层支持签名（S3 支持；PostgreSQL 字节列不支持，回退为直接返回字节）时返回一个短时效的签名 S3 URL。间接出站有两个对象存储前提：bucket 的 CORS 需允许本应用来源并在签名响应上暴露 `Content-Type`；签名身份需持有 bucket 的 `s3:ListBucket`，缺失的 key 才能以 `404 NoSuchKey` 而非 `403` 返回。相关取舍见[资产 HTTP 契约](packages/@ljkt/storage/docs/asset-http-contract.md)。
 
-内嵌端点实现了 [RuntimeStore HTTP 契约](packages/@openmaic/storage/docs/runtime-http-contract.md)和 [DocumentStore HTTP 契约](packages/@openmaic/storage/docs/document-http-contract.md)。不设置 `NEXT_PUBLIC_PERSISTENCE` 则保持原有的纯浏览器行为。
+内嵌端点实现了 [RuntimeStore HTTP 契约](packages/@ljkt/storage/docs/runtime-http-contract.md)和 [DocumentStore HTTP 契约](packages/@ljkt/storage/docs/document-http-contract.md)。不设置 `NEXT_PUBLIC_PERSISTENCE` 则保持原有的纯浏览器行为。
 
 ### 可选：MP4 视频导出（渲染服务）
 
@@ -628,7 +628,7 @@ AI 老师配合聚光灯和激光笔动作进行语音讲解——如同真实�
 <tr>
 <td valign="top">
 
-OpenMAIC 的技能包（`skills/openmaic/`）采用标准 SKILL.md 格式，可被各类 Agent 工作台加载——除了 OpenClaw，也包括 **Codex**、**DeepSeek**、**WorkBuddy** 等。它是一份引导式 SOP：覆盖在线体验、本地部署、课堂生成和基于 `@openmaic/*` SDK 的二次开发。
+OpenMAIC 的技能包（`skills/ljkt/`）采用标准 SKILL.md 格式，可被各类 Agent 工作台加载——除了 OpenClaw，也包括 **Codex**、**DeepSeek**、**WorkBuddy** 等。它是一份引导式 SOP：覆盖在线体验、本地部署、课堂生成和基于 `@ljkt/*` SDK 的二次开发。
 
 其中 [OpenClaw](https://github.com/openclaw/openclaw) 是一个连接你日常使用的消息平台（飞书、Slack、Discord、Telegram、WhatsApp 等）的个人 AI 助手。通过这个集成，你可以**直接在聊天应用中生成和查看互动课堂**，无需碰命令行。
 
@@ -646,7 +646,7 @@ OpenMAIC 的技能包（`skills/openmaic/`）采用标准 SKILL.md 格式，可�
 - **托管模式** — 在 [open.maic.chat](https://open.maic.chat/) 获取访问码，保存到配置文件，即可直接生成课堂——无需本地部署
 - **本地部署模式** — clone、安装依赖、配置 API Key、启动服务——Skill 逐步引导你完成
 - **跟踪进度** — 自动轮询异步生成任务，完成后把链接发给你
-- **二次开发** — 引导你在 OpenMAIC 基础上做二开：基于 `@openmaic/*` SDK 构建自己的应用（详见 skill 内的 extend 系列文档）
+- **二次开发** — 引导你在 OpenMAIC 基础上做二开：基于 `@ljkt/*` SDK 构建自己的应用（详见 skill 内的 extend 系列文档）
 
 每一步都会先征求你的确认，不会黑盒执行。
 
@@ -658,7 +658,7 @@ OpenMAIC 的技能包（`skills/openmaic/`）采用标准 SKILL.md 格式，可�
 clawhub install openmaic
 ```
 
-或在 Codex、DeepSeek、WorkBuddy 等其他 Agent 工作台中，把仓库中的 `skills/openmaic/` 文件夹（或打包后的 zip）导入对应智能体工作台即可使用：
+或在 Codex、DeepSeek、WorkBuddy 等其他 Agent 工作台中，把仓库中的 `skills/ljkt/` 文件夹（或打包后的 zip）导入对应智能体工作台即可使用：
 
 </td></tr></table>
 
@@ -805,7 +805,7 @@ OpenMAIC/
 │   └── ...                     #   audio, roundtable, stage, ai-elements
 │
 ├── packages/                   # 工作区子包
-│   ├── @openmaic/              #   OpenMAIC SDK 系列（已发布至 npm）
+│   ├── @ljkt/              #   OpenMAIC SDK 系列（已发布至 npm）
 │   │   ├── dsl/                #     课程 DSL 定义与资产清单
 │   │   ├── generation/         #     两阶段课堂生成流水线
 │   │   ├── renderer/           #     课程渲染
@@ -828,11 +828,11 @@ OpenMAIC/
 
 ### 核心架构
 
-- **生成流水线** (`@openmaic/generation`) — 两阶段：大纲生成 → 场景内容生成
+- **生成流水线** (`@ljkt/generation`) — 两阶段：大纲生成 → 场景内容生成
 - **多智能体编排** (`lib/orchestration/`) — 基于 LangGraph 的状态机，管理智能体轮次和讨论
 - **回放引擎** (`lib/playback/`) — 驱动课堂回放和实时互动的状态机
 - **动作引擎** (`lib/action/`) — 执行 21 种动作类型（语音、白板绘图/文字/形状/图表、聚光灯、激光笔…）
-- **存储层** (`@openmaic/storage`) — Runtime/Document/资产存储抽象，附 Postgres 参考实现，HTTP 契约可对接任意外部存储服务
+- **存储层** (`@ljkt/storage`) — Runtime/Document/资产存储抽象，附 Postgres 参考实现，HTTP 契约可对接任意外部存储服务
 
 ### 贡献流程
 

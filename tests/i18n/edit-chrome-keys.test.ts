@@ -41,7 +41,7 @@ const SCAN_DIRS = ['components/edit', 'components/workbench', 'lib/workbench'] a
 /**
  * `t('edit.sceneType.' + scene.type)` in
  * `components/edit/SlideNavRail/ThumbItem.tsx` — one key per `SceneType` value
- * (`packages/@openmaic/dsl/src/stage.ts`).
+ * (`packages/@ljkt/dsl/src/stage.ts`).
  */
 const SCENE_TYPE_VALUES = ['slide', 'quiz', 'interactive', 'pbl'] as const;
 

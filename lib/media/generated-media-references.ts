@@ -8,7 +8,7 @@
  * (`slideMediaReferenceSlots`), so a new media-bearing property is picked up
  * here the moment the contract describes it.
  */
-import type { Slide } from '@openmaic/dsl';
+import type { Slide } from '@ljkt/dsl';
 
 import { isGeneratedMediaPlaceholder } from '@/lib/media/media-ref';
 import { slideMediaReferenceSlots } from '@/lib/media/slide-media-slots';

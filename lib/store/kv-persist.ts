@@ -1,5 +1,5 @@
 /**
- * App wiring for zustand `persist` over the `@openmaic/storage` `KVStore`.
+ * App wiring for zustand `persist` over the `@ljkt/storage` `KVStore`.
  *
  * Before this seam existed the persisted stores wrote straight to
  * `localStorage` through zustand's default storage, while the rest of the app's
@@ -38,7 +38,7 @@ import {
   type KVScope,
   type KVStore,
   type PersistStorageLike,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 import type { PersistStorage, StorageValue } from 'zustand/middleware';
 
 import { createLogger } from '@/lib/logger';

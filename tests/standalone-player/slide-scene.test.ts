@@ -2,10 +2,10 @@
 import { act, createElement, Fragment, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { describe, expect, it, vi } from 'vitest';
-import type { PPTVideoElement, Slide } from '@openmaic/dsl';
+import type { PPTVideoElement, Slide } from '@ljkt/dsl';
 
 // The canvas itself is the renderer's; here it only hands each video to the scene.
-vi.mock('@openmaic/renderer', () => ({
+vi.mock('@ljkt/renderer', () => ({
   SlideCanvas: ({
     slide,
     renderVideo,

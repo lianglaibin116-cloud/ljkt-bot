@@ -12,13 +12,13 @@
 import {
   PgAgentSessionMaterialStore,
   ensureAgentSessionMaterialSchema,
-} from '@openmaic/storage/material/pg';
+} from '@ljkt/storage/material/pg';
 import {
   createMaterialId,
   type AgentSessionMaterial,
   type AgentSessionMeta,
   type ListAgentSessionMaterialsOptions,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 import {
   getReadyOwnerMaterials,
   type OwnerMaterialRecord,

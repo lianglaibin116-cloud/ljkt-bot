@@ -445,7 +445,7 @@ describe('PlaybackChromeRoot element-reference ownership', () => {
       id: 'board',
       viewportSize: 1000,
       viewportRatio: 0.5625,
-      elements: [textElement as import('@openmaic/dsl').PPTElement],
+      elements: [textElement as import('@ljkt/dsl').PPTElement],
     };
     mocks.whiteboardOpen = true;
     stageState.stage.whiteboard = [board];
@@ -481,7 +481,7 @@ describe('PlaybackChromeRoot element-reference ownership', () => {
         id: 'board',
         viewportSize: 1000,
         viewportRatio: 0.5625,
-        elements: [textElement as import('@openmaic/dsl').PPTElement],
+        elements: [textElement as import('@ljkt/dsl').PPTElement],
       };
       mocks.whiteboardOpen = true;
       stageState.stage.whiteboard = [board];
@@ -509,7 +509,7 @@ describe('PlaybackChromeRoot element-reference ownership', () => {
         id: 'board',
         viewportSize: 1000,
         viewportRatio: 0.5625,
-        elements: [textElement as import('@openmaic/dsl').PPTElement],
+        elements: [textElement as import('@ljkt/dsl').PPTElement],
       },
     ];
     await renderOwner();

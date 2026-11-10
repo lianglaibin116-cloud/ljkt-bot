@@ -1,7 +1,7 @@
 /**
  * PBL v2 — contract design types plus the app runtime overlay.
  *
- * The persisted design/skeleton belongs to `@openmaic/dsl`. This barrel keeps
+ * The persisted design/skeleton belongs to `@ljkt/dsl`. This barrel keeps
  * the established app-facing names while adding learner/runtime state to the
  * nested contract shapes that carry it.
  */
@@ -12,7 +12,7 @@ import type {
   PBLProficiency,
   PBLRoleType,
   PBLThreadSeat as ContractPBLThreadSeat,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 import type { SceneOutline } from '@/lib/types/generation';
 
 export type {
@@ -30,7 +30,7 @@ export type {
   PBLProficiency,
   PBLAssignee,
   PBLUiPhase,
-} from '@openmaic/dsl';
+} from '@ljkt/dsl';
 
 export type PBLSubmissionKind = 'text' | 'file' | 'link';
 

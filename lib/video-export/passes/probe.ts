@@ -10,7 +10,7 @@
  *
  * Pure: a straight structural mapping, no IO.
  */
-import type { PlayVideoAction } from '@openmaic/dsl';
+import type { PlayVideoAction } from '@ljkt/dsl';
 import type { ResolveTimelineOptions } from '../../choreography';
 import type { TimingProbe, CompileConfig } from '../deps';
 

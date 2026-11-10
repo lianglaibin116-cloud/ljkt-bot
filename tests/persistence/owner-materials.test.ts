@@ -1,7 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ConnectableQueryable } from '@openmaic/storage/server/reference';
+import type { ConnectableQueryable } from '@ljkt/storage/server/reference';
 
 import {
   ensureOwnerMaterialSchema,

@@ -14,7 +14,7 @@
  *
  * Kept in `lib/` (not a package) because these semantics co-evolve with the
  * playback engine. Purity is machine-enforced: these modules import only
- * `@openmaic/dsl` (types + the fire-and-forget partition), `zod` (descriptor
+ * `@ljkt/dsl` (types + the fire-and-forget partition), `zod` (descriptor
  * schema), and pure helpers — no React / DOM / GSAP / framer-motion / render
  * backend, so the exporter can interpret them in a pure Node environment. The
  * eslint `@/`-boundary block on `lib/choreography/**` keeps host-app paths out.

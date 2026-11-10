@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyOutlineFallbacks, changeOutlineType } from '@openmaic/generation';
+import { applyOutlineFallbacks, changeOutlineType } from '@ljkt/generation';
 import type { SceneOutline } from '@/lib/types/generation';
 
 const base: SceneOutline = {

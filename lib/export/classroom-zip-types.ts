@@ -6,7 +6,7 @@ import type {
   VideoManifest,
 } from '@/lib/types/stage';
 import type { Action } from '@/lib/types/action';
-import type { AgentVoiceConfig, SchoolCourseProfile, Slide, VoiceDesign } from '@openmaic/dsl';
+import type { AgentVoiceConfig, SchoolCourseProfile, Slide, VoiceDesign } from '@ljkt/dsl';
 
 export const CLASSROOM_ZIP_FORMAT_VERSION = 1;
 export const CLASSROOM_ZIP_EXTENSION = '.maic.zip';

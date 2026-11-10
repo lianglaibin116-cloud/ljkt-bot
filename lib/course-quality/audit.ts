@@ -1,4 +1,4 @@
-import type { SchoolCourseProfile, Stage } from '@openmaic/dsl';
+import type { SchoolCourseProfile, Stage } from '@ljkt/dsl';
 import type { Action } from '@/lib/types/action';
 import type { Scene } from '@/lib/types/stage';
 import type { SceneOutline } from '@/lib/types/generation';

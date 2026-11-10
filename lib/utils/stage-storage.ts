@@ -39,7 +39,7 @@ import {
   withRuntimeStorageExclusiveLockUntilSettled,
   withRuntimeStorageSharedLock,
 } from './chat-storage-lock';
-import { DocumentVersionError, type DocumentSummary } from '@openmaic/storage';
+import { DocumentVersionError, type DocumentSummary } from '@ljkt/storage';
 import { isBrowserPersistenceEnabled } from '@/lib/persistence/bootstrap';
 import { preparePBLScenesForDocumentPersistence } from '@/lib/pbl/v2/runtime/document-persistence';
 import {
@@ -843,7 +843,7 @@ type ThumbnailMediaElement = {
   poster?: string;
 };
 
-type ThumbnailSlide = import('@openmaic/dsl').Slide;
+type ThumbnailSlide = import('@ljkt/dsl').Slide;
 
 function isResolvableThumbnailMediaRef(value: unknown): value is string {
   return typeof value === 'string' && !!value && !isConcreteMediaAddress(value);
@@ -1003,7 +1003,7 @@ export async function getFirstSlideByStages(
                 el.type === 'video'
                   ? resolveVideoMediaForElement(
                       taskEntries,
-                      el as import('@openmaic/dsl').PPTVideoElement,
+                      el as import('@ljkt/dsl').PPTVideoElement,
                       stageId,
                       documentElements,
                     )
@@ -1015,7 +1015,7 @@ export async function getFirstSlideByStages(
                   ? videoBinding?.task
                   : resolveMediaTaskForElement(
                       taskEntries,
-                      el as import('@openmaic/dsl').PPTElement,
+                      el as import('@ljkt/dsl').PPTElement,
                       stageId,
                     );
               const selectedRecord = selected?.record;
@@ -1123,7 +1123,7 @@ export async function stageExists(stageId: string): Promise<boolean> {
 // Folders are course-grouping metadata. Without server persistence they are
 // device-local, living in this Dexie database (`folders` + `stageFolders`
 // tables) and never touching the course document aggregate owned by the
-// `@openmaic/storage` DocumentStore. With server persistence on (`listStages`
+// `@ljkt/storage` DocumentStore. With server persistence on (`listStages`
 // reads `/api/stages`, the workspace rail's folder family writes
 // `/api/folders`), the folder list and every folder mutation go through the
 // same owner-scoped server store, so a folder created there is visible to the

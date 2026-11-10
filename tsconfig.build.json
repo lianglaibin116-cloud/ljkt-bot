@@ -16,6 +16,6 @@
     "desktop/release",
     "tests",
     "eval",
-    "packages/@openmaic/*/test"
+    "packages/@ljkt/*/test"
   ]
 }

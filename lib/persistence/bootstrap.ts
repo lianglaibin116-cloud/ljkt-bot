@@ -4,8 +4,8 @@ import {
   HttpDocumentStore,
   type HttpAssetHeadersHook,
   type HttpDocumentHeadersHook,
-} from '@openmaic/storage';
-import { HttpRuntimeStore, type HttpRuntimeHeadersHook } from '@openmaic/storage/runtime/http';
+} from '@ljkt/storage';
+import { HttpRuntimeStore, type HttpRuntimeHeadersHook } from '@ljkt/storage/runtime/http';
 
 import {
   assertDocumentStorageConfigurable,

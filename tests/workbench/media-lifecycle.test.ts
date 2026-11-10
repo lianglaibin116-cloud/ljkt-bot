@@ -11,7 +11,7 @@ import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { lookupMediaTask, resolveVideoMediaForElement } from '@/lib/media/media-task-resolution';
 import { resolveMediaRef } from '@/lib/media/resolve-media-ref';
 import { applyMediaReadyFrame, parseMediaReadyFrame } from '@/lib/workbench/media-lifecycle';
-import type { PPTVideoElement } from '@openmaic/dsl';
+import type { PPTVideoElement } from '@ljkt/dsl';
 
 const REF = 'gen_vid_abc12345';
 

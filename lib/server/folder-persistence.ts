@@ -1,4 +1,4 @@
-import type { DocumentFolder, DocumentFolderStore } from '@openmaic/storage';
+import type { DocumentFolder, DocumentFolderStore } from '@ljkt/storage';
 import { randomBytes } from 'node:crypto';
 
 import { FOLDER_COUNT_LIMIT, FolderNameError } from '@/lib/utils/folder-name-validation';

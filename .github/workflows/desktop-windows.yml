@@ -35,6 +35,17 @@ jobs:
       - name: Package Windows application
         run: pnpm bot:desktop:package
 
+      - name: Build Windows installer
+        run: pnpm bot:desktop:installer
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: LingjingBot-Windows-x64-Installer
+          path: desktop/release/installers/*.exe
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Upload portable Windows application
         uses: actions/upload-artifact@v4
         with:

@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
 import { PGlite } from '@electric-sql/pglite';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { ConnectableQueryable } from '@openmaic/storage/server/reference';
+import type { ConnectableQueryable } from '@ljkt/storage/server/reference';
 import {
   ensureCourseDocumentSchema,
   listServerCourseDocuments,

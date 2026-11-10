@@ -1,4 +1,4 @@
-import type { CodeLine, PPTElement, RuntimeRecord, Whiteboard } from '@openmaic/dsl';
+import type { CodeLine, PPTElement, RuntimeRecord, Whiteboard } from '@ljkt/dsl';
 
 export const WHITEBOARD_RUNTIME_KIND = 'whiteboard';
 export const WHITEBOARD_RUNTIME_PAYLOAD_VERSION = 1;

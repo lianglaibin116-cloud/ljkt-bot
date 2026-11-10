@@ -18,7 +18,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import type { DocumentFolderStore } from '@openmaic/storage';
+import type { DocumentFolderStore } from '@ljkt/storage';
 
 import { isAgentRuntimeConfigured } from '@/lib/config/feature-flags';
 import { getOwnerScopedDocumentStore } from '@/lib/server/agent-runtime/owner-scoped-documents';

@@ -27,7 +27,7 @@ import {
   ensureAgentSessionSchema,
   type Queryable,
   type WithTransaction,
-} from '../../packages/@openmaic/storage/src/agent-session/pg';
+} from '../../packages/@ljkt/storage/src/agent-session/pg';
 
 const contractUrl = process.env.PG_CONTRACT_URL;
 

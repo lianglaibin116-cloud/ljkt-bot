@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { extractInteractiveElements } from '@openmaic/generation';
+import { extractInteractiveElements } from '@ljkt/generation';
 
 describe('extractInteractiveElements', () => {
   test('returns empty string on empty input', () => {

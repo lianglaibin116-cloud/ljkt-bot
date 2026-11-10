@@ -1,10 +1,10 @@
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
-import type { PPTElement, Whiteboard } from '@openmaic/dsl';
+import type { PPTElement, Whiteboard } from '@ljkt/dsl';
 import {
   BrowserRuntimeStore,
   RuntimeAppendConflictError,
   type RuntimeStore,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { APP_RUNTIME_PAYLOAD_VALIDATORS } from '@/lib/runtime/payload-validators';

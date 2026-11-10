@@ -1,5 +1,5 @@
 /**
- * @openmaic/render-service — HTTP entrypoint.
+ * @ljkt/render-service — HTTP entrypoint.
  *
  * Renders exported Hyperframes projects (the ZIP the app builds with
  * `packageVideoZip`) to MP4 using `@hyperframes/producer`, isolated in a
@@ -26,7 +26,7 @@ import { createReadStream } from 'node:fs';
 import { mkdir, stat } from 'node:fs/promises';
 import { Readable } from 'node:stream';
 import { serve } from '@hono/node-server';
-import { validateScene } from '@openmaic/dsl';
+import { validateScene } from '@ljkt/dsl';
 import { Hono, type Context } from 'hono';
 import { config } from './config.js';
 import { InMemoryJobStore } from './job-store.js';

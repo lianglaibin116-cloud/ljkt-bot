@@ -1,4 +1,4 @@
-import type { SchoolCourseProfile } from '@openmaic/dsl';
+import type { SchoolCourseProfile } from '@ljkt/dsl';
 
 export const SCHOOL_COURSE_PROFILE_STORAGE_KEY = 'schoolCourseProfile';
 

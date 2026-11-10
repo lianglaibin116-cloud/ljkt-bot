@@ -47,8 +47,8 @@ vi.mock('@/lib/ai/llm', () => ({
   callLLM: mocks.callLLM,
 }));
 
-vi.mock('@openmaic/generation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@openmaic/generation')>()),
+vi.mock('@ljkt/generation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@ljkt/generation')>()),
   generateSceneOutlinesFromRequirements: mocks.generateSceneOutlinesFromRequirements,
   applyOutlineFallbacks: mocks.applyOutlineFallbacks,
   generateSceneContent: mocks.generateSceneContent,

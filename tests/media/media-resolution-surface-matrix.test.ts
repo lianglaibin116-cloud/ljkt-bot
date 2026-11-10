@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { PPTImageElement, PPTVideoElement, Slide } from '@openmaic/dsl';
+import type { PPTImageElement, PPTVideoElement, Slide } from '@ljkt/dsl';
 import {
   resolveImageSrc,
   useResolvedImageSrc,

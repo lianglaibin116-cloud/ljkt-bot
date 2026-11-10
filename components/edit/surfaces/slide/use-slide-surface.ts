@@ -17,7 +17,7 @@ import { defaultRichTextAttrs } from '@/lib/prosemirror/utils';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useStageStore } from '@/lib/store/stage';
 import type { SlideContent } from '@/lib/types/stage';
-import type { ChartType, PPTElement, PPTImageElement, SlideBackground } from '@openmaic/dsl';
+import type { ChartType, PPTElement, PPTImageElement, SlideBackground } from '@ljkt/dsl';
 import { ImagePicker } from './ImagePicker';
 import { BackgroundControl } from './BackgroundControl';
 import { useSlideEditSession } from './slide-edit-session';

@@ -1,7 +1,7 @@
 /**
  * Server-side binding of the durable user-skill store.
  *
- * The storage package owns the schema and the store (`@openmaic/storage` skill
+ * The storage package owns the schema and the store (`@ljkt/storage` skill
  * module); this file re-exports the pure validation/patch surface and binds the
  * store to the app's PostgreSQL pool through `user-skill-store.ts`, so tools,
  * routes and the runner import from one place.
@@ -15,7 +15,7 @@ import type {
   UserSkillPatchOpInput,
   UserSkillPatchOutcome,
   UserSkillRecord,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 
 import { getUserSkillStore } from './user-skill-store';
 
@@ -38,7 +38,7 @@ export {
   type UserSkillPatchOpInput,
   type UserSkillPatchOutcome,
   type UserSkillRecord,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 
 export { getUserSkillStore } from './user-skill-store';
 export type { Queryable, WithTransaction } from './user-skill-store';

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PBLGenerationError, generateSceneContent, type AICallFn } from '@openmaic/generation';
+import { PBLGenerationError, generateSceneContent, type AICallFn } from '@ljkt/generation';
 import { validateAppScene } from '@/lib/document-store/validators';
 import { hasPBLProjectV2Containers, isRunnablePBLProjectV2 } from '@/lib/pbl/v2/types';
 import type { GeneratedPBLContent, SceneOutline } from '@/lib/types/generation';

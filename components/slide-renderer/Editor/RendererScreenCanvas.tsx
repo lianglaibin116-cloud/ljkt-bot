@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useAnimate } from 'motion/react';
-import { SlideCanvas, type SlideEffects } from '@openmaic/renderer';
-import type { PPTImageElement, PPTVideoElement } from '@openmaic/dsl';
+import { SlideCanvas, type SlideEffects } from '@ljkt/renderer';
+import type { PPTImageElement, PPTVideoElement } from '@ljkt/dsl';
 import { Film, ImageOff, Paintbrush, RotateCcw, ShieldAlert, VideoOff } from 'lucide-react';
 import { useCanvasStore } from '@/lib/store';
 import { useSceneData, useSceneSelector } from '@/lib/contexts/scene-context';

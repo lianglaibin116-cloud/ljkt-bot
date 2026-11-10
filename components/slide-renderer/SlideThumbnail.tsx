@@ -2,8 +2,8 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { Play, RotateCcw } from 'lucide-react';
-import type { Slide, PPTImageElement, PPTVideoElement } from '@openmaic/dsl';
-import { SlideCanvas } from '@openmaic/renderer';
+import type { Slide, PPTImageElement, PPTVideoElement } from '@ljkt/dsl';
+import { SlideCanvas } from '@ljkt/renderer';
 import { useResolvedSlideMedia, type ResolvedSlideMediaEntry } from './use-resolved-slide';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { mediaFailureNoticeKey } from '@/lib/media/media-failure';
@@ -31,7 +31,7 @@ interface SlideThumbnailProps {
 }
 
 /**
- * Read-only thumbnail rendering for a video element. Replaces `@openmaic/renderer`'s
+ * Read-only thumbnail rendering for a video element. Replaces `@ljkt/renderer`'s
  * default `<video controls>` with a muted, play-badged treatment suited to
  * thumbnails. `BaseVideoElement` already supplies the absolutely-positioned,
  * rotated wrapper, so this only paints the inner content. The `src` it receives
@@ -187,7 +187,7 @@ function renderThumbnailImage(
 }
 
 /**
- * Read-only slide thumbnail rendered via the extracted `@openmaic/renderer`
+ * Read-only slide thumbnail rendered via the extracted `@ljkt/renderer`
  * package (`SlideCanvas`) instead of the in-app `ThumbnailSlide`/element
  * renderers. `SlideCanvas` fills its parent and auto-fits the slide, so this
  * wrapper owns the outer box sizing (explicit `size` vs parent-filling), the
@@ -199,7 +199,7 @@ function renderThumbnailImage(
  * Scope note: this covers all read-only slide-thumbnail surfaces — the playback
  * scene sidebar, the home-page recent-course cards, and the editor nav rail
  * (which renders through `SceneThumbnailContent`). The full-size editing canvas
- * is intentionally untouched (`@openmaic/renderer` v1 is read-only; editing is v2).
+ * is intentionally untouched (`@ljkt/renderer` v1 is read-only; editing is v2).
  */
 export function SlideThumbnail({
   slide,

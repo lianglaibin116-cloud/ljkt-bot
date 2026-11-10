@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { Type } from 'typebox';
 import type { AgentTool } from '@earendil-works/pi-agent-core';
-import { isActionType } from '@openmaic/dsl';
+import { isActionType } from '@ljkt/dsl';
 import {
   buildCompleteScene,
   generateSceneActions,
@@ -12,7 +12,7 @@ import {
   type PdfImage,
   type SceneContentFailureCode,
   type SceneGenerationContext,
-} from '@openmaic/generation';
+} from '@ljkt/generation';
 
 import { putSceneBringingCurrent } from './document-writes';
 

@@ -21,12 +21,12 @@
  * its object first, then the reservation, so a crash mid-reclaim never loses
  * the pointer to the bytes.
  */
-import { splitSqlStatements, type Queryable } from '@openmaic/storage/document/pg';
-import { encodeJson } from '@openmaic/storage/pg-json';
+import { splitSqlStatements, type Queryable } from '@ljkt/storage/document/pg';
+import { encodeJson } from '@ljkt/storage/pg-json';
 import {
   nodePostgresTransaction,
   type ConnectableQueryable,
-} from '@openmaic/storage/server/reference';
+} from '@ljkt/storage/server/reference';
 
 export const OWNER_MATERIAL_STATUSES = ['uploading', 'ready'] as const;
 export type OwnerMaterialStatus = (typeof OWNER_MATERIAL_STATUSES)[number];

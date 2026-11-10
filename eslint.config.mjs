@@ -37,11 +37,11 @@ const eslintConfig = defineConfig([
     'packages/docs/**',
     'packages/mathml2omml/**',
     'packages/pptxgenjs/**',
-    // Our own @openmaic/* packages: lint the source, but skip build output,
+    // Our own @ljkt/* packages: lint the source, but skip build output,
     // installed deps, and the vendored JS sources under importer/src1.
-    'packages/@openmaic/*/dist/**',
-    'packages/@openmaic/*/node_modules/**',
-    'packages/@openmaic/importer/src1/**',
+    'packages/@ljkt/*/dist/**',
+    'packages/@ljkt/*/node_modules/**',
+    'packages/@ljkt/importer/src1/**',
     // Generated importer bundle copied into public/ by the sync script (postinstall):
     'public/vendor/**',
     // Claude Code local files:
@@ -75,7 +75,7 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  // Package boundary (machine-enforced): @openmaic/renderer is a standalone,
+  // Package boundary (machine-enforced): @ljkt/renderer is a standalone,
   // app-agnostic package. It must never reach back into the host app through
   // the `@/…` path alias, so a deadline can't punch a "temporary"
   // store/undo/media dependency through the package API. Host concerns
@@ -95,9 +95,9 @@ const eslintConfig = defineConfig([
   // Out of scope (undecidable by lint, evasion-only): a specifier assembled
   // entirely from non-`@/` pieces (`'@' + '/x'`, a variable) and relative parent
   // escapes (`../../app`). Those are caught by building/publishing the package in
-  // isolation (only `@openmaic/dsl` + declared peers external), not by this rule.
+  // isolation (only `@ljkt/dsl` + declared peers external), not by this rule.
   {
-    files: ['packages/@openmaic/renderer/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
+    files: ['packages/@ljkt/renderer/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
     rules: {
       'no-restricted-syntax': [
         'error',
@@ -105,24 +105,24 @@ const eslintConfig = defineConfig([
         {
           selector: 'Literal[value=/^@\\//]',
           message:
-            '@openmaic/renderer must not reference a host-app path (@/…). This package authors no `@/…` strings — depend only on @openmaic/dsl and declared peers, and inject host concerns (stores, undo, media resolution, i18n, hotkeys) via props/callbacks.',
+            '@ljkt/renderer must not reference a host-app path (@/…). This package authors no `@/…` strings — depend only on @ljkt/dsl and declared peers, and inject host concerns (stores, undo, media resolution, i18n, hotkeys) via props/callbacks.',
         },
         {
           selector: 'TemplateElement[value.cooked=/^@\\//]',
           message:
-            '@openmaic/renderer must not reference a host-app path (@/…) in a template literal. Depend only on @openmaic/dsl and declared peers; inject host concerns via props/callbacks.',
+            '@ljkt/renderer must not reference a host-app path (@/…) in a template literal. Depend only on @ljkt/dsl and declared peers; inject host concerns via props/callbacks.',
         },
       ],
     },
   },
-  // Package boundary (machine-enforced): @openmaic/storage is a standalone,
-  // app-agnostic persistence package. Same policy as the @openmaic/renderer
+  // Package boundary (machine-enforced): @ljkt/storage is a standalone,
+  // app-agnostic persistence package. Same policy as the @ljkt/renderer
   // boundary above — it must contain NO `@/…` host-app path-alias string, so a
   // deadline can't punch a "temporary" host dependency through the package API.
-  // It depends only on @openmaic/dsl; host wiring (which store persists where)
+  // It depends only on @ljkt/dsl; host wiring (which store persists where)
   // lives in the app, which imports the package, never the reverse.
   {
-    files: ['packages/@openmaic/storage/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
+    files: ['packages/@ljkt/storage/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
     rules: {
       'no-restricted-syntax': [
         'error',
@@ -130,23 +130,23 @@ const eslintConfig = defineConfig([
         {
           selector: 'Literal[value=/^@\\//]',
           message:
-            '@openmaic/storage must not reference a host-app path (@/…). This package authors no `@/…` strings — depend only on @openmaic/dsl. The app wires its stores through the package, not the reverse.',
+            '@ljkt/storage must not reference a host-app path (@/…). This package authors no `@/…` strings — depend only on @ljkt/dsl. The app wires its stores through the package, not the reverse.',
         },
         {
           selector: 'TemplateElement[value.cooked=/^@\\//]',
           message:
-            '@openmaic/storage must not reference a host-app path (@/…) in a template literal. Depend only on @openmaic/dsl.',
+            '@ljkt/storage must not reference a host-app path (@/…) in a template literal. Depend only on @ljkt/dsl.',
         },
       ],
     },
   },
-  // Package boundary (machine-enforced): @openmaic/generation is a standalone,
+  // Package boundary (machine-enforced): @ljkt/generation is a standalone,
   // app-agnostic package. Every package code directory is covered so future
   // scripts and tooling cannot bypass the boundary. The leaf dependency list
   // mirrors the package's declared dependencies and is widened only together
   // with package.json.
   {
-    files: ['packages/@openmaic/generation/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
+    files: ['packages/@ljkt/generation/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
     rules: {
       'no-restricted-syntax': [
         'error',
@@ -154,39 +154,39 @@ const eslintConfig = defineConfig([
         {
           selector: 'Literal[value=/^@\\//]',
           message:
-            '@openmaic/generation must not reference a host-app path (@/…). Depend only on @openmaic/dsl, Node built-ins, and relative modules.',
+            '@ljkt/generation must not reference a host-app path (@/…). Depend only on @ljkt/dsl, Node built-ins, and relative modules.',
         },
         {
           selector: 'TemplateElement[value.cooked=/^@\\//]',
           message:
-            '@openmaic/generation must not reference a host-app path (@/…) in a template literal.',
+            '@ljkt/generation must not reference a host-app path (@/…) in a template literal.',
         },
         {
           selector:
-            'ImportDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|(jsonrepair|katex|nanoid|parse5|partial-json)(\\/|$)|node:|\\.\\.?\\/).+/]',
+            'ImportDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|(jsonrepair|katex|nanoid|parse5|partial-json)(\\/|$)|node:|\\.\\.?\\/).+/]',
           message:
-            '@openmaic/generation may import only from @openmaic/dsl, approved leaf runtime dependencies, Node built-ins, or relative modules (./… or ../…).',
+            '@ljkt/generation may import only from @ljkt/dsl, approved leaf runtime dependencies, Node built-ins, or relative modules (./… or ../…).',
         },
         {
           selector:
-            'ExportNamedDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|(jsonrepair|katex|nanoid|parse5|partial-json)(\\/|$)|node:|\\.\\.?\\/).+/]',
+            'ExportNamedDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|(jsonrepair|katex|nanoid|parse5|partial-json)(\\/|$)|node:|\\.\\.?\\/).+/]',
           message:
-            '@openmaic/generation may re-export only from @openmaic/dsl, approved leaf runtime dependencies, Node built-ins, or relative modules (./… or ../…).',
+            '@ljkt/generation may re-export only from @ljkt/dsl, approved leaf runtime dependencies, Node built-ins, or relative modules (./… or ../…).',
         },
         {
           selector:
-            'ExportAllDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|(jsonrepair|katex|nanoid|parse5|partial-json)(\\/|$)|node:|\\.\\.?\\/).+/]',
+            'ExportAllDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|(jsonrepair|katex|nanoid|parse5|partial-json)(\\/|$)|node:|\\.\\.?\\/).+/]',
           message:
-            '@openmaic/generation may re-export only from @openmaic/dsl, approved leaf runtime dependencies, Node built-ins, or relative modules (./… or ../…).',
+            '@ljkt/generation may re-export only from @ljkt/dsl, approved leaf runtime dependencies, Node built-ins, or relative modules (./… or ../…).',
         },
         {
           selector: 'ImportExpression',
           message:
-            '@openmaic/generation must use static imports from @openmaic/dsl, Node built-ins, or relative modules.',
+            '@ljkt/generation must use static imports from @ljkt/dsl, Node built-ins, or relative modules.',
         },
         {
           selector: "CallExpression[callee.name='require']",
-          message: '@openmaic/generation must not use require().',
+          message: '@ljkt/generation must not use require().',
         },
       ],
     },
@@ -196,8 +196,8 @@ const eslintConfig = defineConfig([
   // the static import allowlist to add the package public entry and Vitest.
   {
     files: [
-      'packages/@openmaic/generation/test/**/*.{ts,tsx,js,jsx,mjs,cjs}',
-      'packages/@openmaic/generation/vitest.config.ts',
+      'packages/@ljkt/generation/test/**/*.{ts,tsx,js,jsx,mjs,cjs}',
+      'packages/@ljkt/generation/vitest.config.ts',
     ],
     rules: {
       'no-restricted-syntax': [
@@ -206,38 +206,38 @@ const eslintConfig = defineConfig([
         {
           selector: 'Literal[value=/^@\\//]',
           message:
-            '@openmaic/generation tests and test config must not reference a host-app path (@/…). Read app prompt assets as files for parity checks.',
+            '@ljkt/generation tests and test config must not reference a host-app path (@/…). Read app prompt assets as files for parity checks.',
         },
         {
           selector: 'TemplateElement[value.cooked=/^@\\//]',
           message:
-            '@openmaic/generation tests and test config must not reference a host-app path (@/…) in a template literal.',
+            '@ljkt/generation tests and test config must not reference a host-app path (@/…) in a template literal.',
         },
         {
           selector:
-            'ImportDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|@openmaic\\/generation(\\/|$)|node:|vitest(\\/|$)|\\.\\.?\\/).+/]',
+            'ImportDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|@ljkt\\/generation(\\/|$)|node:|vitest(\\/|$)|\\.\\.?\\/).+/]',
           message:
-            '@openmaic/generation tests and test config may import only @openmaic/dsl, the package public entry, Node built-ins, Vitest, or relative modules (./… or ../…).',
+            '@ljkt/generation tests and test config may import only @ljkt/dsl, the package public entry, Node built-ins, Vitest, or relative modules (./… or ../…).',
         },
         {
           selector:
-            'ExportNamedDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|@openmaic\\/generation(\\/|$)|node:|vitest(\\/|$)|\\.\\.?\\/).+/]',
+            'ExportNamedDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|@ljkt\\/generation(\\/|$)|node:|vitest(\\/|$)|\\.\\.?\\/).+/]',
           message:
-            '@openmaic/generation tests and test config may re-export only @openmaic/dsl, the package public entry, Node built-ins, Vitest, or relative modules (./… or ../…).',
+            '@ljkt/generation tests and test config may re-export only @ljkt/dsl, the package public entry, Node built-ins, Vitest, or relative modules (./… or ../…).',
         },
         {
           selector:
-            'ExportAllDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|@openmaic\\/generation(\\/|$)|node:|vitest(\\/|$)|\\.\\.?\\/).+/]',
+            'ExportAllDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|@ljkt\\/generation(\\/|$)|node:|vitest(\\/|$)|\\.\\.?\\/).+/]',
           message:
-            '@openmaic/generation tests and test config may re-export only @openmaic/dsl, the package public entry, Node built-ins, Vitest, or relative modules (./… or ../…).',
+            '@ljkt/generation tests and test config may re-export only @ljkt/dsl, the package public entry, Node built-ins, Vitest, or relative modules (./… or ../…).',
         },
         {
           selector: 'ImportExpression',
-          message: '@openmaic/generation tests and test config must use static imports.',
+          message: '@ljkt/generation tests and test config must use static imports.',
         },
         {
           selector: "CallExpression[callee.name='require']",
-          message: '@openmaic/generation tests and test config must not use require().',
+          message: '@ljkt/generation tests and test config must not use require().',
         },
       ],
     },
@@ -248,7 +248,7 @@ const eslintConfig = defineConfig([
   // must stay pure so the classroom-video exporter can interpret it in a pure
   // Node environment. Two guards, mirroring the package boundaries above:
   //   1. NO `@/…` host-app path-alias string — it authors none; it depends only
-  //      on @openmaic/dsl (types + the fire-and-forget partition) and relative
+  //      on @ljkt/dsl (types + the fire-and-forget partition) and relative
   //      siblings. The app and exporter import it, never the reverse.
   //   2. NO React / DOM / render-backend runtime import (react, react-dom, gsap,
   //      framer-motion, motion) — these are bare specifiers the `@/` rule can't
@@ -261,43 +261,43 @@ const eslintConfig = defineConfig([
         {
           selector: 'Literal[value=/^@\\//]',
           message:
-            'lib/choreography must not reference a host-app path (@/…). It authors no `@/…` strings — depend only on @openmaic/dsl and relative siblings, so the exporter can interpret it in pure Node. The app and exporter import it, not the reverse.',
+            'lib/choreography must not reference a host-app path (@/…). It authors no `@/…` strings — depend only on @ljkt/dsl and relative siblings, so the exporter can interpret it in pure Node. The app and exporter import it, not the reverse.',
         },
         {
           selector: 'TemplateElement[value.cooked=/^@\\//]',
           message:
-            'lib/choreography must not reference a host-app path (@/…) in a template literal. Depend only on @openmaic/dsl and relative siblings.',
+            'lib/choreography must not reference a host-app path (@/…) in a template literal. Depend only on @ljkt/dsl and relative siblings.',
         },
         // Import allowlist (static imports/re-exports): the ONLY permitted
-        // sources are `@openmaic/dsl`(/subpaths), `zod`, and in-folder relatives
+        // sources are `@ljkt/dsl`(/subpaths), `zod`, and in-folder relatives
         // (`./…`). Anything else — a parent-escape `../…` reaching back into the
         // app, or any other bare package — fails. Enforced on Import/Export
         // source string nodes via a negative-lookahead so the guard is a true
         // allowlist, not a blocklist of known-bad names.
         {
           selector:
-            'ImportDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/).+/]',
+            'ImportDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/).+/]',
           message:
-            'lib/choreography may import only from @openmaic/dsl, zod, or in-folder relatives (./…). No parent-escape (../…) into the app and no other packages — keep it pure so the exporter runs in plain Node.',
+            'lib/choreography may import only from @ljkt/dsl, zod, or in-folder relatives (./…). No parent-escape (../…) into the app and no other packages — keep it pure so the exporter runs in plain Node.',
         },
         {
           selector:
-            'ExportNamedDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/).+/]',
+            'ExportNamedDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/).+/]',
           message:
-            'lib/choreography may re-export only from @openmaic/dsl, zod, or in-folder relatives (./…).',
+            'lib/choreography may re-export only from @ljkt/dsl, zod, or in-folder relatives (./…).',
         },
         {
           selector:
-            'ExportAllDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/).+/]',
+            'ExportAllDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/).+/]',
           message:
-            'lib/choreography may re-export only from @openmaic/dsl, zod, or in-folder relatives (./…).',
+            'lib/choreography may re-export only from @ljkt/dsl, zod, or in-folder relatives (./…).',
         },
         // No dynamic import() or require() — they bypass the static allowlist and
         // can pull in a render backend at runtime.
         {
           selector: 'ImportExpression',
           message:
-            'lib/choreography must not use dynamic import() — it bypasses the static import allowlist. Use a top-level import from @openmaic/dsl, zod, or a relative sibling.',
+            'lib/choreography must not use dynamic import() — it bypasses the static import allowlist. Use a top-level import from @ljkt/dsl, zod, or a relative sibling.',
         },
         {
           selector: "CallExpression[callee.name='require']",
@@ -355,35 +355,35 @@ const eslintConfig = defineConfig([
         {
           selector: 'Literal[value=/^@\\//]',
           message:
-            'lib/video-export must not reference a host-app path (@/…). Live app state enters only through the injected TimingProbe / AssetSource — depend only on @openmaic/dsl, zod, ../choreography, and relative siblings, so the compiler runs in pure Node.',
+            'lib/video-export must not reference a host-app path (@/…). Live app state enters only through the injected TimingProbe / AssetSource — depend only on @ljkt/dsl, zod, ../choreography, and relative siblings, so the compiler runs in pure Node.',
         },
         {
           selector: 'TemplateElement[value.cooked=/^@\\//]',
           message:
-            'lib/video-export must not reference a host-app path (@/…) in a template literal. Depend only on @openmaic/dsl, zod, ../choreography, and relative siblings.',
+            'lib/video-export must not reference a host-app path (@/…) in a template literal. Depend only on @ljkt/dsl, zod, ../choreography, and relative siblings.',
         },
         {
           selector:
-            'ImportDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/choreography(\\/|$)).+/]',
+            'ImportDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/choreography(\\/|$)).+/]',
           message:
-            'lib/video-export root files may import only from @openmaic/dsl, zod, ../choreography, or in-module children (./…). A ../… into anything but ../choreography escapes the module and is rejected.',
+            'lib/video-export root files may import only from @ljkt/dsl, zod, ../choreography, or in-module children (./…). A ../… into anything but ../choreography escapes the module and is rejected.',
         },
         {
           selector:
-            'ExportNamedDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/choreography(\\/|$)).+/]',
+            'ExportNamedDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/choreography(\\/|$)).+/]',
           message:
-            'lib/video-export root files may re-export only from @openmaic/dsl, zod, ../choreography, or in-module children (./…).',
+            'lib/video-export root files may re-export only from @ljkt/dsl, zod, ../choreography, or in-module children (./…).',
         },
         {
           selector:
-            'ExportAllDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/choreography(\\/|$)).+/]',
+            'ExportAllDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/choreography(\\/|$)).+/]',
           message:
-            'lib/video-export root files may re-export only from @openmaic/dsl, zod, ../choreography, or in-module children (./…).',
+            'lib/video-export root files may re-export only from @ljkt/dsl, zod, ../choreography, or in-module children (./…).',
         },
         {
           selector: 'ImportExpression',
           message:
-            'lib/video-export must not use dynamic import() — it bypasses the static import allowlist. Use a top-level import from @openmaic/dsl, zod, ../choreography, or a relative sibling.',
+            'lib/video-export must not use dynamic import() — it bypasses the static import allowlist. Use a top-level import from @ljkt/dsl, zod, ../choreography, or a relative sibling.',
         },
         {
           selector: "CallExpression[callee.name='require']",
@@ -429,38 +429,38 @@ const eslintConfig = defineConfig([
         {
           selector: 'Literal[value=/^@\\//]',
           message:
-            'lib/video-export must not reference a host-app path (@/…). Live app state enters only through the injected TimingProbe / AssetSource — depend only on @openmaic/dsl, zod, ../../choreography, and relative siblings, so the compiler runs in pure Node.',
+            'lib/video-export must not reference a host-app path (@/…). Live app state enters only through the injected TimingProbe / AssetSource — depend only on @ljkt/dsl, zod, ../../choreography, and relative siblings, so the compiler runs in pure Node.',
         },
         {
           selector: 'TemplateElement[value.cooked=/^@\\//]',
           message:
-            'lib/video-export must not reference a host-app path (@/…) in a template literal. Depend only on @openmaic/dsl, zod, ../../choreography, and relative siblings.',
+            'lib/video-export must not reference a host-app path (@/…) in a template literal. Depend only on @ljkt/dsl, zod, ../../choreography, and relative siblings.',
         },
         // `./…` (children) and a single `../…` (a pass reaching a module-root
         // file, which stays inside lib/video-export) are allowed; a two-level
         // `../../…` escape is rejected UNLESS it is exactly `../../choreography`.
         {
           selector:
-            'ImportDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/\\.\\.\\/choreography(\\/|$)|\\.\\.\\/(?!\\.\\.\\/)).+/]',
+            'ImportDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/\\.\\.\\/choreography(\\/|$)|\\.\\.\\/(?!\\.\\.\\/)).+/]',
           message:
-            'lib/video-export passes may import only from @openmaic/dsl, zod, ../../choreography, or in-module relatives (./… or a single ../… that stays inside the module). A ../../ escape into the rest of the app is rejected.',
+            'lib/video-export passes may import only from @ljkt/dsl, zod, ../../choreography, or in-module relatives (./… or a single ../… that stays inside the module). A ../../ escape into the rest of the app is rejected.',
         },
         {
           selector:
-            'ExportNamedDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/\\.\\.\\/choreography(\\/|$)|\\.\\.\\/(?!\\.\\.\\/)).+/]',
+            'ExportNamedDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/\\.\\.\\/choreography(\\/|$)|\\.\\.\\/(?!\\.\\.\\/)).+/]',
           message:
-            'lib/video-export passes may re-export only from @openmaic/dsl, zod, ../../choreography, or in-module relatives.',
+            'lib/video-export passes may re-export only from @ljkt/dsl, zod, ../../choreography, or in-module relatives.',
         },
         {
           selector:
-            'ExportAllDeclaration > Literal.source[value=/^(?!@openmaic\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/\\.\\.\\/choreography(\\/|$)|\\.\\.\\/(?!\\.\\.\\/)).+/]',
+            'ExportAllDeclaration > Literal.source[value=/^(?!@ljkt\\/dsl(\\/|$)|zod(\\/|$)|\\.\\/|\\.\\.\\/\\.\\.\\/choreography(\\/|$)|\\.\\.\\/(?!\\.\\.\\/)).+/]',
           message:
-            'lib/video-export passes may re-export only from @openmaic/dsl, zod, ../../choreography, or in-module relatives.',
+            'lib/video-export passes may re-export only from @ljkt/dsl, zod, ../../choreography, or in-module relatives.',
         },
         {
           selector: 'ImportExpression',
           message:
-            'lib/video-export must not use dynamic import() — it bypasses the static import allowlist. Use a top-level import from @openmaic/dsl, zod, ../../choreography, or a relative sibling.',
+            'lib/video-export must not use dynamic import() — it bypasses the static import allowlist. Use a top-level import from @ljkt/dsl, zod, ../../choreography, or a relative sibling.',
         },
         {
           selector: "CallExpression[callee.name='require']",
@@ -640,11 +640,11 @@ const eslintConfig = defineConfig([
   // boundaries), hence the ignores.
   // Every ignored directory is nonetheless covered, and covered by a rule rather
   // than by an argument:
-  //   - packages/@openmaic/renderer, packages/@openmaic/storage, and
-  //     packages/@openmaic/generation — the same
+  //   - packages/@ljkt/renderer, packages/@ljkt/storage, and
+  //     packages/@ljkt/generation — the same
   //     AI_SDK_DYNAMIC_IMPORT_BAN is spread into their own blocks above. An earlier
   //     revision left them out on the reasoning that they are built in isolation
-  //     against @openmaic/dsl; review showed `void import('ai')` under the renderer
+  //     against @ljkt/dsl; review showed `void import('ai')` under the renderer
   //     source path passing lint, which is exactly why that reasoning was not good
   //     enough.
   //   - lib/choreography, lib/video-export — their blocks ban EVERY
@@ -659,9 +659,9 @@ const eslintConfig = defineConfig([
       'lib/choreography/**',
       'lib/video-export/**',
       'lib/pbl/v2/operations/kernel/**',
-      'packages/@openmaic/renderer/**',
-      'packages/@openmaic/storage/**',
-      'packages/@openmaic/generation/**',
+      'packages/@ljkt/renderer/**',
+      'packages/@ljkt/storage/**',
+      'packages/@ljkt/generation/**',
     ],
     rules: {
       'no-restricted-syntax': ['error', ...AI_SDK_DYNAMIC_IMPORT_BAN],

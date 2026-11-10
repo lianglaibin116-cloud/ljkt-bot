@@ -1,4 +1,4 @@
-import { DEFAULT_ASSET_PENDING_TTL_MS } from '@openmaic/storage';
+import { DEFAULT_ASSET_PENDING_TTL_MS } from '@ljkt/storage';
 
 /**
  * How long an allocated asset may stay pending before the server expires it.

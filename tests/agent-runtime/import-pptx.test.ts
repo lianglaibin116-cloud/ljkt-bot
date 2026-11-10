@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import type { Slide } from '@openmaic/dsl';
-import type { AgentSessionMaterial } from '@openmaic/storage';
+import type { Slide } from '@ljkt/dsl';
+import type { AgentSessionMaterial } from '@ljkt/storage';
 
 import {
   buildCourseAllowlist,
@@ -28,7 +28,7 @@ import { installNodeXmlHttpRequest, NodeXMLHttpRequest } from '@/lib/server/agen
 import { sessionMaterialsPromptBlock } from '@/lib/server/agent-runtime/session-materials';
 import type { AppDocumentOutline } from '@/lib/document-store/persistence-types';
 import type { Scene } from '@/lib/types/stage';
-import type { PPTTextElement } from '@openmaic/dsl';
+import type { PPTTextElement } from '@ljkt/dsl';
 
 function makeStore(initial: CourseDocument | null = null): CourseStore {
   let doc = initial;

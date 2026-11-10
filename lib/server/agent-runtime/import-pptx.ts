@@ -17,9 +17,9 @@ import { Worker } from 'node:worker_threads';
 
 import { Type, type Static } from 'typebox';
 import type { AgentTool } from '@earendil-works/pi-agent-core';
-import type { Slide } from '@openmaic/dsl';
-import type { AgentSessionMaterial } from '@openmaic/storage';
-import type { OssUpload } from '@openmaic/importer';
+import type { Slide } from '@ljkt/dsl';
+import type { AgentSessionMaterial } from '@ljkt/storage';
+import type { OssUpload } from '@ljkt/importer';
 
 import { buildVideoManifestFromOutlines } from '@/lib/media/video-manifest';
 import type { AppDocumentOutline } from '@/lib/document-store/persistence-types';

@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
-import { BrowserKVStore } from '@openmaic/storage';
+import { BrowserKVStore } from '@ljkt/storage';
 import { isProviderUsable } from '@/lib/store/settings-validation';
 import type { ASRProviderId } from '@/lib/audio/types';
 import type { SettingsState } from '@/lib/store/settings';

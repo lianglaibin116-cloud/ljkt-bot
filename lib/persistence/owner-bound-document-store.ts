@@ -1,9 +1,9 @@
-import type { Scene, Stage } from '@openmaic/dsl';
+import type { Scene, Stage } from '@ljkt/dsl';
 import {
   PgDocumentStore,
   type Queryable,
   type WithTransaction,
-} from '@openmaic/storage/document/pg';
+} from '@ljkt/storage/document/pg';
 import type {
   DocumentFolder,
   DocumentFolderStore,
@@ -13,7 +13,7 @@ import type {
   SceneLike,
   SceneValidator,
   StageValidator,
-} from '@openmaic/storage';
+} from '@ljkt/storage';
 
 import { sanitizeSceneContent } from '@/lib/server/sanitize-scene-content';
 

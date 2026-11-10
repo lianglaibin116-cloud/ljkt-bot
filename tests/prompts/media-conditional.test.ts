@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { buildPrompt, PROMPT_IDS, processConditionalBlocks } from '@openmaic/generation';
+import { buildPrompt, PROMPT_IDS, processConditionalBlocks } from '@ljkt/generation';
 import { buildPrompt as buildAppPrompt, PROMPT_IDS as APP_PROMPT_IDS } from '@/lib/prompts';
 
 function buildOutlinePrompt(

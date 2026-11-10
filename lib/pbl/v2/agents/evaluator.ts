@@ -45,7 +45,7 @@ import type { LanguageModel } from 'ai';
 
 import { createLogger } from '@/lib/logger';
 import { streamLLM } from '@/lib/ai/llm';
-import { buildVisionUserContent } from '@openmaic/generation';
+import { buildVisionUserContent } from '@ljkt/generation';
 import type { ThinkingConfig } from '@/lib/types/provider';
 
 import type {

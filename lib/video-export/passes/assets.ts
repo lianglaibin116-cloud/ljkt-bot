@@ -20,7 +20,7 @@
  *
  * Pure: no IO; asset metadata arrives through the injected source.
  */
-import type { SpeechAction } from '@openmaic/dsl';
+import type { SpeechAction } from '@ljkt/dsl';
 import type { AssetSource, AssetMeta, CompilerScene } from '../deps';
 import type { AssetKind, AssetPlan, AssetPlanEntry, Diagnostic, VideoTimelineScene } from '../ir';
 import { canonicalArchiveMedia, type ArchiveMediaKind } from '../archive-media';

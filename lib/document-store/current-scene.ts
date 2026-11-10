@@ -1,5 +1,5 @@
 /** Device-scoped editor position, separate from the canonical document. */
-import { BrowserKVStore, type KVStore } from '@openmaic/storage';
+import { BrowserKVStore, type KVStore } from '@ljkt/storage';
 
 export interface CurrentSceneValue {
   sceneId: string | null;

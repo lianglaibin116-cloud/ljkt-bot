@@ -18,7 +18,7 @@
  * `RuntimeStore` and `KVStore`: the defaults lazily touch IndexedDB and
  * localStorage through the browser storage backends.
  */
-import { BrowserKVStore, type KVStore, type RuntimeStore } from '@openmaic/storage';
+import { BrowserKVStore, type KVStore, type RuntimeStore } from '@ljkt/storage';
 
 import { getLearnerKey } from '@/lib/runtime/learner-key';
 import { getRuntimeStore } from '@/lib/runtime/store';

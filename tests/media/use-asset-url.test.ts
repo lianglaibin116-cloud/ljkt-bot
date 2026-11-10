@@ -1,5 +1,5 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { BrowserAssetStore, HttpAssetStore, toAssetId } from '@openmaic/storage';
+import { BrowserAssetStore, HttpAssetStore, toAssetId } from '@ljkt/storage';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearAssetPool, getAssetPool } from '@/lib/media/asset-pool';
 import { resolveMediaRef } from '@/lib/media/resolve-media-ref';

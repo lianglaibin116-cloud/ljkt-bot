@@ -1,6 +1,6 @@
 'use client';
 
-import type { PPTElement } from '@openmaic/dsl';
+import type { PPTElement } from '@ljkt/dsl';
 import { AnchoredBar } from './AnchoredBar';
 import { DeleteButton } from './DeleteButton';
 import { ImageActions } from './ImageActions';
