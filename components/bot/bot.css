@@ -109,9 +109,10 @@
   padding: 28px 10px 12px;
 }
 .ljbot-history {
-  min-height: 80px;
+  min-height: 36px;
   overflow: auto;
   flex: 1;
+  max-height: 26vh;
 }
 .ljbot-history-item {
   display: flex;
@@ -160,11 +161,75 @@
   justify-content: space-between;
   padding-top: 16px;
 }
+.ljbot-folder-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 10px 7px;
+}
+.ljbot-folder-heading button {
+  padding: 3px;
+  border-radius: 5px;
+}
+.ljbot-folder-help {
+  padding: 0 10px 6px;
+  color: #94958b;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.ljbot-folder-list {
+  min-height: 0;
+  max-height: 20vh;
+  flex-shrink: 1;
+  overflow: auto;
+}
+.ljbot-folder-item {
+  display: flex;
+  align-items: center;
+  margin: 1px 0;
+  border-radius: 7px;
+}
+.ljbot-folder-item > button:first-child {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 7px;
+  text-align: left;
+  border-radius: 7px;
+}
+.ljbot-folder-item > button:first-child.active {
+  background: #e1e8df;
+  color: #365d4b;
+}
+.ljbot-folder-item > button:first-child span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.ljbot-folder-item > button:first-child small {
+  color: #8b8b80;
+  font-size: 9px;
+}
+.ljbot-folder-item > button:not(:first-child) {
+  padding: 6px 4px;
+  color: #8b8b80;
+  opacity: 0;
+}
+.ljbot-folder-item:hover > button:not(:first-child),
+.ljbot-folder-item:focus-within > button:not(:first-child) {
+  opacity: 1;
+}
 .ljbot-course-heading button {
   padding: 2px;
 }
 .ljbot-courses {
-  max-height: 22vh;
+  min-height: 0;
+  max-height: 20vh;
+  flex-shrink: 1;
   overflow: auto;
 }
 .ljbot-courses > button {
@@ -192,6 +257,7 @@
   color: #929389;
 }
 .ljbot-sidebar-foot {
+  flex-shrink: 0;
   padding: 18px 8px 0;
   margin-top: 20px;
   border-top: 1px solid #ddded4;
@@ -512,6 +578,10 @@
   max-width: 140px;
   border-radius: 6px;
   outline: none;
+}
+.ljbot-composer-tools .ljbot-folder-select {
+  max-width: 170px;
+  color: #58705f;
 }
 .ljbot-send {
   display: grid;

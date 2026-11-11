@@ -51,6 +51,13 @@ const messageSchema = z.object({
   status: z.enum(['complete', 'streaming', 'cancelled', 'failed']).optional(),
   error: z.string().max(5000).optional(),
   materials: z.array(materialSchema).max(8).optional(),
+  knowledgeFolder: z
+    .object({
+      id: z.string().min(1).max(200),
+      name: z.string().min(1).max(250),
+      materials: z.array(materialSchema).max(30),
+    })
+    .optional(),
 });
 const botThreadSchema = z.object({
   id: z.string().min(1).max(200),
@@ -58,6 +65,7 @@ const botThreadSchema = z.object({
   createdAt: z.number().finite(),
   updatedAt: z.number().finite(),
   selectedCourseId: z.string().max(200).optional(),
+  selectedKnowledgeFolderId: z.string().max(200).optional(),
   workspace: z
     .object({ url: z.string().max(4000), title: z.string().max(250) })
     .nullable()
@@ -91,7 +99,7 @@ const manifestSchema = z.object({
         mimeType: z.string().max(200),
       }),
     )
-    .max(8),
+    .max(100),
 });
 
 async function sha256(bytes: Uint8Array): Promise<string> {
@@ -105,7 +113,10 @@ function collectMaterials(thread: BotThread): BotMaterial[] {
   const byId = new Map<string, BotMaterial>();
   for (const material of thread.materials ?? []) byId.set(material.id, material);
   for (const message of thread.messages)
-    for (const material of message.materials ?? [])
+    for (const material of [
+      ...(message.materials ?? []),
+      ...(message.knowledgeFolder?.materials ?? []),
+    ])
       if (!byId.has(material.id)) byId.set(material.id, material);
   return Array.from(byId.values());
 }
@@ -228,8 +239,16 @@ export async function restoreBotBackup(
         (manifest.thread.materials as BotMaterial[] | undefined)?.find(
           (material) => material.id === item.id,
         ) ??
-        (manifest.thread.messages as Array<{ materials?: BotMaterial[] }>)
-          .flatMap((message) => message.materials ?? [])
+        (
+          manifest.thread.messages as Array<{
+            materials?: BotMaterial[];
+            knowledgeFolder?: { materials?: BotMaterial[] };
+          }>
+        )
+          .flatMap((message) => [
+            ...(message.materials ?? []),
+            ...(message.knowledgeFolder?.materials ?? []),
+          ])
           .find((material) => material.id === item.id);
       if (!source) throw new Error(`备份缺少附件元数据：${item.id}`);
       const newStorageKey = await storeDocumentBlob(

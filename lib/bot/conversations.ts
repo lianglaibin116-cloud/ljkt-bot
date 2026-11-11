@@ -1,12 +1,14 @@
 import Dexie, { type Table } from 'dexie';
-import type { BotThread } from './contracts';
+import type { BotKnowledgeFolder, BotThread } from './contracts';
 import { restoreMissingPreparedCourseActions } from './task-intent';
 
 class BotDatabase extends Dexie {
   threads!: Table<BotThread, string>;
+  knowledgeFolders!: Table<BotKnowledgeFolder, string>;
   constructor() {
     super('ljkt-bot-conversations');
     this.version(1).stores({ threads: 'id,updatedAt' });
+    this.version(2).stores({ threads: 'id,updatedAt', knowledgeFolders: 'id,name,updatedAt' });
   }
 }
 let database: BotDatabase | undefined;
@@ -31,4 +33,20 @@ export async function saveBotThread(thread: BotThread): Promise<void> {
 }
 export async function deleteBotThread(id: string): Promise<void> {
   await db().threads.delete(id);
+}
+
+export async function listBotKnowledgeFolders(): Promise<BotKnowledgeFolder[]> {
+  return db().knowledgeFolders.orderBy('updatedAt').reverse().toArray();
+}
+
+export async function saveBotKnowledgeFolder(folder: BotKnowledgeFolder): Promise<void> {
+  await db().knowledgeFolders.put(folder);
+}
+
+export async function getBotKnowledgeFolder(id: string): Promise<BotKnowledgeFolder | undefined> {
+  return db().knowledgeFolders.get(id);
+}
+
+export async function deleteBotKnowledgeFolder(id: string): Promise<void> {
+  await db().knowledgeFolders.delete(id);
 }

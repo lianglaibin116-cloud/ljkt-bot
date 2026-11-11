@@ -44,6 +44,18 @@ export interface BotMaterial extends SessionDocumentSource {
   extractionTruncated?: boolean;
   extractionError?: string;
 }
+export interface BotKnowledgeFolder {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+  materials: BotMaterial[];
+}
+export interface BotKnowledgeFolderReference {
+  id: string;
+  name: string;
+  materials: SessionDocumentSource[];
+}
 export interface BotMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -52,6 +64,7 @@ export interface BotMessage {
   status?: 'complete' | 'streaming' | 'cancelled' | 'failed';
   error?: string;
   materials?: SessionDocumentSource[];
+  knowledgeFolder?: BotKnowledgeFolderReference;
 }
 export interface BotThread {
   id: string;
@@ -60,6 +73,7 @@ export interface BotThread {
   updatedAt: number;
   /** Course context and embedded workspace belong to this conversation. */
   selectedCourseId?: string;
+  selectedKnowledgeFolderId?: string;
   workspace?: BotWorkspaceState | null;
   /** Source documents are scoped to and persisted with this conversation. */
   materials?: BotMaterial[];

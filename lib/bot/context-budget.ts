@@ -241,6 +241,40 @@ function materialTerms(prompt: string): string[] {
   );
 }
 
+/** Rank local workspace files against the current request before including them in context. */
+export function selectRelevantMaterials(
+  materials: BotMaterial[],
+  prompt: string,
+  limit: number,
+): BotMaterial[] {
+  if (limit <= 0 || !materials.length) return [];
+  if (materials.length <= limit) return materials;
+  const terms = materialTerms(prompt).slice(0, 120);
+  if (!terms.length) return materials.slice(0, limit);
+  const ranked = materials.map((material, index) => {
+    const filename = material.name.toLowerCase();
+    const text = (material.extractedText ?? '').toLowerCase();
+    const score = terms.reduce((total, term) => {
+      const weight = Math.min(term.length, 5);
+      let matches = filename.includes(term) ? 4 : 0;
+      if (text) {
+        const position = text.indexOf(term);
+        if (position >= 0) {
+          matches += 1;
+          if (text.indexOf(term, position + term.length) >= 0) matches += 1;
+        }
+      }
+      return total + matches * weight;
+    }, 0);
+    return { material, index, score };
+  });
+  return ranked
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .slice(0, limit)
+    .sort((left, right) => left.index - right.index)
+    .map(({ material }) => material);
+}
+
 function spreadChunks(chunks: MaterialChunk[], budget: number): MaterialChunk[] {
   if (!chunks.length) return [];
   const average =
@@ -269,7 +303,7 @@ export function buildMaterialContext(
 ): string {
   if (!materials.length || tokenBudget <= 0) return '';
   const note =
-    '附件说明：原始文件保存在本机；以下是根据本轮问题检索的原文片段，并非全文。大纲和课件制作会重新解析原始附件。';
+    '资料说明：原始文件保存在本机；以下是根据本轮问题检索的原文片段，并非全文。生成任务只使用明确加入该任务的资料内容。';
   const noteCost = estimateTextTokens(note);
   let remaining = Math.max(0, tokenBudget - noteCost - 45);
   const terms = materialTerms(prompt);

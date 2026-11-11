@@ -12,8 +12,10 @@ import {
   BookOpen,
   ChevronRight,
   Download,
+  FilePlus2,
   FileText,
   FolderOpen,
+  FolderPlus,
   LayoutPanelLeft,
   Loader2,
   Maximize2,
@@ -21,6 +23,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Paperclip,
+  Pencil,
   Plus,
   Settings,
   Square,
@@ -39,12 +42,25 @@ import { listStages, loadStageData, type StageListItem } from '@/lib/utils/stage
 import { deleteDocumentBlob, loadDocumentBlob, storeDocumentBlob } from '@/lib/utils/image-storage';
 import { normalizeDocumentMimeType } from '@/lib/document/mime';
 import { extractCourseDocumentSource } from '@/lib/course-documents/source';
-import { deleteBotThread, listBotThreads, saveBotThread } from '@/lib/bot/conversations';
+import {
+  indexKnowledgeFolderLocally,
+  indexKnowledgeMaterialLocally,
+} from '@/lib/bot/local-material-index';
+import {
+  deleteBotKnowledgeFolder,
+  deleteBotThread,
+  getBotKnowledgeFolder,
+  listBotKnowledgeFolders,
+  listBotThreads,
+  saveBotKnowledgeFolder,
+  saveBotThread,
+} from '@/lib/bot/conversations';
 import {
   actionPath,
   MAX_BOT_MATERIAL_TEXT_CHARS,
   readBotEvents,
   type BotAction,
+  type BotKnowledgeFolder,
   type BotMaterial,
   type BotMessage,
   type BotThread,
@@ -56,6 +72,7 @@ import {
   buildCourseContext,
   buildMaterialContext,
   estimateTextTokens,
+  selectRelevantMaterials,
   selectCourseDirectory,
   selectRecentMessages,
 } from '@/lib/bot/context-budget';
@@ -84,6 +101,20 @@ const makeThread = (): BotThread => ({
   createdAt: Date.now(),
   updatedAt: Date.now(),
 });
+const MAX_KNOWLEDGE_FOLDER_FILES = 30;
+const MAX_KNOWLEDGE_FOLDER_BYTES = 200 * 1024 * 1024;
+
+function toDocumentSource({
+  extractedText: _text,
+  extractedTextLength: _textLength,
+  extractedPageCount: _pageCount,
+  extractionTruncated: _truncated,
+  extractionError: _error,
+  ...source
+}: BotMaterial): SessionDocumentSource {
+  return source;
+}
+
 const actionLabel = (action: BotAction) =>
   action.type === 'prepare-course'
     ? '开始整理大纲'
@@ -120,12 +151,16 @@ type BotFrameActions = {
 
 export default function BotWorkspace() {
   const [threads, setThreads] = useState<BotThread[]>([]);
+  const [knowledgeFolders, setKnowledgeFolders] = useState<BotKnowledgeFolder[]>([]);
   const [thread, setThread] = useState<BotThread>(makeThread);
   const [loaded, setLoaded] = useState(false);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingFolderId, setUploadingFolderId] = useState('');
   const [readingMaterials, setReadingMaterials] = useState(false);
+  const [materialReadingStatus, setMaterialReadingStatus] = useState('');
+  const [preparingCourseActionId, setPreparingCourseActionId] = useState('');
   const materials: BotMaterial[] = thread.materials ?? [];
   const [error, setError] = useState('');
   const [storageError, setStorageError] = useState('');
@@ -147,6 +182,10 @@ export default function BotWorkspace() {
   const [nativeGeneration, setNativeGeneration] = useState<NativeGenerationState | null>(null);
   const [generationProgress, setGenerationProgress] = useState(0);
   const selectedCourse = thread.selectedCourseId ?? '';
+  const selectedKnowledgeFolderId = thread.selectedKnowledgeFolderId ?? '';
+  const selectedKnowledgeFolder = knowledgeFolders.find(
+    (folder) => folder.id === selectedKnowledgeFolderId,
+  );
   const workspace = thread.workspace ?? null;
   const abort = useRef<AbortController | null>(null);
   const current = useRef(thread);
@@ -155,6 +194,8 @@ export default function BotWorkspace() {
   const followTail = useRef(true);
   const scrollThread = useRef(thread.id);
   const fileInput = useRef<HTMLInputElement>(null);
+  const folderFileInput = useRef<HTMLInputElement>(null);
+  const folderUploadTarget = useRef<string | null>(null);
   const backupFileInput = useRef<HTMLInputElement>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
   const botFrameActions = useRef<BotFrameActions>({
@@ -173,7 +214,8 @@ export default function BotWorkspace() {
       value.messages.length === 0 &&
       !value.materials?.length &&
       !value.workspace &&
-      !value.selectedCourseId
+      !value.selectedCourseId &&
+      !value.selectedKnowledgeFolderId
     )
       return;
     try {
@@ -182,7 +224,8 @@ export default function BotWorkspace() {
         value.messages.length ||
         value.materials?.length ||
         value.workspace ||
-        value.selectedCourseId
+        value.selectedCourseId ||
+        value.selectedKnowledgeFolderId
       )
         setThreads((items) =>
           [value, ...items.filter((item) => item.id !== value.id)].sort(
@@ -202,6 +245,24 @@ export default function BotWorkspace() {
   };
   const setSelectedCourse = (courseId: string) =>
     updateThreadContext((value) => ({ ...value, selectedCourseId: courseId || undefined }));
+  const setSelectedKnowledgeFolder = (folderId: string) => {
+    const value = folderId || undefined;
+    updateThreadContext((currentValue) => ({
+      ...currentValue,
+      selectedKnowledgeFolderId: value,
+    }));
+    const next = { ...current.current, selectedKnowledgeFolderId: value, updatedAt: Date.now() };
+    if (
+      !value &&
+      !next.messages.length &&
+      !next.materials?.length &&
+      !next.workspace &&
+      !next.selectedCourseId
+    ) {
+      void deleteBotThread(next.id);
+      setThreads((items) => items.filter((item) => item.id !== next.id));
+    } else void persist(next);
+  };
   const setWorkspace = (value: BotThread['workspace']) => {
     if (!value || value.mode !== 'generation') setNativeGeneration(null);
     updateThreadContext((threadValue) => ({ ...threadValue, workspace: value }));
@@ -240,6 +301,13 @@ export default function BotWorkspace() {
 
   useEffect(() => {
     let live = true;
+    void listBotKnowledgeFolders()
+      .then((items) => {
+        if (live) setKnowledgeFolders(items);
+      })
+      .catch(() => {
+        if (live) setStorageError('无法读取资料文件夹，请检查本机存储权限。');
+      });
     void listBotThreads()
       .then((items) => {
         if (!live) return;
@@ -449,7 +517,7 @@ export default function BotWorkspace() {
   };
 
   const send = async () => {
-    if (!draft.trim() || busy || uploading || !loaded) return;
+    if (!draft.trim() || busy || uploading || preparingCourseActionId || !loaded) return;
     if (!hasUsableLLMProvider(useSettingsStore.getState().providersConfig)) {
       setSettingsOpen(true);
       setError('先配置一个文本模型，就可以开始对话。');
@@ -457,22 +525,21 @@ export default function BotWorkspace() {
     }
     followTail.current = true;
     const prompt = draft.trim();
-    const attachmentSnapshot: SessionDocumentSource[] = materials.map(
-      ({
-        extractedText: _text,
-        extractedTextLength: _textLength,
-        extractedPageCount: _pageCount,
-        extractionTruncated: _truncated,
-        extractionError: _error,
-        ...source
-      }) => source,
-    );
+    const attachmentSnapshot: SessionDocumentSource[] = materials.map(toDocumentSource);
+    const folderSnapshot = selectedKnowledgeFolder
+      ? {
+          id: selectedKnowledgeFolder.id,
+          name: selectedKnowledgeFolder.name,
+          materials: selectedKnowledgeFolder.materials.map(toDocumentSource),
+        }
+      : undefined;
     const assistantId = nanoid();
     const user: BotMessage = {
       id: nanoid(),
       role: 'user',
       content: prompt,
       materials: attachmentSnapshot,
+      knowledgeFolder: folderSnapshot,
     };
     const assistant: BotMessage = {
       id: assistantId,
@@ -481,6 +548,7 @@ export default function BotWorkspace() {
       actions: [],
       status: 'streaming',
       materials: attachmentSnapshot,
+      knowledgeFolder: folderSnapshot,
     };
     const next: BotThread = {
       ...thread,
@@ -508,13 +576,34 @@ export default function BotWorkspace() {
       );
       const inputBudget = Math.max(2500, Math.min(30000, contextWindow - outputBudget - 1500));
       const courseLimit = Math.max(20, Math.min(150, Math.floor(inputBudget / 100)));
-      const selectedCourses = selectCourseDirectory(courses, prompt, selectedCourse, courseLimit);
+      // Course context is conversation-scoped: only a course explicitly linked in this chat is
+      // exposed to the model. The global course library remains available in the sidebar.
+      const selectedCourses = selectedCourse
+        ? selectCourseDirectory(
+            courses.filter((course) => course.id === selectedCourse),
+            prompt,
+            selectedCourse,
+            courseLimit,
+          )
+        : [];
       const needsMaterialExtraction = (item: BotMaterial) =>
         !item.extractedText || (item.extractionTruncated && item.extractedTextLength === undefined);
-      setReadingMaterials(materials.some(needsMaterialExtraction));
+      const needsFolderIndex = Boolean(
+        selectedKnowledgeFolder?.materials.some(needsMaterialExtraction),
+      );
+      setReadingMaterials(materials.some(needsMaterialExtraction) || needsFolderIndex);
+      setMaterialReadingStatus(
+        needsFolderIndex
+          ? `正在本机准备“${selectedKnowledgeFolder?.name}”资料…`
+          : '正在解析本对话中的教学材料…',
+      );
       const parsedMaterials = await Promise.all(
         materials.map(async (material) => {
           if (!needsMaterialExtraction(material)) return material;
+          if (/\.(txt|md|markdown|html|htm)$/i.test(material.name)) {
+            const indexed = await indexKnowledgeMaterialLocally(material, controller.signal);
+            return indexed.material;
+          }
           const blob = await loadDocumentBlob(material.storageKey);
           if (!blob) throw new Error(`本机找不到材料《${material.name}》，请重新添加后再发送。`);
           const settings = useSettingsStore.getState();
@@ -555,6 +644,40 @@ export default function BotWorkspace() {
           };
         }),
       );
+      let folderMaterials: BotMaterial[] = [];
+      let unsupportedFolderNames: string[] = [];
+      if (selectedKnowledgeFolder?.materials.length) {
+        setMaterialReadingStatus(`正在本机检索“${selectedKnowledgeFolder.name}”资料…`);
+        const indexed = await indexKnowledgeFolderLocally(
+          selectedKnowledgeFolder.materials,
+          controller.signal,
+          (finished, total) =>
+            setMaterialReadingStatus(
+              `正在本机检索“${selectedKnowledgeFolder.name}”资料（${finished}/${total}）…`,
+            ),
+        );
+        folderMaterials = indexed.materials.filter((material) => Boolean(material.extractedText));
+        unsupportedFolderNames = indexed.unsupportedNames;
+        const updatedFolder = {
+          ...selectedKnowledgeFolder,
+          materials: indexed.materials,
+          updatedAt: Date.now(),
+        };
+        await saveBotKnowledgeFolder(updatedFolder);
+        setKnowledgeFolders((items) =>
+          items.map((item) => (item.id === updatedFolder.id ? updatedFolder : item)),
+        );
+        if (!folderMaterials.length && !parsedMaterials.length) {
+          throw new Error(
+            `“${selectedKnowledgeFolder.name}”中没有可本机检索的 TXT、HTML 或 Markdown 文件。为保护原件，PDF、Word、PPTX 暂不上传解析；请转换为 TXT、HTML 或 Markdown 后再试。`,
+          );
+        }
+        if (unsupportedFolderNames.length) {
+          toast.warning(
+            `以下资料暂不参与本机检索：${unsupportedFolderNames.slice(0, 4).join('、')}${unsupportedFolderNames.length > 4 ? '等' : ''}`,
+          );
+        }
+      }
       const updatedThread = {
         ...current.current,
         materials: parsedMaterials,
@@ -564,16 +687,35 @@ export default function BotWorkspace() {
       setThread(updatedThread);
       await persist(updatedThread);
       setReadingMaterials(false);
+      setMaterialReadingStatus('');
       const fixedContextTokens = 1500 + estimateTextTokens(JSON.stringify(selectedCourses));
       const latestPromptTokens = estimateTextTokens(prompt);
       if (fixedContextTokens + latestPromptTokens > inputBudget)
         throw new Error('这条消息已超过当前模型可用上下文，请缩短问题或改用上下文更大的模型。');
       const remainingContext = inputBudget - fixedContextTokens - latestPromptTokens;
-      const materialBudget = parsedMaterials.length
+      const selectedFolderMaterials = selectRelevantMaterials(
+        folderMaterials,
+        prompt,
+        Math.min(6, Math.max(0, 12 - parsedMaterials.length)),
+      );
+      const contextMaterials = [...parsedMaterials, ...selectedFolderMaterials];
+      const materialBudget = contextMaterials.length
         ? Math.min(7000, Math.floor(remainingContext * 0.38))
         : 0;
       const courseBudget = selectedCourse ? Math.min(4500, Math.floor(remainingContext * 0.24)) : 0;
-      const materialContext = buildMaterialContext(parsedMaterials, materialBudget, prompt);
+      const materialContext = buildMaterialContext(contextMaterials, materialBudget, prompt);
+      const folderNotice = unsupportedFolderNames.length
+        ? `所选资料文件夹中有 ${unsupportedFolderNames.length} 份 PDF、Word、PPTX 或不可读文件，本机未解析这些原件。`
+        : '';
+      const scopedMaterialContext = [
+        selectedKnowledgeFolder
+          ? `本轮选用资料文件夹：${selectedKnowledgeFolder.name}。只将本机检索到的相关文本片段提供给模型。`
+          : '',
+        folderNotice,
+        materialContext,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
       let courseContext: string | undefined;
       if (selectedCourse) {
         const saved = await loadStageData(selectedCourse);
@@ -598,7 +740,7 @@ export default function BotWorkspace() {
       const latestMessage = conversation.at(-1);
       const history = latestMessage ? conversation.slice(0, -1) : conversation;
       const sourceTokens =
-        estimateTextTokens(materialContext) + estimateTextTokens(courseContext ?? '');
+        estimateTextTokens(scopedMaterialContext) + estimateTextTokens(courseContext ?? '');
       const historyBudget = Math.max(
         0,
         inputBudget - fixedContextTokens - latestPromptTokens - sourceTokens,
@@ -613,8 +755,8 @@ export default function BotWorkspace() {
           messages,
           courses: selectedCourses.map(({ id, name, sceneCount }) => ({ id, name, sceneCount })),
           courseContext,
-          materialNames: parsedMaterials.map((item) => item.name),
-          materialContext: materialContext || undefined,
+          materialNames: contextMaterials.map((item) => item.name),
+          materialContext: scopedMaterialContext || undefined,
           historyOmittedCount: selectedHistory.omittedCount,
           thinkingConfig: config.thinkingConfig,
         }),
@@ -648,6 +790,7 @@ export default function BotWorkspace() {
       updateAssistant(assistantId, (message) => ({ ...message, status: 'complete' }));
     } catch (cause) {
       setReadingMaterials(false);
+      setMaterialReadingStatus('');
       const cancelled = controller.signal.aborted;
       const message = cancelled
         ? '已停止回复。'
@@ -660,9 +803,113 @@ export default function BotWorkspace() {
         error: message,
       }));
     } finally {
+      setReadingMaterials(false);
+      setMaterialReadingStatus('');
       abort.current = null;
       setBusy(false);
       await persist(current.current);
+    }
+  };
+
+  const openCourseSetupFromMessage = async (
+    message: BotMessage,
+    action: PrepareCourseAction,
+    actionRef: { messageId: string; actionId: string },
+  ) => {
+    if (preparingCourseActionId) return;
+    const ownerThreadId = current.current.id;
+    setPreparingCourseActionId(actionRef.actionId);
+    let preparedAction = action;
+    try {
+      const reference = message.knowledgeFolder;
+      if (reference?.materials.length) {
+        setReadingMaterials(true);
+        setMaterialReadingStatus(`正在本机检索“${reference.name}”中的任务相关资料…`);
+        const liveFolder = await getBotKnowledgeFolder(reference.id);
+        const cachedByKey = new Map(
+          (liveFolder?.materials ?? []).map((material) => [material.storageKey, material]),
+        );
+        const sourceMaterials = reference.materials.map((source) => {
+          const cached = cachedByKey.get(source.storageKey);
+          return {
+            ...source,
+            extractedText: cached?.extractedText,
+            extractedPageCount: cached?.extractedPageCount,
+            extractedTextLength: cached?.extractedTextLength,
+            extractionTruncated: cached?.extractionTruncated,
+            extractionError: cached?.extractionError,
+          } satisfies BotMaterial;
+        });
+        const query = `${action.title}\n${action.requirement}`;
+        const indexed = await indexKnowledgeFolderLocally(
+          sourceMaterials,
+          new AbortController().signal,
+          (finished, total) =>
+            setMaterialReadingStatus(
+              `正在本机检索“${reference.name}”中的任务相关资料（${finished}/${total}）…`,
+            ),
+        );
+        if (liveFolder) {
+          const indexedByKey = new Map(
+            indexed.materials.map((material) => [material.storageKey, material]),
+          );
+          const updatedFolder = {
+            ...liveFolder,
+            materials: liveFolder.materials.map(
+              (material) => indexedByKey.get(material.storageKey) ?? material,
+            ),
+            updatedAt: Date.now(),
+          };
+          await saveBotKnowledgeFolder(updatedFolder);
+          setKnowledgeFolders((items) =>
+            items.map((item) => (item.id === updatedFolder.id ? updatedFolder : item)),
+          );
+        }
+        const readable = indexed.materials.filter((material) => Boolean(material.extractedText));
+        const relevant = selectRelevantMaterials(readable, query, 5);
+        const sectionLabel = `\n\n【资料文件夹“${reference.name}”的本机检索片段】\n`;
+        const remainingChars = Math.max(
+          0,
+          19_999 - action.requirement.length - sectionLabel.length,
+        );
+        if (relevant.length && remainingChars >= 240) {
+          const excerptContext = buildMaterialContext(
+            relevant,
+            Math.min(1800, Math.floor(remainingChars / 2)),
+            query,
+          );
+          const excerpts = excerptContext.slice(0, remainingChars).trim();
+          if (excerpts)
+            preparedAction = {
+              ...action,
+              requirement: `${action.requirement}${sectionLabel}${excerpts}`,
+            };
+        }
+        if (indexed.unsupportedNames.length) {
+          toast.warning(
+            `以下文件未参与本机检索：${indexed.unsupportedNames.slice(0, 4).join('、')}${indexed.unsupportedNames.length > 4 ? '等' : ''}`,
+          );
+        }
+        if (!readable.length)
+          toast.warning(
+            '所选文件夹没有可读取的 TXT、HTML 或 Markdown；将按制作任务卡现有要求继续。',
+          );
+      }
+      if (current.current.id !== ownerThreadId) return;
+      setPendingCourseSetup({
+        action: preparedAction,
+        documents: message.materials,
+        actionRef,
+      });
+      setWorkspace(null);
+      setWideWorkspace(false);
+    } catch (cause) {
+      if (current.current.id === ownerThreadId)
+        toast.error(cause instanceof Error ? cause.message : '资料读取失败，请重试。');
+    } finally {
+      setReadingMaterials(false);
+      setMaterialReadingStatus('');
+      if (current.current.id === ownerThreadId) setPreparingCourseActionId('');
     }
   };
 
@@ -835,6 +1082,151 @@ export default function BotWorkspace() {
       setWorkspace(null);
       setWideWorkspace(false);
       void refreshCourses();
+    }
+  };
+
+  const createKnowledgeFolder = async () => {
+    const name = window.prompt('新建资料文件夹名称');
+    if (!name?.trim()) return;
+    const normalizedName = name.trim().slice(0, 60);
+    if (
+      knowledgeFolders.some((folder) => folder.name.toLowerCase() === normalizedName.toLowerCase())
+    ) {
+      toast.error('已有同名资料文件夹。');
+      return;
+    }
+    const now = Date.now();
+    const folder: BotKnowledgeFolder = {
+      id: nanoid(),
+      name: normalizedName,
+      createdAt: now,
+      updatedAt: now,
+      materials: [],
+    };
+    try {
+      await saveBotKnowledgeFolder(folder);
+      setKnowledgeFolders((items) => [folder, ...items]);
+      setSelectedKnowledgeFolder(folder.id);
+      toast.success(`已创建资料文件夹“${folder.name}”。`);
+    } catch {
+      setError('资料文件夹未能保存，请检查本机存储空间。');
+    }
+  };
+
+  const renameKnowledgeFolder = async (folder: BotKnowledgeFolder) => {
+    const name = window.prompt('重命名资料文件夹', folder.name);
+    if (!name?.trim()) return;
+    const normalizedName = name.trim().slice(0, 60);
+    if (
+      knowledgeFolders.some(
+        (item) => item.id !== folder.id && item.name.toLowerCase() === normalizedName.toLowerCase(),
+      )
+    ) {
+      toast.error('已有同名资料文件夹。');
+      return;
+    }
+    const updated = { ...folder, name: normalizedName, updatedAt: Date.now() };
+    try {
+      await saveBotKnowledgeFolder(updated);
+      setKnowledgeFolders((items) =>
+        [updated, ...items.filter((item) => item.id !== updated.id)].sort(
+          (left, right) => right.updatedAt - left.updatedAt,
+        ),
+      );
+    } catch {
+      setError('资料文件夹未能重命名，请重试。');
+    }
+  };
+
+  const removeKnowledgeFolder = async (folder: BotKnowledgeFolder) => {
+    if (!window.confirm(`删除资料文件夹“${folder.name}”？已发送到对话的任务仍保留其资料引用。`))
+      return;
+    try {
+      const referencedKeys = new Set<string>();
+      const allThreads = [
+        ...threads.filter((item) => item.id !== current.current.id),
+        current.current,
+      ];
+      for (const item of allThreads) {
+        for (const material of item.materials ?? []) referencedKeys.add(material.storageKey);
+        for (const message of item.messages) {
+          for (const material of message.materials ?? []) referencedKeys.add(material.storageKey);
+          for (const material of message.knowledgeFolder?.materials ?? [])
+            referencedKeys.add(material.storageKey);
+        }
+      }
+      for (const other of knowledgeFolders)
+        if (other.id !== folder.id)
+          for (const material of other.materials) referencedKeys.add(material.storageKey);
+      await deleteBotKnowledgeFolder(folder.id);
+      setKnowledgeFolders((items) => items.filter((item) => item.id !== folder.id));
+      await Promise.allSettled(
+        folder.materials
+          .filter((material) => !referencedKeys.has(material.storageKey))
+          .map((material) => deleteDocumentBlob(material.storageKey)),
+      );
+      if (selectedKnowledgeFolderId === folder.id) setSelectedKnowledgeFolder('');
+      toast.success('资料文件夹已删除。');
+    } catch {
+      setError('资料文件夹未能删除，请重试。');
+    }
+  };
+
+  const uploadToKnowledgeFolder = async (folderId: string, files: FileList | null) => {
+    if (!files?.length || uploadingFolderId) return;
+    const folder = knowledgeFolders.find((item) => item.id === folderId);
+    if (!folder) return;
+    const additions = Array.from(files);
+    const size = folder.materials.reduce((total, item) => total + item.size, 0);
+    if (
+      folder.materials.length + additions.length > MAX_KNOWLEDGE_FOLDER_FILES ||
+      additions.some((file) => file.size > 50 * 1024 * 1024) ||
+      size + additions.reduce((total, file) => total + file.size, 0) > MAX_KNOWLEDGE_FOLDER_BYTES
+    ) {
+      setError('每个资料文件夹最多30份文件、总计200MB，单份不超过50MB。');
+      return;
+    }
+    if (additions.some((file) => !/\.(pdf|pptx|docx|txt|md|html|htm)$/i.test(file.name))) {
+      setError('支持 PDF、PPTX、Word、TXT、Markdown 和 HTML 教学材料。');
+      return;
+    }
+    setUploadingFolderId(folderId);
+    setError('');
+    const createdKeys: string[] = [];
+    try {
+      const records: BotMaterial[] = [];
+      for (const file of additions) {
+        const storageKey = await storeDocumentBlob(file);
+        createdKeys.push(storageKey);
+        records.push({
+          id: nanoid(),
+          name: file.name,
+          size: file.size,
+          lastModified: file.lastModified,
+          mimeType: normalizeDocumentMimeType({ mimeType: file.type, fileName: file.name }),
+          order: folder.materials.length + records.length + 1,
+          storageKey,
+          providerId: useSettingsStore.getState().pdfProviderId,
+        });
+      }
+      const updated = {
+        ...folder,
+        materials: [...folder.materials, ...records],
+        updatedAt: Date.now(),
+      };
+      await saveBotKnowledgeFolder(updated);
+      setKnowledgeFolders((items) =>
+        [updated, ...items.filter((item) => item.id !== updated.id)].sort(
+          (left, right) => right.updatedAt - left.updatedAt,
+        ),
+      );
+      toast.success(`已将 ${records.length} 份资料加入“${folder.name}”。`);
+    } catch (cause) {
+      await Promise.allSettled(createdKeys.map((key) => deleteDocumentBlob(key)));
+      setError(cause instanceof Error ? cause.message : '资料未能保存，请重试。');
+    } finally {
+      setUploadingFolderId('');
+      if (folderFileInput.current) folderFileInput.current.value = '';
     }
   };
 
@@ -1177,6 +1569,81 @@ export default function BotWorkspace() {
             </div>
           ))}
         </div>
+        <div className="ljbot-section ljbot-folder-heading">
+          资料文件夹
+          <button
+            title="新建资料文件夹"
+            onClick={() => void createKnowledgeFolder()}
+            disabled={!loaded || busy || uploadingFolderId !== ''}
+          >
+            <FolderPlus size={15} />
+          </button>
+        </div>
+        <div className="ljbot-folder-help">
+          本机检索支持 TXT、HTML、Markdown；PDF、Word、PPTX 暂保存在本地，不会自动上传解析。
+        </div>
+        <input
+          ref={folderFileInput}
+          type="file"
+          hidden
+          multiple
+          accept=".pdf,.pptx,.docx,.txt,.md,.html,.htm"
+          onChange={(event) =>
+            void uploadToKnowledgeFolder(folderUploadTarget.current ?? '', event.target.files)
+          }
+        />
+        <div className="ljbot-folder-list">
+          {!knowledgeFolders.length && (
+            <span className="ljbot-muted">按主题整理资料，供对话和课件任务使用</span>
+          )}
+          {knowledgeFolders.map((folder) => (
+            <div className="ljbot-folder-item" key={folder.id}>
+              <button
+                className={folder.id === selectedKnowledgeFolderId ? 'active' : ''}
+                title={`选择“${folder.name}”作为当前对话资料范围`}
+                aria-pressed={folder.id === selectedKnowledgeFolderId}
+                disabled={busy}
+                onClick={() =>
+                  setSelectedKnowledgeFolder(
+                    folder.id === selectedKnowledgeFolderId ? '' : folder.id,
+                  )
+                }
+              >
+                <FolderOpen size={14} />
+                <span>{folder.name}</span>
+                <small>{folder.materials.length}</small>
+              </button>
+              <button
+                title={`向“${folder.name}”添加资料`}
+                disabled={busy || uploadingFolderId !== ''}
+                onClick={() => {
+                  folderUploadTarget.current = folder.id;
+                  folderFileInput.current?.click();
+                }}
+              >
+                {uploadingFolderId === folder.id ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <FilePlus2 size={13} />
+                )}
+              </button>
+              <button
+                title={`重命名“${folder.name}”`}
+                disabled={busy || uploadingFolderId !== ''}
+                onClick={() => void renameKnowledgeFolder(folder)}
+              >
+                <Pencil size={12} />
+              </button>
+              <button
+                title={`删除“${folder.name}”`}
+                disabled={busy || uploadingFolderId !== ''}
+                onClick={() => void removeKnowledgeFolder(folder)}
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
         <div className="ljbot-section ljbot-course-heading">
           我的课件
           <button title="刷新课件" onClick={() => void refreshCourses()}>
@@ -1336,6 +1803,15 @@ export default function BotWorkspace() {
                         ))}
                       </div>
                     )}
+                    {message.role === 'user' && message.knowledgeFolder && (
+                      <div className="ljbot-message-files">
+                        <span>
+                          <FolderOpen size={13} />
+                          资料文件夹：{message.knowledgeFolder.name} ·{' '}
+                          {message.knowledgeFolder.materials.length} 份
+                        </span>
+                      </div>
+                    )}
                     {message.status === 'streaming' &&
                       !message.content &&
                       !message.actions?.length && (
@@ -1384,25 +1860,22 @@ export default function BotWorkspace() {
                             </div>
                           </div>
                           <button
-                            disabled={activeTask}
+                            disabled={activeTask || preparingCourseActionId === id}
                             onClick={() =>
                               action.type === 'prepare-course' &&
                               record.status !== 'running' &&
                               record.status !== 'complete'
-                                ? (setPendingCourseSetup({
-                                    action,
-                                    documents: message.materials,
-                                    actionRef: { messageId: message.id, actionId: id },
-                                  }),
-                                  setWorkspace(null),
-                                  setWideWorkspace(false))
+                                ? void openCourseSetupFromMessage(message, action, {
+                                    messageId: message.id,
+                                    actionId: id,
+                                  })
                                 : void execute(action, message.materials, {
                                     messageId: message.id,
                                     actionId: id,
                                   })
                             }
                           >
-                            {taskLabel}
+                            {preparingCourseActionId === id ? '正在本机检索资料…' : taskLabel}
                             <ChevronRight size={14} />
                           </button>
                         </div>
@@ -1442,7 +1915,9 @@ export default function BotWorkspace() {
             }}
           >
             {readingMaterials && (
-              <div className="ljbot-material-reading">正在解析本对话中的教学材料…</div>
+              <div className="ljbot-material-reading">
+                {materialReadingStatus || '正在解析教学材料…'}
+              </div>
             )}
             {!!materials.length && (
               <div className="ljbot-attachments">
@@ -1525,6 +2000,21 @@ export default function BotWorkspace() {
               </div>
               <div>
                 <select
+                  className="ljbot-folder-select"
+                  aria-label="本对话资料文件夹"
+                  title="选择本对话可使用的资料文件夹"
+                  value={selectedKnowledgeFolderId}
+                  onChange={(event) => setSelectedKnowledgeFolder(event.target.value)}
+                  disabled={busy || !knowledgeFolders.length}
+                >
+                  <option value="">资料文件夹</option>
+                  {knowledgeFolders.map((folder) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}（{folder.materials.length}份）
+                    </option>
+                  ))}
+                </select>
+                <select
                   aria-label="关联课件"
                   value={selectedCourse}
                   onFocus={() => void refreshCourses()}
@@ -1551,7 +2041,9 @@ export default function BotWorkspace() {
                     className="ljbot-send"
                     title="发送"
                     type="submit"
-                    disabled={!draft.trim() || uploading || !loaded}
+                    disabled={
+                      !draft.trim() || uploading || !loaded || Boolean(preparingCourseActionId)
+                    }
                   >
                     <ArrowUp size={20} />
                   </button>
