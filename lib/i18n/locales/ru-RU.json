@@ -2084,10 +2084,19 @@
           "tts": "Синтезирует повествование в голоса учителя/ученика (по сценам, последовательно).",
           "media": "Заполняет заглушки изображений/видео в сгенерированном контенте параллельно циклу по сценам.",
           "interaction": "Рантайм класса после генерации: мультиагентный чат, рантайм PBL и проверка тестов.",
-          "course-documents": "По запросу после завершения курса: планы для учителя и заметки ученика по реальным слайдам. Их можно редактировать, сохранять и экспортировать."
-        }
+          "course-documents": "По запросу после завершения курса: планы для учителя и заметки ученика по реальным слайдам. Их можно редактировать, сохранять и экспортировать.",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "Сначала настройте API-ключ в «Службах моделей» или включите Token Plan."
+      "mediaEnableNeedsSetup": "Сначала настройте API-ключ в «Службах моделей» или включите Token Plan.",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "Сервисы моделей",

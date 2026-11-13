@@ -2084,10 +2084,19 @@
           "tts": "يحوّل السرد إلى صوت المعلم/الطالب (لكل مشهد، بشكل متتابع).",
           "media": "يعالج العناصر النائبة للصور/الفيديو في المحتوى المُنشأ بالتوازي مع دورة المشاهد.",
           "interaction": "وقت تشغيل الفصل بعد التوليد: محادثة الوكلاء المتعددين، وتشغيل PBL، وتصحيح الاختبارات.",
-          "course-documents": "عند الطلب بعد اكتمال المقرر: خطط للمعلم وملاحظات للطلاب استنادًا إلى الشرائح الفعلية، مع إمكانية التعديل والحفظ والتصدير."
-        }
+          "course-documents": "عند الطلب بعد اكتمال المقرر: خطط للمعلم وملاحظات للطلاب استنادًا إلى الشرائح الفعلية، مع إمكانية التعديل والحفظ والتصدير.",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "هيّئ مفتاح API في «خدمات النماذج» أو فعّل Token Plan أولاً."
+      "mediaEnableNeedsSetup": "هيّئ مفتاح API في «خدمات النماذج» أو فعّل Token Plan أولاً.",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "خدمات النماذج",

@@ -2084,10 +2084,19 @@
           "tts": "Synthesizes narration into teacher/student voices (per scene, serial).",
           "media": "Fulfills the image/video placeholders in the generated content, in parallel with the per-scene loop.",
           "interaction": "The classroom runtime after generation: multi-agent chat, the PBL runtime and quiz grading.",
-          "course-documents": "On demand after the course is complete: teacher plans and student notes based on the actual slides. Does not block course generation; drafts can be edited, saved and exported."
-        }
+          "course-documents": "On demand after the course is complete: teacher plans and student notes based on the actual slides. Does not block course generation; drafts can be edited, saved and exported.",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "Configure an API key in Model Services or enable a Token Plan first, then turn this on."
+      "mediaEnableNeedsSetup": "Configure an API key in Model Services or enable a Token Plan first, then turn this on.",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "Model Services",

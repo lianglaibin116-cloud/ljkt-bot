@@ -2084,10 +2084,19 @@
           "tts": "Synthetisiert Erzähltext in Lehr-/Lernstimmen (je Szene, seriell).",
           "media": "Löst die Bild-/Videoplatzhalter im generierten Inhalt parallel zur Szenen-Schleife auf.",
           "interaction": "Die Kursklassenlaufzeit nach der Generierung: Multi-Agenten-Chat, PBL-Laufzeit und Quiz-Bewertung.",
-          "course-documents": "Bei Bedarf nach Kursabschluss: Lehrpläne und Schülernotizen auf Basis der tatsächlichen Folien. Bearbeitbar, speicherbar und exportierbar."
-        }
+          "course-documents": "Bei Bedarf nach Kursabschluss: Lehrpläne und Schülernotizen auf Basis der tatsächlichen Folien. Bearbeitbar, speicherbar und exportierbar.",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "Konfiguriere zuerst einen API-Key in „Modell-Dienste“ oder aktiviere einen Token-Plan."
+      "mediaEnableNeedsSetup": "Konfiguriere zuerst einen API-Key in „Modell-Dienste“ oder aktiviere einen Token-Plan.",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "Modelldienste",

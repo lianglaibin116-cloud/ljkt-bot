@@ -13,6 +13,11 @@ import {
   FileStack,
   Images,
   Info,
+  Mic,
+  MessageCircle,
+  Minus,
+  Plus,
+  Scan,
   ListTree,
   MessageSquareText,
   MessagesSquare,
@@ -65,89 +70,83 @@ import { useLLMPickerGroups } from './use-llm-picker-groups';
 import { STATION_STAGE_KEYS } from '@/lib/config/station-stage-keys';
 
 // ── 设计稿坐标系（固定蛇形布局，整体按容器缩放） ──────────────
-const DESIGN_W = 915;
-const DESIGN_H = 398;
+const DESIGN_W = 1140;
+const DESIGN_H = 670;
 const CARD_W = 190;
 const CARD_MIN_H = 72;
 const CANVAS_PAD = 28;
+const MIN_ZOOM = 0.45;
+const MAX_ZOOM = 2;
+const clampZoom = (value: number) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value));
 
 const STATION_POS: Record<string, { x: number; y: number }> = {
-  'doc-parse': { x: 215, y: 0 },
-  'web-research': { x: 430, y: 0 },
-  outline: { x: 645, y: 0 },
-  agents: { x: 645, y: 150 },
-  'scene-content': { x: 430, y: 150 },
-  'scene-actions': { x: 215, y: 150 },
-  tts: { x: 0, y: 150 },
-  interaction: { x: 0, y: 300 },
-  'course-documents': { x: 215, y: 300 },
-  media: { x: 430, y: 300 },
+  'bot-chat': { x: 5, y: 15 },
+  'doc-parse': { x: 105, y: 145 },
+  'web-research': { x: 365, y: 145 },
+  outline: { x: 625, y: 145 },
+  agents: { x: 885, y: 145 },
+  'scene-content': { x: 885, y: 370 },
+  'scene-actions': { x: 665, y: 370 },
+  tts: { x: 445, y: 370 },
+  media: { x: 225, y: 370 },
+  interaction: { x: 5, y: 370 },
+  asr: { x: 930, y: 15 },
+  'course-documents': { x: 5, y: 540 },
 };
 
 const RAILS: Array<{ pts: Array<[number, number]>; dashed?: boolean }> = [
-  // First row: document parsing → web research → outline planning
   {
     pts: [
-      [405, 36],
-      [430, 36],
+      [295, 181],
+      [365, 181],
     ],
   },
   {
     pts: [
-      [620, 36],
-      [645, 36],
-    ],
-  },
-  // 大纲规划 ↓ 角色生成（第二行从右往左）
-  {
-    pts: [
-      [740, 72],
-      [740, 150],
-    ],
-  },
-  // 第二行：角色生成 → 场景内容 → 场景动作 → 语音合成
-  {
-    pts: [
-      [645, 186],
-      [620, 186],
+      [555, 181],
+      [625, 181],
     ],
   },
   {
     pts: [
-      [430, 186],
-      [405, 186],
+      [815, 181],
+      [885, 181],
     ],
   },
   {
     pts: [
-      [215, 186],
-      [190, 186],
+      [980, 217],
+      [980, 370],
     ],
   },
-  // Scene actions feed the classroom runtime after the course is generated.
   {
     pts: [
-      [250, 222],
-      [250, 236],
-      [95, 236],
-      [95, 300],
+      [885, 406],
+      [855, 406],
     ],
   },
-  // Course documents are produced on demand from the completed course.
   {
     pts: [
-      [310, 222],
-      [310, 300],
+      [665, 406],
+      [635, 406],
     ],
-    dashed: true,
   },
-  // Media starts after outlining and runs asynchronously alongside scene generation.
   {
     pts: [
-      [835, 36],
-      [880, 36],
-      [880, 336],
-      [620, 336],
+      [445, 406],
+      [415, 406],
+    ],
+  },
+  {
+    pts: [
+      [225, 406],
+      [195, 406],
+    ],
+  },
+  {
+    pts: [
+      [100, 442],
+      [100, 540],
     ],
     dashed: true,
   },
@@ -199,6 +198,11 @@ interface StationDef {
 }
 
 const STATIONS: StationDef[] = [
+  {
+    id: 'bot-chat',
+    labelKey: 'settings.courseModels.stations.botChat',
+    kind: 'llm',
+  },
   {
     id: 'doc-parse',
     labelKey: 'settings.courseModels.stations.docParse',
@@ -252,6 +256,11 @@ const STATIONS: StationDef[] = [
     tag: 'on-demand',
   },
   {
+    id: 'asr',
+    labelKey: 'settings.courseModels.stations.asr',
+    kind: 'media',
+  },
+  {
     id: 'tts',
     labelKey: 'settings.courseModels.stations.tts',
     kind: 'media',
@@ -275,6 +284,7 @@ const STATIONS: StationDef[] = [
 ];
 
 const STATION_ICONS: Record<string, typeof FileStack> = {
+  'bot-chat': MessageCircle,
   'doc-parse': FileStack,
   'web-research': Search,
   outline: ListTree,
@@ -282,6 +292,7 @@ const STATION_ICONS: Record<string, typeof FileStack> = {
   'scene-content': Presentation,
   'scene-actions': MessageSquareText,
   tts: Volume2,
+  asr: Mic,
   media: Images,
   interaction: MessagesSquare,
   'course-documents': FileStack,
@@ -549,13 +560,15 @@ export function CourseModelConfigPanel({}) {
   // ── 站点状态 ──
   const stationState = (def: StationDef) => {
     switch (def.id) {
+      case 'bot-chat':
+        return { following: true, mediaLines: [mainModelName], allOff: false };
       case 'doc-parse':
+        return { following: true, mediaLines: [pdfProvider?.name ?? pdfProviderId], allOff: false };
+      case 'asr':
         return {
           following: true,
-          mediaLines: [pdfProvider?.name ?? pdfProviderId, asrEnabled ? asrModelName : null].filter(
-            (v): v is string => !!v,
-          ),
-          allOff: false,
+          mediaLines: asrEnabled ? [asrModelName] : [],
+          allOff: !asrEnabled,
         };
       case 'web-research':
         return {
@@ -585,28 +598,94 @@ export function CourseModelConfigPanel({}) {
     }
   };
 
-  // ── 画布缩放 ──
+  // Keep the diagram readable at narrow widths: fit once, then let the user pan or zoom.
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+  const userMoved = useRef(false);
+  const dragRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
+  const fitDiagram = () => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const scale = clampZoom(
+      Math.min(
+        (el.clientWidth - CANVAS_PAD * 2) / DESIGN_W,
+        (el.clientHeight - CANVAS_PAD * 2) / DESIGN_H,
+        1.1,
+      ),
+    );
+    setViewport({
+      x: (el.clientWidth - DESIGN_W * scale) / 2,
+      y: Math.max(12, (el.clientHeight - DESIGN_H * scale) / 2),
+      scale,
+    });
+  };
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const update = () =>
-      setScale(
-        Math.max(
-          0.3,
-          Math.min(
-            1.15,
-            (el.clientWidth - CANVAS_PAD * 2) / DESIGN_W,
-            (el.clientHeight - CANVAS_PAD * 2) / DESIGN_H,
-          ),
-        ),
-      );
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const observer = new ResizeObserver(() => {
+      if (!userMoved.current) fitDiagram();
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
+
+  const zoomAt = (factor: number, cx: number, cy: number) => {
+    userMoved.current = true;
+    setViewport((current) => {
+      const scale = clampZoom(current.scale * factor);
+      return {
+        scale,
+        x: cx - ((cx - current.x) * scale) / current.scale,
+        y: cy - ((cy - current.y) * scale) / current.scale,
+      };
+    });
+  };
+  const zoomFromCenter = (factor: number) => {
+    const el = wrapRef.current;
+    if (el) zoomAt(factor, el.clientWidth / 2, el.clientHeight / 2);
+  };
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault();
+      if (event.ctrlKey || event.metaKey) {
+        const rect = el.getBoundingClientRect();
+        zoomAt(Math.exp(-event.deltaY * 0.01), event.clientX - rect.left, event.clientY - rect.top);
+      } else {
+        userMoved.current = true;
+        setViewport((current) => ({
+          ...current,
+          x: current.x - event.deltaX,
+          y: current.y - event.deltaY,
+        }));
+      }
+    };
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => el.removeEventListener('wheel', wheel);
+  }, []);
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0 || (event.target as HTMLElement).closest('button,input,select')) return;
+    dragRef.current = { x: event.clientX, y: event.clientY, left: viewport.x, top: viewport.y };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDragging(true);
+  };
+  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    userMoved.current = true;
+    setViewport((current) => ({
+      ...current,
+      x: drag.left + event.clientX - drag.x,
+      y: drag.top + event.clientY - drag.y,
+    }));
+  };
+  const onPointerEnd = () => {
+    dragRef.current = null;
+    setDragging(false);
+  };
 
   const cm = 'settings.courseModels';
 
@@ -661,80 +740,166 @@ export function CourseModelConfigPanel({}) {
       >
         <div
           ref={wrapRef}
-          className="flex h-full w-full items-center justify-center overflow-hidden"
+          tabIndex={0}
+          role="group"
+          aria-label={t(`${cm}.mapLabel`)}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+          onDoubleClick={(event) => {
+            if (!(event.target as HTMLElement).closest('button')) {
+              userMoved.current = false;
+              fitDiagram();
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.target !== event.currentTarget) return;
+            const offset = {
+              ArrowLeft: [60, 0],
+              ArrowRight: [-60, 0],
+              ArrowUp: [0, 60],
+              ArrowDown: [0, -60],
+            }[event.key] as [number, number] | undefined;
+            if (offset) {
+              event.preventDefault();
+              userMoved.current = true;
+              setViewport((current) => ({
+                ...current,
+                x: current.x + offset[0],
+                y: current.y + offset[1],
+              }));
+            } else if (event.key === '+' || event.key === '=') zoomFromCenter(1.2);
+            else if (event.key === '-') zoomFromCenter(1 / 1.2);
+            else if (event.key === '0') {
+              userMoved.current = false;
+              fitDiagram();
+            }
+          }}
+          className={cn(
+            'relative h-full w-full touch-none overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+            dragging ? 'cursor-grabbing' : 'cursor-grab',
+          )}
         >
           <div
-            className="relative shrink-0"
-            style={{ width: DESIGN_W * scale, height: DESIGN_H * scale }}
+            className="absolute left-0 top-0 origin-top-left"
+            style={{
+              width: DESIGN_W,
+              height: DESIGN_H,
+              transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})`,
+            }}
           >
-            <div
-              className="absolute left-0 top-0"
-              style={{
-                width: DESIGN_W,
-                height: DESIGN_H,
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
-              }}
-            >
-              <svg
-                width={DESIGN_W}
-                height={DESIGN_H}
-                className="pointer-events-none absolute inset-0 overflow-visible"
-              >
-                <defs>
-                  <marker
-                    id="course-arrow"
-                    viewBox="0 0 8 8"
-                    refX="6.5"
-                    refY="4"
-                    markerWidth="7"
-                    markerHeight="7"
-                    orient="auto-start-reverse"
-                  >
-                    <path d="M0.5,0.8 L7,4 L0.5,7.2 Z" fill="currentColor" />
-                  </marker>
-                </defs>
-                {RAILS.map((r, i) => (
-                  <path
-                    key={i}
-                    d={roundedPath(r.pts)}
-                    className="fill-none text-foreground/35 stroke-foreground/[0.18]"
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeDasharray={r.dashed ? '0.5 6' : undefined}
-                    markerEnd="url(#course-arrow)"
-                  />
-                ))}
-              </svg>
-
-              {STATIONS.map((def) => {
-                const state = stationState(def);
-                return (
-                  <Station
-                    key={def.id}
-                    def={def}
-                    label={t(def.labelKey)}
-                    following={state.following}
-                    overrideName={
-                      state.following ? undefined : stageOverrideName(def.stages?.[0] ?? '')
-                    }
-                    resolvedName={mainModelName}
-                    mediaLines={state.mediaLines}
-                    allOff={state.allOff}
-                    selected={selected === def.id}
-                    onSelect={() => setSelected(def.id)}
-                    t={t}
-                  />
-                );
-              })}
-              <span
-                className="absolute rounded-full border border-border/60 bg-card px-1.5 py-px text-[9px] text-muted-foreground"
-                style={{ left: 680, top: 101 }}
-              >
-                {t('generation.reviewOutlineTitle')}
+            <div className="absolute left-[365px] top-4 w-[410px] rounded-xl border border-primary/20 bg-card px-4 py-3 shadow-sm">
+              <span className="text-[10px] font-medium text-muted-foreground">
+                {t(`${cm}.mainModel`)}
               </span>
+              <p className="truncate text-sm font-semibold" title={mainModelName}>
+                {mainModelName}
+              </p>
+              <p className="mt-1 text-[10px] text-muted-foreground">{t(`${cm}.mainModelHint`)}</p>
             </div>
+            <svg
+              width={DESIGN_W}
+              height={DESIGN_H}
+              className="pointer-events-none absolute inset-0 overflow-visible"
+            >
+              <defs>
+                <marker
+                  id="course-arrow"
+                  viewBox="0 0 8 8"
+                  refX="6.5"
+                  refY="4"
+                  markerWidth="7"
+                  markerHeight="7"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M0.5,0.8 L7,4 L0.5,7.2 Z" fill="currentColor" />
+                </marker>
+              </defs>
+              {RAILS.map((r, i) => (
+                <path
+                  key={i}
+                  d={roundedPath(r.pts)}
+                  className="fill-none text-foreground/35 stroke-foreground/[0.18]"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeDasharray={r.dashed ? '0.5 6' : undefined}
+                  markerEnd="url(#course-arrow)"
+                />
+              ))}
+            </svg>
+
+            {STATIONS.map((def) => {
+              const state = stationState(def);
+              return (
+                <Station
+                  key={def.id}
+                  def={def}
+                  label={t(def.labelKey)}
+                  following={state.following}
+                  overrideName={
+                    state.following ? undefined : stageOverrideName(def.stages?.[0] ?? '')
+                  }
+                  resolvedName={mainModelName}
+                  mediaLines={state.mediaLines}
+                  allOff={state.allOff}
+                  selected={selected === def.id}
+                  onSelect={() => setSelected(def.id)}
+                  t={t}
+                />
+              );
+            })}
+            <span
+              className="absolute rounded-full border border-border/60 bg-card px-1.5 py-px text-[9px] text-muted-foreground"
+              style={{ left: 660, top: 260 }}
+            >
+              {t('generation.reviewOutlineTitle')}
+            </span>
           </div>
+        </div>
+
+        <div
+          role="group"
+          aria-label={t(`${cm}.zoomControls`)}
+          className="absolute bottom-3 left-3 z-[1] flex items-center gap-1 rounded-lg border bg-card p-1 shadow-sm"
+        >
+          <button
+            type="button"
+            aria-label={t(`${cm}.zoomOut`)}
+            onClick={(event) => {
+              event.stopPropagation();
+              zoomFromCenter(1 / 1.2);
+            }}
+            className="rounded p-1 hover:bg-muted"
+          >
+            <Minus className="size-4" />
+          </button>
+          <span className="min-w-11 text-center text-xs tabular-nums">
+            {Math.round(viewport.scale * 100)}%
+          </span>
+          <button
+            type="button"
+            aria-label={t(`${cm}.zoomIn`)}
+            onClick={(event) => {
+              event.stopPropagation();
+              zoomFromCenter(1.2);
+            }}
+            className="rounded p-1 hover:bg-muted"
+          >
+            <Plus className="size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label={t(`${cm}.fit`)}
+            onClick={(event) => {
+              event.stopPropagation();
+              userMoved.current = false;
+              fitDiagram();
+            }}
+            className="rounded p-1 hover:bg-muted"
+          >
+            <Scan className="size-4" />
+          </button>
         </div>
 
         {selectedDef && (
@@ -743,6 +908,7 @@ export function CourseModelConfigPanel({}) {
             t={t}
             llmPickerGroups={llmPickerGroups}
             mainModelName={mainModelName}
+            mainModel={{ providerId, modelId, setModel }}
             llmStageRoutes={llmStageRoutes}
             setStageRoute={setStageRoute}
             onClose={() => setSelected(null)}
@@ -812,6 +978,11 @@ function Inspector(props: {
   t: (key: string) => string;
   llmPickerGroups: ModelPickerGroup[];
   mainModelName: string;
+  mainModel: {
+    providerId: ProviderId;
+    modelId: string;
+    setModel: (providerId: ProviderId, modelId: string) => void;
+  };
   llmStageRoutes: Record<
     string,
     { providerId: ProviderId; modelId: string; thinking?: ThinkingConfig }
@@ -847,6 +1018,8 @@ function Inspector(props: {
         modelId?: string;
         customModels?: Array<{ id: string; name: string }>;
         isServerConfigured?: boolean;
+        apiKey?: string;
+        enabled?: boolean;
       }
     >;
   };
@@ -861,6 +1034,8 @@ function Inspector(props: {
         modelId?: string;
         customModels?: Array<{ id: string; name: string }>;
         isServerConfigured?: boolean;
+        apiKey?: string;
+        enabled?: boolean;
       }
     >;
   };
@@ -1000,6 +1175,18 @@ function Inspector(props: {
           {t(`${cm}.stations.desc.${def.id}`)}
         </p>
 
+        {def.id === 'bot-chat' && (
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium">{t(`${cm}.mainModel`)}</p>
+            <ModelPicker
+              groups={llmPickerGroups}
+              value={{ providerId: props.mainModel.providerId, modelId: props.mainModel.modelId }}
+              onSelect={(pid, mid) => props.mainModel.setModel(pid as ProviderId, mid)}
+              t={t}
+            />
+          </div>
+        )}
+
         {def.stages && (
           <div className="space-y-1.5">
             <p className="text-xs font-medium">{t(`${cm}.modelSource`)}</p>
@@ -1094,19 +1281,25 @@ function Inspector(props: {
               />
             </div>
             <ModelPicker
-              groups={[
-                {
-                  id: props.tts.providerId,
-                  name: ttsBuiltIn(props.tts.providerId)?.name ?? props.tts.providerId,
-                  models: (() => {
-                    const builtIn = ttsBuiltIn(props.tts.providerId);
-                    const config = props.tts.providersConfig[props.tts.providerId];
-                    return builtIn
-                      ? [...builtIn.models, ...(config?.customModels ?? [])]
-                      : (config?.customModels ?? []);
-                  })(),
-                },
-              ]}
+              groups={Object.entries(props.tts.providersConfig)
+                .filter(([pid, config]) => {
+                  const builtIn = ttsBuiltIn(pid);
+                  return (
+                    config.enabled !== false &&
+                    (!builtIn?.requiresApiKey || !!config.apiKey || !!config.isServerConfigured)
+                  );
+                })
+                .map(([pid, config]) => {
+                  const builtIn = ttsBuiltIn(pid);
+                  const models = builtIn
+                    ? [...builtIn.models, ...(config.customModels ?? [])]
+                    : (config.customModels ?? []);
+                  return {
+                    id: pid,
+                    name: builtIn?.name ?? pid,
+                    models: models.length ? models : [{ id: '', name: builtIn?.name ?? pid }],
+                  };
+                })}
               value={{
                 providerId: props.tts.providerId,
                 modelId:
@@ -1114,16 +1307,17 @@ function Inspector(props: {
                   ttsBuiltIn(props.tts.providerId)?.defaultModelId ||
                   '',
               }}
-              onSelect={(_, mid) =>
-                props.tts.setProviderConfig(props.tts.providerId, { modelId: mid })
-              }
+              onSelect={(pid, mid) => {
+                props.tts.setProvider(pid);
+                props.tts.setProviderConfig(pid, { modelId: mid });
+              }}
               disabled={!props.tts.enabled}
               t={t}
             />
           </div>
         )}
 
-        {/* 文档解析：解析服务 + 语音转写 */}
+        {/* 文档解析服务 */}
         {def.id === 'doc-parse' && (
           <div className="space-y-3">
             <div className="space-y-1.5">
@@ -1173,44 +1367,54 @@ function Inspector(props: {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-medium">{t(`${cm}.asrTranscribe`)}</span>
-                <Switch
-                  checked={props.asr.enabled}
-                  onCheckedChange={props.asr.setEnabled}
-                  aria-label={t('settings.enableASR')}
-                  className="scale-90"
-                />
-              </div>
-              <ModelPicker
-                groups={[
-                  {
-                    id: props.asr.providerId,
-                    name: asrBuiltIn(props.asr.providerId)?.name ?? props.asr.providerId,
-                    models: (() => {
-                      const builtIn = asrBuiltIn(props.asr.providerId);
-                      const config = props.asr.providersConfig[props.asr.providerId];
-                      return builtIn
-                        ? [...builtIn.models, ...(config?.customModels ?? [])]
-                        : (config?.customModels ?? []);
-                    })(),
-                  },
-                ]}
-                value={{
-                  providerId: props.asr.providerId,
-                  modelId:
-                    props.asr.providersConfig[props.asr.providerId]?.modelId ||
-                    asrBuiltIn(props.asr.providerId)?.defaultModelId ||
-                    '',
-                }}
-                onSelect={(_, mid) =>
-                  props.asr.setProviderConfig(props.asr.providerId, { modelId: mid })
-                }
-                disabled={!props.asr.enabled}
-                t={t}
+          </div>
+        )}
+
+        {def.id === 'asr' && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-medium">{t(`${cm}.asrTranscribe`)}</span>
+              <Switch
+                checked={props.asr.enabled}
+                onCheckedChange={props.asr.setEnabled}
+                aria-label={t('settings.enableASR')}
+                className="scale-90"
               />
             </div>
+            <ModelPicker
+              groups={Object.entries(props.asr.providersConfig)
+                .filter(([pid, config]) => {
+                  const builtIn = asrBuiltIn(pid);
+                  return (
+                    config.enabled !== false &&
+                    (!builtIn?.requiresApiKey || !!config.apiKey || !!config.isServerConfigured)
+                  );
+                })
+                .map(([pid, config]) => {
+                  const builtIn = asrBuiltIn(pid);
+                  const models = builtIn
+                    ? [...builtIn.models, ...(config.customModels ?? [])]
+                    : (config.customModels ?? []);
+                  return {
+                    id: pid,
+                    name: builtIn?.name ?? pid,
+                    models: models.length ? models : [{ id: '', name: builtIn?.name ?? pid }],
+                  };
+                })}
+              value={{
+                providerId: props.asr.providerId,
+                modelId:
+                  props.asr.providersConfig[props.asr.providerId]?.modelId ||
+                  asrBuiltIn(props.asr.providerId)?.defaultModelId ||
+                  '',
+              }}
+              onSelect={(pid, mid) => {
+                props.asr.setProvider(pid);
+                props.asr.setProviderConfig(pid, { modelId: mid });
+              }}
+              disabled={!props.asr.enabled}
+              t={t}
+            />
           </div>
         )}
 

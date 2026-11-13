@@ -1005,7 +1005,7 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
             <div
               className={cn(
                 'p-5',
-                activeSection === 'model-services'
+                activeSection === 'model-services' || activeSection === 'course-models'
                   ? 'flex min-h-0 flex-1 flex-col pt-3'
                   : 'flex-1 overflow-y-auto',
               )}

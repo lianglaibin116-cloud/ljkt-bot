@@ -2084,10 +2084,19 @@
           "tts": "Synthétise la narration en voix d'enseignant/élève (par scène, en série).",
           "media": "Résout les emplacements image/vidéo du contenu généré, en parallèle de la boucle par scène.",
           "interaction": "Le runtime de la classe après génération : chat multi-agent, runtime PBL et notation des quiz.",
-          "course-documents": "À la demande après le cours : plans enseignants et notes élèves fondés sur les diapositives réelles. Modifiables, enregistrables et exportables."
-        }
+          "course-documents": "À la demande après le cours : plans enseignants et notes élèves fondés sur les diapositives réelles. Modifiables, enregistrables et exportables.",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "Configurez d'abord une clé API dans Services de modèles ou activez un Token Plan."
+      "mediaEnableNeedsSetup": "Configurez d'abord une clé API dans Services de modèles ou activez un Token Plan.",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "Services de modèles",

@@ -2084,10 +2084,19 @@
           "tts": "ナレーションを教師／生徒の音声に合成します（シーンごとに直列で実行）。",
           "media": "生成コンテンツ内の画像・動画プレースホルダーを、シーンループと並行して埋めます。",
           "interaction": "生成後の授業ランタイム：マルチエージェント対話、PBL 実行、クイズ採点。",
-          "course-documents": "コース完成後に必要に応じて教師用計画と生徒用ノートを整理します。コース生成を妨げず、編集・保存・出力できます。"
-        }
+          "course-documents": "コース完成後に必要に応じて教師用計画と生徒用ノートを整理します。コース生成を妨げず、編集・保存・出力できます。",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "先に「モデルサービス」で API キーを設定するか、Token Plan を有効にしてからオンにしてください。"
+      "mediaEnableNeedsSetup": "先に「モデルサービス」で API キーを設定するか、Token Plan を有効にしてからオンにしてください。",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "モデルサービス",

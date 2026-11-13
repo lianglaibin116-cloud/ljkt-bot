@@ -2084,10 +2084,19 @@
           "tts": "把讲稿合成为师生语音（逐场景、串行）。",
           "media": "兑现内容中的图片/视频占位符，与逐场景流程并行执行。",
           "interaction": "课程生成后的课堂运行期：多智能体对话、PBL 运行时与测验批改。",
-          "course-documents": "课件完成后按需整理教师课程计划与学生课堂笔记，不参与课件生成；支持在线修改、保存与导出。"
-        }
+          "course-documents": "课件完成后按需整理教师课程计划与学生课堂笔记，不参与课件生成；支持在线修改、保存与导出。",
+          "asr": "音频资料可在此选择转写模型。",
+          "bot-chat": "Bot 对话使用主线语言模型；在对话栏切换模型时也会更新此配置。"
+        },
+        "asr": "语音识别",
+        "botChat": "Bot 对话"
       },
-      "mediaEnableNeedsSetup": "请先在「模型服务」配置 API Key，或启用 Token Plan 后再开启"
+      "mediaEnableNeedsSetup": "请先在「模型服务」配置 API Key，或启用 Token Plan 后再开启",
+      "mapLabel": "课程模型流程图",
+      "zoomControls": "缩放操作",
+      "zoomOut": "缩小",
+      "zoomIn": "放大",
+      "fit": "适应窗口"
     },
     "modelServices": {
       "nav": "模型服务",

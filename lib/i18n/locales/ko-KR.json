@@ -2084,10 +2084,19 @@
           "tts": "내레이션을 교사·학생 목소리로 합성합니다(장면별, 순차 실행).",
           "media": "생성된 콘텐츠 내 이미지·비디오 자리표시자를 장면 루프와 병렬로 채웁니다.",
           "interaction": "생성 이후 수업 런타임: 멀티 에이전트 채팅, PBL 런타임, 퀴즈 채점.",
-          "course-documents": "강의 자료 완성 후 필요할 때 교사용 계획과 학생용 노트를 정리합니다. 강의 생성은 막지 않으며 편집·저장·내보내기가 가능합니다."
-        }
+          "course-documents": "강의 자료 완성 후 필요할 때 교사용 계획과 학생용 노트를 정리합니다. 강의 생성은 막지 않으며 편집·저장·내보내기가 가능합니다.",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "'모델 서비스'에서 API 키를 구성하거나 Token Plan을 활성화한 뒤 켜세요."
+      "mediaEnableNeedsSetup": "'모델 서비스'에서 API 키를 구성하거나 Token Plan을 활성화한 뒤 켜세요.",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "모델 서비스",

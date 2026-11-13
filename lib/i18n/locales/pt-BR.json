@@ -2084,10 +2084,19 @@
           "tts": "Sintetiza a narração nas vozes do professor/aluno (por cena, em série).",
           "media": "Preenche os placeholders de imagem/vídeo do conteúdo gerado, em paralelo com o laço por cena.",
           "interaction": "O runtime da sala após a geração: chat multiagente, runtime de PBL e correção de quizzes.",
-          "course-documents": "Sob demanda após o curso: planos docentes e anotações dos alunos baseados nos slides reais. Podem ser editados, salvos e exportados."
-        }
+          "course-documents": "Sob demanda após o curso: planos docentes e anotações dos alunos baseados nos slides reais. Podem ser editados, salvos e exportados.",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "Configure primeiro uma chave de API em Serviços de modelos ou ative um Token Plan."
+      "mediaEnableNeedsSetup": "Configure primeiro uma chave de API em Serviços de modelos ou ative um Token Plan.",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "Serviços de modelo",

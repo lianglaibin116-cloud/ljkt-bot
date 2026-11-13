@@ -2084,10 +2084,19 @@
           "tts": "Tổng hợp lời dẫn thành giọng giáo viên/học viên (theo từng cảnh, tuần tự).",
           "media": "Điền các chỗ giữ chỗ ảnh/video trong nội dung đã tạo, song song với vòng lặp theo cảnh.",
           "interaction": "Thời gian chạy lớp học sau khi tạo: chat đa tác nhân, thời gian chạy PBL và chấm trắc nghiệm.",
-          "course-documents": "Tạo theo yêu cầu sau khi hoàn tất khóa học: kế hoạch cho giáo viên và ghi chú cho học sinh dựa trên slide thực tế; có thể sửa, lưu và xuất."
-        }
+          "course-documents": "Tạo theo yêu cầu sau khi hoàn tất khóa học: kế hoạch cho giáo viên và ghi chú cho học sinh dựa trên slide thực tế; có thể sửa, lưu và xuất.",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "Hãy cấu hình API key trong «Dịch vụ mô hình» hoặc bật Token Plan trước."
+      "mediaEnableNeedsSetup": "Hãy cấu hình API key trong «Dịch vụ mô hình» hoặc bật Token Plan trước.",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "Dịch vụ mô hình",

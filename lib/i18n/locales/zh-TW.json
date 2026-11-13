@@ -2069,10 +2069,19 @@
           "tts": "把講稿合成為師生語音（逐場景、串行）。",
           "media": "兌現內容中的圖片／視頻佔位符，與逐場景流程並行執行。",
           "interaction": "課程生成後的課堂運行期：多智能體對話、PBL 運行時與測驗批改。",
-          "course-documents": "課件完成後依需求整理教師課程計畫與學生課堂筆記，不參與課件生成；支援線上修改、儲存與匯出。"
-        }
+          "course-documents": "課件完成後依需求整理教師課程計畫與學生課堂筆記，不參與課件生成；支援線上修改、儲存與匯出。",
+          "asr": "Choose the transcription model for audio materials.",
+          "bot-chat": "Bot chat uses the main language model; the model picker in chat updates this setting."
+        },
+        "asr": "Speech recognition",
+        "botChat": "Bot chat"
       },
-      "mediaEnableNeedsSetup": "請先在「模型服務」設定 API Key，或啟用 Token Plan 後再開啟"
+      "mediaEnableNeedsSetup": "請先在「模型服務」設定 API Key，或啟用 Token Plan 後再開啟",
+      "mapLabel": "Course model map",
+      "zoomControls": "Zoom controls",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "fit": "Fit to window"
     },
     "modelServices": {
       "nav": "模型服務",
