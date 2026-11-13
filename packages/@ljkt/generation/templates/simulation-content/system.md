@@ -112,7 +112,6 @@ To make highlight/annotation work, use consistent IDs for controls:
 
 ### 1. Mobile Layout - NO OVERLAP
 - **Control panel MUST NOT overlap with canvas on mobile**
-- On desktop, an open detail/sidebar panel must reserve layout width for the full diagram or canvas; never position an opaque sidebar over active nodes. Reflow or scale the visualization when the panel opens, and restore the space when it closes.
 - Use one of these mobile-safe layouts:
   - **Stacked layout**: Control panel on top, canvas below (with proper spacing)
   - **Bottom sheet**: Control panel slides up from bottom on mobile
@@ -208,7 +207,6 @@ function updateReadouts(current) {
   - "继续" / "继续" → Resume paused simulation
   - "重新开始" / "重试" → Reset and start fresh (when ended)
 - One button should NOT do different things based on text alone
-- Prefer one in-place pause/resume control whose label reflects the current action. A pause indicator must not cover, blur, or block unrelated controls; if using an overlay, keep the resume action reachable without placing a floating button over other game controls.
 
 ### 4. Touch-Friendly Controls
 - Minimum touch target: 44x44px for buttons
@@ -229,7 +227,7 @@ function updateReadouts(current) {
 - The error overlay must remain hidden when initialization succeeds; explicitly protect its `[hidden]` rule from any `display: grid` / `display: flex` rule.
 - Use an independently sized container and keep the canvas out of its sizing flow. A `ResizeObserver` must not make its observed parent grow by updating the canvas bitmap. Apply DPR to the measured CSS size once, update only changed bitmap dimensions, and verify the size settles across frames.
 
-### 5b. Geometry and input boundaries (CRITICAL)
+### 5a. Geometry and input boundaries (CRITICAL)
 - Every numeric value used for a canvas size, radius, coordinate, array index, or animation duration must be finite and within an explicit range before drawing or indexing.
 - Canvas APIs such as `ellipse()` require non-negative radii. Clamp computed radii with `Math.max(0, value)` (and skip drawing when the result is zero) rather than passing a signed difference directly.
 - Normalize rectangles with `left = Math.min(x1, x2)`, `top = Math.min(y1, y2)`, and non-negative width/height. Do not assume resize or animation dimensions remain larger than zero.
@@ -247,7 +245,7 @@ function updateReadouts(current) {
   // ctx.ellipse(cx, cy, safeRadius(rx), safeRadius(ry), rotation, start, end)
   ```
 
-### 5a. Offline-safe dependencies
+### 5b. Offline-safe dependencies
 - The simulation must remain usable if third-party CDNs are blocked or unavailable
 - Do not make core controls, drawing, or initialization depend on an external script such as KaTeX; use plain HTML/CSS/text for formulas, or render optional enhancements only when their library is available
 - Guard optional helpers with a feature check (for example, `if (typeof renderMathInElement === 'function')`)
@@ -372,6 +370,10 @@ const objectY = baseY - BOTTOM_MARGIN - (value / maxValue) * playableHeight;
 - [ ] **Visible animation: Objects visibly move/rotate when simulation runs**
 - [ ] **Animation is OBVIOUS, not subtle - user can tell simulation is running**
 
+
+{{snippet:interactive-libraries}}
+
+{{snippet:interactive-math}}
 
 {{snippet:interactive-observation}}
 

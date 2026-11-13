@@ -32,6 +32,7 @@ nothing.
 | `normalize.ts` | Pure, zero-dep defaulters — `normalizeElement` / `normalizeSlide` / `normalizeScene` / `normalizeStage` and the canonical `ELEMENT_DEFAULTS`. Fills required-field defaults, derives geometry, fails loud on malformed input; the repair counterpart to `validate*`. `normalizeSlideWith({ onInvalid: 'drop', onDropped })` builds a map-safe `normalizeSlide` variant so producers normalizing wild-world input (imported decks, model output) can degrade per element instead of failing the document; `normalizeSlide` itself stays unary (`slides.map(normalizeSlide)` keeps working). |
 | `asset-manifest.ts` | Pure document asset enumeration: `enumerateAssetManifest`, `AssetManifest`, entry kinds and optional caller-supplied metadata enrichment. |
 | `slide-media-slots.ts` | Canonical read-only role descriptors for every media-bearing slide slot. |
+| `math-render.ts` | `safeKatexOptions`: hardened KaTeX/Temml render options (formula-defined macros disabled, `trust: false`, pinned `maxExpand`). Every math render in the SDK family and the app merges these into its own options. |
 | `version.ts`  | Serialized-contract version + migration registry: `DSL_VERSION`, the `DSL_MIGRATIONS` ladder, and the pure `migrate` / `dslVersionOf` / `needsMigration` runner. |
 
 ```ts
@@ -364,3 +365,35 @@ pnpm --filter @ljkt/dsl test
 MIT, matching the rest of the family (`@ljkt/dsl`, `@ljkt/importer`,
 `@ljkt/renderer`) and the OpenMAIC root, so the license policy is uniform
 across the SDK.
+
+### Current course issues
+
+`collectCourseIssues({ scenes }, context?)` is a pure, read-only inspection of the
+current course. It reports `speech-without-audio`, `media-not-generated`,
+`dangling-cue`, and the existing empty-action/speech/discussion and unbound-cue
+lint. Each issue has a stable, opaque `id` derived from its kind and document
+target (scene, action/element, and containing slide for media). IDs survive text
+edits and reordering; fixing the cause removes the issue when recomputed. No
+issue list is persisted. Phase 1 reports these document-derived issues as warnings:
+a placeholder alone cannot tell whether generation is still pending or failed.
+Structural `validateScene` validation remains separate.
+
+A valid speech `audioId` or non-invalidated legacy `audioUrl` counts as audio.
+Pass `context.narrationEnabled: false` when the workspace cannot generate server
+narration (TTS off, unassigned or browser-native); only `speech-without-audio` is
+omitted, and other content lint remains visible. With no context, the collector
+inspects missing narration by default.
+
+The browser can provide `context.hasLegacyAudio(scene, action)` using its legacy
+cache resolver and ownership checks. For eligible legacy actions (nonempty ID,
+no current audio reference, audio not invalidated), unknown browser evidence
+adds the structured `evidence: 'local-audio-unchecked'` discriminator. Consumers
+can localize it; it is not a user-facing English message. Confirmed missing or
+ineligible legacy audio carries no such evidence. These checks inspect
+references, not asset availability or provider health.
+
+Phase 1 of RFC #1899 deliberately adds no persisted silence marker: current
+course documents cannot distinguish deliberately silent speech from missing
+narration. When server narration is enabled, such speech remains a warning
+pending the RFC decision. Runtime failures, run-derived reasons, the issues list
+and agent repair entry point are later phases.

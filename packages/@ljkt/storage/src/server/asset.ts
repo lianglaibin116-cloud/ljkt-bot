@@ -6,12 +6,15 @@ import {
   ASSET_DESCRIPTOR_MEDIA_TYPE,
   AssetNotFoundError,
   AssetQuotaExceededError,
+  AssetImmutableError,
+  AssetRootedError,
   DEFAULT_RENDERABLE_TYPES,
   EXCLUDED_RENDERABLE_TYPES,
   type AssetIndirectRead,
   type AssetPrincipal,
   type AssetStore,
 } from '../asset/types.js';
+import { storePolicyResponse } from '../store-errors.js';
 
 /** Derive the asset principal from the authenticated request session. */
 export type AssetHttpAuthenticate = (req: IncomingMessage) => Promise<AssetPrincipal | undefined>;
@@ -471,8 +474,8 @@ function servedLabel(
 /**
  * The contract code an error declares, if it declares one.
  *
- * {@link AssetNotFoundError} and {@link AssetQuotaExceededError} each carry a
- * literal `code` field, and this is what it is for: a store may reach this
+ * {@link AssetNotFoundError}, {@link AssetQuotaExceededError} and
+ * {@link AssetRootedError} each carry a literal `code` field, and this is what it is for: a store may reach this
  * handler from another module realm -- a host that bundles the package more
  * than once, an application whose store is constructed in a different bundle
  * from its handler -- and `instanceof` is false across such a boundary while
@@ -481,8 +484,8 @@ function servedLabel(
  * degrading into a 500 in those hosts, which is the difference between a
  * client that stops and a client that retries a paid operation forever.
  *
- * Only these two codes are recognised, and only as a fallback after the class
- * check, so nothing else can dress itself up as a contract error by accident:
+ * Only these declared asset codes are recognised, as a fallback after the
+ * class check, so nothing else can dress itself up as a contract error by accident:
  * a PostgreSQL error's `code` is a SQLSTATE, and no SQLSTATE spells
  * `ASSET_NOT_FOUND`.
  */
@@ -502,6 +505,20 @@ function classifyStoreError(error: unknown): never {
       '@ljkt/storage: asset quota exceeded for this principal',
     );
   }
+  if (error instanceof AssetImmutableError || code === 'ASSET_IMMUTABLE') {
+    throw new AssetHttpError(
+      409,
+      'ASSET_IMMUTABLE',
+      '@ljkt/storage: immutable asset; install a new content version instead',
+    );
+  }
+  if (error instanceof AssetRootedError || code === 'ASSET_ROOTED') {
+    throw new AssetHttpError(
+      409,
+      'ASSET_ROOTED',
+      '@ljkt/storage: asset is held by a reference root',
+    );
+  }
   throw error;
 }
 
@@ -510,6 +527,14 @@ function mappedError(error: unknown): {
   body: ErrorBody;
   headers: Record<string, string>;
 } {
+  const policy = storePolicyResponse(error);
+  if (policy) {
+    return {
+      status: policy.status,
+      body: { error: { code: policy.code, message: policy.message } },
+      headers: policy.headers,
+    };
+  }
   if (error instanceof AssetHttpError) {
     return {
       status: error.status,

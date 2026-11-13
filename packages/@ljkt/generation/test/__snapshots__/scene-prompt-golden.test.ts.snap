@@ -92,7 +92,6 @@ window.addEventListener('message', function(event) {
       // Reveal a hidden element
       const revealEl = document.querySelector(target);
       if (revealEl) {
-        revealEl.hidden = false;
         revealEl.style.display = '';
         revealEl.style.opacity = '1';
       }
@@ -117,7 +116,6 @@ To make highlight/annotation work, use consistent IDs for controls:
 
 ### 1. Mobile Layout - NO OVERLAP
 - **Control panel MUST NOT overlap with canvas on mobile**
-- On desktop, an open detail/sidebar panel must reserve layout width for the full diagram or canvas; never position an opaque sidebar over active nodes. Reflow or scale the visualization when the panel opens, and restore the space when it closes.
 - Use one of these mobile-safe layouts:
   - **Stacked layout**: Control panel on top, canvas below (with proper spacing)
   - **Bottom sheet**: Control panel slides up from bottom on mobile
@@ -143,24 +141,12 @@ Example mobile-safe layout:
 
 ### 2. Reset Button - MUST WORK CORRECTLY
 - **Reset button MUST return simulation to initial state**
-- Reset must also restore visible elapsed time, temperature, intensity, feedback, and control values through the same render path used by initialization; do not leave stale DOM readouts after resetting the state object.
 - Common bug: Button changes text to "重新开始" but clicking it doesn't reset
 - Solution: Use a separate reset function, or check state properly
 
 Correct implementation:
 \`\`\`javascript
-function createInitialState() {
-  return { running: false, paused: false, ended: false, posX: 50, velocity: 0, time: 0 };
-}
-let state = createInitialState();
-let animationFrameId = null; // Store each requestAnimationFrame handle here.
-
-function renderCurrentState() {
-  updateButton(state.running ? '暂停' : state.ended ? '重新开始' : '启动');
-  updateReadouts(state); // Update all displayed values from current state, never stale DOM.
-  draw();
-  publishCurrentState();
-}
+let state = { running: false, ended: false, posX: 50, velocity: 0 };
 
 function handleMainButton() {
   if (state.ended) {
@@ -174,34 +160,23 @@ function handleMainButton() {
 }
 
 function resetSimulation() {
-  if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
-  animationFrameId = null;
-  state = createInitialState();
-  // Restore input/control values here as well when the simulation has controls.
-  renderCurrentState();
+  state.running = false;
+  state.ended = false;
+  state.posX = 50;  // Reset to initial position!
+  state.velocity = 0;  // Reset velocity!
+  updateButton('启动');
+  draw();
 }
 
 // When simulation hits boundary/ends:
 function onSimulationEnd() {
   state.running = false;
   state.ended = true;
-  renderCurrentState();
+  updateButton('重新开始');
 }
 
 function updateButton(text) {
   document.getElementById('mainBtn').innerText = text;
-}
-
-function updateReadouts(current) {
-  const values = {
-    'position-display': current.posX,
-    'velocity-display': current.velocity,
-    'time-display': current.time.toFixed(1)
-  };
-  Object.entries(values).forEach(([id, value]) => {
-    const element = document.getElementById(id);
-    if (element) element.textContent = String(value);
-  });
 }
 \`\`\`
 
@@ -213,7 +188,6 @@ function updateReadouts(current) {
   - "继续" / "继续" → Resume paused simulation
   - "重新开始" / "重试" → Reset and start fresh (when ended)
 - One button should NOT do different things based on text alone
-- Prefer one in-place pause/resume control whose label reflects the current action. A pause indicator must not cover, blur, or block unrelated controls; if using an overlay, keep the resume action reachable without placing a floating button over other game controls.
 
 ### 4. Touch-Friendly Controls
 - Minimum touch target: 44x44px for buttons
@@ -226,36 +200,6 @@ function updateReadouts(current) {
 - Canvas should fill available space but respect \`max-height\`
 - Don't use fixed pixel dimensions
 - Account for control panel height on mobile
-- Give the visualization canvas a stable id, for example \`id="simulation-canvas"\`
-- Bind it explicitly with \`const canvas = document.getElementById('simulation-canvas')\` and verify it exists before reading \`clientWidth\`, \`clientHeight\`, or calling \`getContext\`
-- The lookup id must exactly match the \`<canvas>\` id; do not rely on implicit browser globals such as \`window.canvas\`
-- Run initialization only after the canvas is in the document (place the script after the markup or use \`DOMContentLoaded\`)
-- If initialization cannot find a usable canvas/context, show a visible in-widget error instead of throwing
-- The error overlay must remain hidden when initialization succeeds; explicitly protect its \`[hidden]\` rule from any \`display: grid\` / \`display: flex\` rule.
-- Use an independently sized container and keep the canvas out of its sizing flow. A \`ResizeObserver\` must not make its observed parent grow by updating the canvas bitmap. Apply DPR to the measured CSS size once, update only changed bitmap dimensions, and verify the size settles across frames.
-
-### 5b. Geometry and input boundaries (CRITICAL)
-- Every numeric value used for a canvas size, radius, coordinate, array index, or animation duration must be finite and within an explicit range before drawing or indexing.
-- Canvas APIs such as \`ellipse()\` require non-negative radii. Clamp computed radii with \`Math.max(0, value)\` (and skip drawing when the result is zero) rather than passing a signed difference directly.
-- Normalize rectangles with \`left = Math.min(x1, x2)\`, \`top = Math.min(y1, y2)\`, and non-negative width/height. Do not assume resize or animation dimensions remain larger than zero.
-- Keep drawing calculations in small named helpers (for example, \`clamp\`, \`safeRadius\`, and \`drawCup\`) and use the same helper in initial draw, resize, reset, and animation paths.
-- Validate slider values and parsed data with \`Number.isFinite\`; provide safe defaults when values are missing or malformed. Exercise minimum and maximum control values in the code's own initialization checks.
-- Do not let one malformed drawing value terminate the animation loop. Guard the drawing boundary and report an in-widget error only when no safe fallback is possible.
-- Reuse these tiny guards instead of re-implementing unchecked math at each draw site:
-  \`\`\`js
-  function finiteOr(value, fallback) {
-    return Number.isFinite(value) ? value : fallback;
-  }
-  function safeRadius(value) {
-    return Math.max(0, finiteOr(value, 0));
-  }
-  // ctx.ellipse(cx, cy, safeRadius(rx), safeRadius(ry), rotation, start, end)
-  \`\`\`
-
-### 5a. Offline-safe dependencies
-- The simulation must remain usable if third-party CDNs are blocked or unavailable
-- Do not make core controls, drawing, or initialization depend on an external script such as KaTeX; use plain HTML/CSS/text for formulas, or render optional enhancements only when their library is available
-- Guard optional helpers with a feature check (for example, \`if (typeof renderMathInElement === 'function')\`)
 
 ### 6. Visual Feedback
 - Clear indication when simulation starts/pauses/ends
@@ -378,6 +322,19 @@ const objectY = baseY - BOTTOM_MARGIN - (value / maxValue) * playableHeight;
 - [ ] **Animation is OBVIOUS, not subtle - user can tell simulation is running**
 
 
+## Available libraries
+The deployment hosts the libraries below. When a page needs one of them, load it from the URL listed here, exactly as written, instead of a public CDN. Load only libraries the page needs. Initialize classic-script libraries after their load event, or after DOMContentLoaded when using defer.
+- katex 0.16.38: /vendor/interactive/katex@0.16.38/dist/katex.min.js
+- three 0.160.0: /vendor/interactive/three@0.160.0/build/three.module.js
+- chart.js 4.4.8: /vendor/interactive/chart.js@4.4.8/dist/chart.umd.js
+- @tailwindcss/browser 4.1.18: /vendor/interactive/@tailwindcss/browser@4.1.18/dist/index.global.js
+- Three.js addons import-map prefix: /vendor/interactive/three@0.160.0/examples/jsm/
+For Three.js use an import map with "three" and "three/addons/" set to the URLs above. Tailwind uses the v4 browser runtime, not the legacy v3 Play CDN API. The platform handles KaTeX automatically when math delimiters occur in page text; do not load or call KaTeX yourself.
+
+## Math typesetting
+
+The platform loads KaTeX into any interactive page that contains math, whether in the page text or in strings your scripts write into the page, and typesets math wherever it appears, including text your scripts add or change after the page loads. Write math as LaTeX between \`\\(\` and \`\\)\` for inline math or \`\\[\` and \`\\]\` for display math, also inside script strings, and leave typesetting to the platform. Do not load KaTeX, MathJax or any other math library yourself, and do not call their functions: the page can run where such a copy never loads, and a call into a missing library stops the page's script.
+
 ## REQUIRED: declared current state for newly generated interactive content (v1)
 
 This contract applies to every interactive content type. Report what the activity *is* right now, in the lesson's own terms — not a dump of JavaScript variables. The platform reads the same data for every lesson; there are no slider/circuit/game-specific collectors. Do not present protocol names to students.
@@ -406,13 +363,11 @@ Total UTF-8 JSON must stay at or under 32768 bytes, and must not nest more than 
 
 Publish the initial state even before the student presses Start. Publish after every semantic change, including reset and programmatic actions. Put publication in the functions that create/remove objects or change phase, including those called by timers or animation loops — not just in click/input handlers. For example, when a word appears automatically, publish the new word list immediately; do not leave “zero words” until the next user action. Pure animation frames need no extra publication unless a reported value changes. Input changes must be published even if the drawing or calculation has not completed.
 
-Every call to \`publishState\` MUST pass a valid JSON-serializable observation object. Never call \`publishState()\` with no argument, including from initial render, reveal/update, or reset handlers. Prefer one \`publishCurrentState()\` function that constructs the current observation and calls \`publishState(observation)\`; call that function from every state-changing path. Do not patch an existing update function after it has already been called to compensate for a missing observation.
-
-Publish a compact projection, not raw application state: omit DOM nodes, chart instances, timers, functions, base64 strings, full event logs, and unbounded history arrays. For a long-running game or simulation report the current step and bounded summary counts instead. This keeps publication within the 32768-byte limit.
-
 This is a replaced data projection, not history, storage or a new global state manager. Reading it has no side effects: state is published by the existing interaction and render paths, and collection only copies the inert data node. Do not redraw to answer a state request. A failed publication removes the old node rather than leaving stale values behind as current.
 
 Use this publication helper in the generated HTML; constructing the application state is your responsibility.
+
+Never call \`publishState()\` without an observation: it rejects \`undefined\` and aborts the current script. Use one canonical \`publishCurrentState()\` that constructs the complete observation from the current application state and passes it to \`publishState(observation)\`. Call that projection directly from the initial render, every semantic change, reset, and programmatic or timer-driven updates. Do not wrap or monkey-patch update functions after the fact to add publication; a late wrapper cannot repair a failure in the original update path.
 
 \`\`\`javascript
 function publishState(observation) {
@@ -437,45 +392,39 @@ function publishState(observation) {
 }
 \`\`\`
 
-If the activity has an apply/run step, capture the inputs a run actually used when it starts, and write them to \`rendered\` only after that run has successfully become the displayed result. A cancelled or superseded run must not update \`rendered\`, and a parameter edit alone must never advance it.
+For example, a reveal activity can use this single projection path. Adapt the state and summary to the lesson; construct the state before the first render and reset it before rendering again.
 
-## Interactive visual reliability (required)
+\`\`\`javascript
+let activityState = { step: 1 };
 
-### Hidden overlays must remain hidden
-
-- An error overlay is hidden in the healthy initial state. Reveal it only after a real initialization or rendering failure; do not leave a fallback message over a working canvas.
-- Author styles such as \`.error-box { display: grid; }\` can override the browser's ordinary \`hidden\` behavior. Whenever an element uses \`hidden\`, explicitly preserve that behavior, for example \`.error-box[hidden] { display: none !important; }\`. Do not apply this rule to the distinct \`hidden="until-found"\` feature.
-- Show/hide must use one consistent mechanism. When revealing an element that uses \`hidden\`, remove the attribute or set \`element.hidden = false\`; changing \`style.display\` alone is insufficient.
-
-### Canvas layout must settle without a resize feedback loop
-
-- CSS determines a bounded visualization container size; canvas bitmap dimensions must never determine that container's layout size. In a flex/grid row, do not put an in-flow \`canvas { height: 100%; }\` inside an auto-height parent and repeatedly grow its bitmap in \`ResizeObserver\`.
-- A safe pattern is an explicitly sized relative container with an absolutely positioned canvas. Observe the container, read its CSS size, and update the bitmap only when its integer pixel dimensions actually change. Keep device-pixel-ratio scaling separate from CSS dimensions, and restore the context transform after a bitmap resize.
-- Never derive the next bitmap size by multiplying its previous \`canvas.width\` or \`canvas.height\`. Do not conceal a resize loop by suppressing observer errors or hiding the canvas.
-
-\`\`\`css
-.visual-area {
-  position: relative;
-  height: clamp(320px, 60vh, 640px);
-  min-width: 0;
-  align-self: start;
+function publishCurrentState() {
+  publishState({
+    summary: 'Step ' + activityState.step,
+    state: { step: activityState.step }
+  });
 }
-.visual-area canvas {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
+
+function updateReveal() {
+  document.getElementById('step').textContent = activityState.step;
+  publishCurrentState();
 }
-.error-box[hidden] { display: none !important; }
+
+function advanceStep() {
+  activityState.step++;
+  updateReveal();
+}
+
+function resetActivity() {
+  activityState = { step: 1 };
+  updateReveal();
+}
+
+updateReveal(); // Initial state, before any user action.
+// Buttons, programmatic actions, and timers call advanceStep/resetActivity
+// directly; each path renders and publishes its current state.
 \`\`\`
 
-### Reset restores the visible initial state
-
-- Use one complete reset path for the reset button, keyboard reset, presets, and programmatic reset. Cancel the old animation callback/timers before restoring state; repeated Start/Reset must not accumulate animation loops.
-- Reset internal state AND visible readouts: elapsed time, temperature, score, intensity, status badges, control values, button labels, feedback, and canvas contents, as applicable. Resetting a JavaScript object alone is insufficient.
-- Initial render, semantic updates, and reset must share one \`renderCurrentState()\` projection that updates controls/readouts, draws the current state, and calls the existing \`publishCurrentState()\` with a valid observation. Do not add a late wrapper or a second reset click listener as a substitute for fixing the original reset path.
-- Check the healthy initial state, Start → Pause → Reset, repeated Start → Reset, and mobile/desktop resize. Confirm the error layer is absent, the canvas CSS size settles across multiple frames, and all readouts return to their initial values. Prompt instructions reduce generation risk; they are not a browser runtime guarantee and do not repair previously saved HTML.",
+If the activity has an apply/run step, capture the inputs a run actually used when it starts, and write them to \`rendered\` only after that run has successfully become the displayed result. A cancelled or superseded run must not update \`rendered\`, and a parameter edit alone must never advance it.",
     "user": "Create a simulation widget for: Energy transfer
 
 ## Concept Overview
@@ -522,9 +471,6 @@ Generate a complete, interactive HTML simulation with these MANDATORY features:
    - "暂停" → Pauses running simulation
    - "重新开始" → Resets to initial state, then starts fresh
 2. **Reset function MUST reset ALL state variables** (position, velocity, time, etc.)
-   - Also restore every visible readout, control, status, feedback message, and canvas through the shared initial/update/reset render path.
-   - Keep healthy error overlays hidden even when their CSS sets \`display: grid\` or \`display: flex\`.
-   - Give the canvas an independently bounded CSS container; bitmap resizing must not grow that container or trigger an unbounded \`ResizeObserver\` loop.
 3. Use clear state tracking: \`{ running: boolean, ended: boolean, paused: boolean }\`
 
 ### Canvas
@@ -1013,6 +959,8 @@ You are an educational content designer. Generate well-structured slide componen
 \`\`\`
 
 **Required Fields**: \`id\`, \`type\`, \`left\`, \`top\`, \`width\`, \`height\`, \`path\` (SVG path), \`viewBox\` [width, height], \`fill\` (hex color), \`fixedRatio\`
+
+**Optional Fields**: \`rotate\`: finite angle in degrees; positive values rotate clockwise around the centre of the unrotated bounding box
 
 **Common Shapes**:
 

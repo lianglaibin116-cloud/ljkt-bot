@@ -16,6 +16,7 @@
  */
 import type { Queryable } from '../runtime/pg.js';
 import { encodeJson } from '../pg-json.js';
+import { applySchemaMigrations, type SchemaMigrationSet } from '../pg-migrations.js';
 import {
   AGENT_SESSION_MATERIAL_KINDS,
   AgentSessionMaterialError,
@@ -53,7 +54,7 @@ export interface PgAgentSessionMaterialStoreOptions {
 }
 
 /** Pinned default schema for the PostgreSQL agent-session-material backend. */
-export const AGENT_SESSION_MATERIAL_PG_SCHEMA = `
+const AGENT_SESSION_MATERIAL_PG_BASELINE = `
 CREATE TABLE IF NOT EXISTS agent_session_materials (
   id            TEXT PRIMARY KEY,
   session_id    TEXT NOT NULL REFERENCES agent_sessions(id) ON DELETE CASCADE,
@@ -113,10 +114,8 @@ function resolveTableNames(
   return names;
 }
 
-function schemaFor(names: AgentSessionMaterialTableNames): string {
-  if (names.materials === DEFAULT_AGENT_SESSION_MATERIAL_TABLE_NAMES.materials) {
-    return AGENT_SESSION_MATERIAL_PG_SCHEMA;
-  }
+/** Rewrite default-name schema SQL for an overridden table name. */
+function renameTable(names: AgentSessionMaterialTableNames, sql: string): string {
   const s = quoteIdentifier(names.materials);
   const kindCheck = `${names.materials}_kind_known`;
   const charsCheck = `${names.materials}_text_chars_nonnegative`;
@@ -127,10 +126,8 @@ function schemaFor(names: AgentSessionMaterialTableNames): string {
   // Constraint/index names are rewritten first (they embed the default table
   // name), then the table-name occurrences themselves; only the CREATE TABLE
   // statement gets the quoted identifier.
-  return AGENT_SESSION_MATERIAL_PG_SCHEMA.replaceAll(
-    'agent_session_materials_kind_known',
-    kindCheck,
-  )
+  return sql
+    .replaceAll('agent_session_materials_kind_known', kindCheck)
     .replaceAll('agent_session_materials_text_chars_nonnegative', charsCheck)
     .replaceAll('agent_session_materials_extraction_status_known', statusCheck)
     .replaceAll('agent_session_materials_extraction_attempts_nonnegative', attemptsCheck)
@@ -140,16 +137,50 @@ function schemaFor(names: AgentSessionMaterialTableNames): string {
     .replaceAll(`CREATE TABLE IF NOT EXISTS ${names.materials}`, `CREATE TABLE IF NOT EXISTS ${s}`);
 }
 
-/** Create the backend-owned table when absent; existing schemas require migrations. */
+/**
+ * The session-material backend's migrations, for the default table name
+ * (recorded under the store `agent-session-material`).
+ */
+export const AGENT_SESSION_MATERIAL_PG_MIGRATIONS: SchemaMigrationSet = {
+  store: 'agent-session-material',
+  migrations: [
+    { version: 1, name: 'baseline', up: AGENT_SESSION_MATERIAL_PG_BASELINE, transaction: false },
+    {
+      version: 2,
+      name: 'extraction_reason_code',
+      up: `ALTER TABLE agent_session_materials ADD COLUMN IF NOT EXISTS extraction_reason_code TEXT;`,
+      transaction: true,
+    },
+  ],
+};
+
+export const AGENT_SESSION_MATERIAL_PG_SCHEMA = AGENT_SESSION_MATERIAL_PG_MIGRATIONS.migrations
+  .map((m) => m.up)
+  .join('\n');
+
+/**
+ * Create the backend-owned table, or bring an existing database up to date, by
+ * applying the pending {@link AGENT_SESSION_MATERIAL_PG_MIGRATIONS}. Safe to
+ * call on every start; a schema change is a new migration.
+ */
 export async function ensureAgentSessionMaterialSchema(
   queryable: Queryable,
   tableNames?: Partial<AgentSessionMaterialTableNames>,
 ): Promise<void> {
-  const schema = schemaFor(resolveTableNames(tableNames));
-  for (const sql of schema.split(';')) {
-    const statement = sql.trim();
-    if (statement !== '') await queryable.query(statement);
+  const names = resolveTableNames(tableNames);
+  if (names.materials === DEFAULT_AGENT_SESSION_MATERIAL_TABLE_NAMES.materials) {
+    await applySchemaMigrations(queryable, AGENT_SESSION_MATERIAL_PG_MIGRATIONS);
+    return;
   }
+  // An overridden table is its own store, recorded apart from the default one.
+  await applySchemaMigrations(
+    queryable,
+    {
+      store: `agent-session-material:${names.materials}`,
+      migrations: AGENT_SESSION_MATERIAL_PG_MIGRATIONS.migrations,
+    },
+    { rewriteSql: (sql) => renameTable(names, sql) },
+  );
 }
 
 interface MaterialRow extends Record<string, unknown> {
@@ -166,6 +197,7 @@ interface MaterialRow extends Record<string, unknown> {
   extraction_status: MaterialExtractionState['status'];
   extraction_attempts: number | string;
   extraction_error: string | null;
+  extraction_reason_code: string | null;
   extraction_stats: MaterialExtractionState['stats'] | null;
   extractor_version: string | null;
   extraction_lease_worker_id: string | null;
@@ -190,6 +222,7 @@ function mapRow(row: MaterialRow): AgentSessionMaterial {
       status: row.extraction_status,
       attempts: Number(row.extraction_attempts),
       ...(row.extraction_error ? { error: row.extraction_error } : {}),
+      ...(row.extraction_reason_code ? { reasonCode: row.extraction_reason_code } : {}),
       ...(row.extraction_stats ? { stats: row.extraction_stats } : {}),
       ...(row.extractor_version ? { extractorVersion: row.extractor_version } : {}),
     },
@@ -412,7 +445,7 @@ export class PgAgentSessionMaterialStore implements AgentSessionMaterialStore {
     const result = await this.queryable.query(
       `UPDATE ${this.table} AS material
           SET extraction_status = 'pending', extraction_attempts = 0,
-              extraction_error = NULL, extraction_stats = NULL,
+              extraction_error = NULL, extraction_reason_code = NULL, extraction_stats = NULL,
               extractor_version = NULL, extraction_lease_worker_id = NULL,
               extraction_lease_worker_pid = NULL, extraction_lease_heartbeat_at = NULL
          FROM agent_sessions AS session
@@ -451,6 +484,7 @@ export class PgAgentSessionMaterialStore implements AgentSessionMaterialStore {
        )
        UPDATE ${this.table} AS material
           SET extraction_status = 'running', extraction_error = NULL,
+              extraction_reason_code = NULL,
               extraction_lease_worker_id = $2, extraction_lease_worker_pid = $3,
               extraction_lease_heartbeat_at = $4
          FROM candidate
@@ -485,6 +519,7 @@ export class PgAgentSessionMaterialStore implements AgentSessionMaterialStore {
          UPDATE ${this.table}
             SET extraction_status = 'done', extraction_stats = $3::jsonb,
                 extractor_version = $4, extraction_error = NULL,
+                extraction_reason_code = NULL,
                 extraction_lease_worker_id = NULL, extraction_lease_worker_pid = NULL,
                 extraction_lease_heartbeat_at = NULL
           WHERE id = $1 AND kind = 'source' AND extraction_status = 'running'
@@ -527,6 +562,7 @@ export class PgAgentSessionMaterialStore implements AgentSessionMaterialStore {
     workerId: string,
     error: string,
     retryable: boolean,
+    reasonCode?: string,
   ): Promise<MaterialExtractionFailureSettlement | null> {
     const result = await this.queryable.query<
       MaterialExtractionFailureSettlement & Record<string, unknown>
@@ -538,12 +574,22 @@ export class PgAgentSessionMaterialStore implements AgentSessionMaterialStore {
                 WHEN $4 AND extraction_attempts < $5 THEN extraction_attempts + 1
                 ELSE extraction_attempts END,
               extraction_error = $3, extraction_stats = NULL,
+              -- This attempt's own code, only on a terminal failure.
+              extraction_reason_code = CASE
+                WHEN $4 AND extraction_attempts < $5 THEN NULL ELSE $6::text END,
               extraction_lease_worker_id = NULL, extraction_lease_worker_pid = NULL,
               extraction_lease_heartbeat_at = NULL
         WHERE id = $1 AND extraction_status = 'running'
           AND extraction_lease_worker_id = $2
         RETURNING extraction_status AS status, extraction_attempts AS attempts`,
-      [materialId, workerId, error.slice(0, 4000), retryable, MAX_MATERIAL_EXTRACTION_RETRIES],
+      [
+        materialId,
+        workerId,
+        error.slice(0, 4000),
+        retryable,
+        MAX_MATERIAL_EXTRACTION_RETRIES,
+        reasonCode?.slice(0, 64) ?? null,
+      ],
     );
     return result.rows[0] ?? null;
   }

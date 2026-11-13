@@ -60,17 +60,14 @@ Generate a FUN, INTERACTIVE HTML game with these MANDATORY features:
 
 ### Technical (MANDATORY)
 1. **Inline onclick for start button**: `<button onclick="startGame()">开始</button>` - NOT addEventListener
-2. **Immediate submit/confirm**: Every question, round, or level where the player selects, drags, sorts, matches, or builds an answer MUST show an always-visible Submit/Confirm button as soon as the round starts. Never require waiting for the countdown to reach zero.
-3. **Immediate progression**: Submit freezes the current timer and validates at once. After feedback, show a Next Question/Next Level button or auto-advance within 1.5 seconds. The timer may affect score or cause timeout, but must never gate progression after submission.
-4. **Callable progression API**: Implement global `submitCurrentChallenge()` and `nextChallenge()` functions, and bind the controls with inline `onclick` attributes. Keep buttons inside the viewport at all supported iframe sizes.
-5. **Custom CSS preferred**: Avoid Tailwind `@layer utilities` blocks; use plain CSS
-6. **DOMContentLoaded wrapper**: Wrap game code in `document.addEventListener('DOMContentLoaded', ...)`
-7. **Global start function**: `function startGame()` must be callable from onclick
-8. Embedded `<script type="application/json" id="widget-config">`
-9. `requestAnimationFrame` for smooth animations
-10. Touch-friendly controls (min 44px touch targets)
-11. localStorage for progress/high scores
-12. Pause functionality
+2. **Custom CSS preferred**: Avoid Tailwind `@layer utilities` blocks; use plain CSS
+3. **DOMContentLoaded wrapper**: Wrap game code in `document.addEventListener('DOMContentLoaded', ...)`
+4. **Global start function**: `function startGame()` must be callable from onclick
+5. Embedded `<script type="application/json" id="widget-config">`
+6. `requestAnimationFrame` for smooth animations
+7. Touch-friendly controls (min 44px touch targets)
+8. localStorage for progress/high scores
+9. Pause functionality
 
 ### Output
 Return ONLY the HTML document. Make the game FUN enough that students want to play again!

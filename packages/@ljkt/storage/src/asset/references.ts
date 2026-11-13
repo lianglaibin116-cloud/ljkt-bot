@@ -1,7 +1,7 @@
 /**
  * Document -> asset reference maintenance.
  *
- * **Internal to the package.** These are transaction-scoped maintenance
+ * These are transaction-scoped maintenance
  * primitives, not API: called outside a document write they would replace or
  * delete reference rows nothing else knows about. The supported switches are
  * `PgDocumentStoreOptions.trackAssetReferences` and
@@ -9,15 +9,22 @@
  * from the package root.
  *
  * This module is the only place that maintains `document_asset_refs` and the
- * lifecycle columns on `asset_entries` **as part of a document write**. Two
+ * lifecycle columns on `asset_entries` **as part of a document write**. Three
  * other writers exist by design and are named so this docstring cannot go
  * stale: `PgAssetStore.put` writes all three lifecycle columns when it
- * allocates an entry, and `AssetCollector` marks legacy entries and deletes
- * released ones. Everything here takes a `Queryable` and runs inside a
+ * allocates an entry, `AssetCollector` marks legacy entries and deletes
+ * released ones, and `changeAssetRoots` (`./roots.ts`) commits the entries it
+ * roots and stamps the ones whose last reference it removes. The last one
+ * reuses this module's lock and commit primitives, and every stamp in the
+ * package -- here, in the collector and in the root writer -- decides
+ * "unreferenced" through `./liveness.ts`, which looks at both reference
+ * tables. Everything here takes a `Queryable` and runs inside a
  * transaction the caller already owns -- the document store's write
  * transactions and the collector's backfill -- so a reference row and the
  * document write that implies it commit or roll back together. There is no
- * HTTP route and no scheduled walk over documents.
+ * HTTP route and no scheduled walk over documents. The supported
+ * `retainDocumentAssets` helper is re-exported by `asset/pg` for host records
+ * that must keep assets within a document's lifetime independently of scenes.
  *
  * Two halves, deliberately separated:
  *
@@ -30,7 +37,8 @@
  *
  * A scope is `(stage_id, scope, scene_id)`: `scope = 'stage'` is the
  * stage-level slot -- stage whiteboards and the stage video manifest, which no
- * scene owns -- and `scope = 'scene'` is one scene's own slots. The
+ * scene owns -- and `scope = 'scene'` is one scene's own slots. A `retained`
+ * scope belongs to a server-owned record and survives ordinary document saves. The
  * distinction is a column rather than a reserved `scene_id` value because
  * scene ids are opaque: a scene whose id matched the sentinel would share a
  * key with the stage-level rows, and whichever scope was written second would
@@ -43,20 +51,29 @@
  *
  * **Ids are opaque.** A candidate becomes a row only when `asset_entries`
  * already holds an entry with that id, established by a join in the caller's
- * transaction. Nothing here parses, validates, or prefix-matches a reference:
+ * transaction.
+ *
+ * **References can be scoped to principals.** A writer that passes
+ * `principals` references, and commits, only entries held by one of those
+ * principals: an id naming another principal's entry produces no row and no
+ * lifecycle change, exactly like an unknown id. Without it, a document naming
+ * an id it learned elsewhere would commit another principal's pending
+ * allocation and pin that entry (and its quota) for as long as the document
+ * names it. The document write itself is never refused either way. Nothing here parses, validates, or prefix-matches a reference:
  * placeholders, `data:` payloads, legacy URLs and ids from other id spaces
  * simply produce no row, which is the same rule the read paths apply when they
  * answer "unknown id" with a miss.
  */
 import type { Action, Scene, SceneType, Slide, SlideContent, Stage } from '@ljkt/dsl';
 import { enumerateAssetManifest, isSlideContent } from '@ljkt/dsl';
+import { ENTRY_UNREFERENCED_SQL } from './liveness.js';
 import { isLosslessJsonString } from '../runtime/json-value.js';
 import type { Queryable } from '../runtime/pg.js';
 
 export type { Queryable } from '../runtime/pg.js';
 
-/** Which half of a document a reference row belongs to. */
-export type DocumentAssetScopeKind = 'stage' | 'scene';
+/** Which document slot or server-owned record a reference row belongs to. */
+export type DocumentAssetScopeKind = 'stage' | 'scene' | 'retained';
 
 /**
  * The `scene_id` stage-level rows carry. Empty rather than NULL so the primary
@@ -69,7 +86,7 @@ const STAGE_SCOPE_SCENE_ID = '';
 /** One reference scope of one stage: which rows to replace, and with what. */
 export interface DocumentAssetScope {
   readonly scope: DocumentAssetScopeKind;
-  /** The scene these candidates belong to; `''` on a stage-level scope. */
+  /** Scene/retained-record id, or `''` on a stage-level scope. */
   readonly sceneId: string;
   /** References the document holds in this scope, exactly as it holds them. */
   readonly candidates: readonly string[];
@@ -246,7 +263,7 @@ export function documentAssetScopes(document: ScopedDocumentInput): DocumentAsse
  * sort makes the parameter array match it in the common case and makes the
  * intent visible at every call site.
  */
-function queryableCandidates(candidates: readonly string[]): string[] {
+export function queryableCandidates(candidates: readonly string[]): string[] {
   const unique = new Set<string>();
   for (const candidate of candidates) {
     if (typeof candidate !== 'string' || !isLosslessJsonString(candidate)) continue;
@@ -276,6 +293,26 @@ async function referencedAssetIds(
 }
 
 /**
+ * The version of the rules that decide whether an entry is referenced, as
+ * this package applies them: 1 counted `document_asset_refs` only; 2 counts
+ * `asset_root_refs` as well. It is recorded on the tracking marker by every
+ * writer of references, documents and roots alike, never lowered, and bumped
+ * whenever a new kind of reference starts keeping entries alive. A writer of a
+ * new kind must raise it in the transaction that writes its first reference
+ * row (or before), and its rows must lock the entry they name, as a foreign
+ * key does: the collector re-reads the version under the lock of every entry
+ * it is about to delete.
+ *
+ * A collector whose version is lower than the database's does not know every
+ * reference that keeps an entry alive, so it releases nothing (see
+ * `AssetReferenceRuleVersionError`), including when the version is raised
+ * while a pass is under way. This protects the next change of the
+ * rules, not this one: a collector from before the version existed does not
+ * read it.
+ */
+export const ASSET_REFERENCE_RULE_VERSION = 2;
+
+/**
  * Record that a document store on this database maintains reference rows.
  *
  * Written by every reference-maintaining transaction, so the marker appears as
@@ -292,9 +329,28 @@ async function referencedAssetIds(
  */
 export async function recordAssetReferenceTracking(queryable: Queryable): Promise<void> {
   await queryable.query(
-    `INSERT INTO asset_reference_tracking (singleton, enabled_at)
-     VALUES (TRUE, now())
+    `INSERT INTO asset_reference_tracking (singleton, enabled_at, rule_version)
+     VALUES (TRUE, now(), $1)
      ON CONFLICT DO NOTHING`,
+    [ASSET_REFERENCE_RULE_VERSION],
+  );
+  await raiseAssetReferenceRuleVersion(queryable);
+}
+
+/**
+ * Raise the marker's reference-rule version to this package's, if a marker
+ * exists and records an older one; never create a marker. A writer of any
+ * kind of reference calls it in the transaction that writes the reference,
+ * after its entry locks: a document write through
+ * {@link recordAssetReferenceTracking}, a root change directly (a root is no
+ * evidence that documents maintain references, so it must not create the
+ * marker that says so). Once raised it matches no row, so it locks nothing
+ * and the write paths do not queue on the singleton.
+ */
+export async function raiseAssetReferenceRuleVersion(queryable: Queryable): Promise<void> {
+  await queryable.query(
+    `UPDATE asset_reference_tracking SET rule_version = $1 WHERE rule_version < $1`,
+    [ASSET_REFERENCE_RULE_VERSION],
   );
 }
 
@@ -307,7 +363,7 @@ export async function recordAssetReferenceTracking(queryable: Queryable): Promis
  * acquisition in this package to the two strengths whose interaction is
  * reasoned about, and keeps the literal out of any caller's hands.
  */
-type EntryLockStrength = 'no-key-update' | 'key-share';
+export type EntryLockStrength = 'no-key-update' | 'key-share';
 
 const ENTRY_LOCK_SQL: Record<EntryLockStrength, string> = {
   'no-key-update': 'FOR NO KEY UPDATE',
@@ -348,25 +404,32 @@ const ENTRY_LOCK_SQL: Record<EntryLockStrength, string> = {
  * for the collector's insert-only backfill, which is exactly what its inserts'
  * foreign keys take, for the same reason.
  *
- * Returns the ids that exist as entries. That is also the join that keeps ids
- * opaque: a candidate with no entry locks nothing, and nothing downstream
- * updates it.
+ * Returns the entries that exist, with the principal each is held by. That is
+ * also the join that keeps ids opaque: a candidate with no entry locks
+ * nothing, and nothing downstream updates it. The principal is what the root
+ * writer (`./roots.ts`) checks ownership against, read under the same lock.
  */
-async function lockEntriesInOrder(
+export async function lockEntriesInOrder(
   queryable: Queryable,
   ids: readonly string[],
   strength: EntryLockStrength,
-): Promise<string[]> {
+): Promise<LockedEntry[]> {
   if (ids.length === 0) return [];
-  const locked = await queryable.query<{ id: string }>(
-    `SELECT id
+  const locked = await queryable.query<{ id: string; principal: string }>(
+    `SELECT id, principal
        FROM asset_entries
       WHERE id = ANY($1::text[])
       ORDER BY id ASC
         ${ENTRY_LOCK_SQL[strength]}`,
     [ids],
   );
-  return locked.rows.map((row) => row.id);
+  return locked.rows.map((row) => ({ id: row.id, principal: row.principal }));
+}
+
+/** An entry {@link lockEntriesInOrder} locked, and the principal holding it. */
+export interface LockedEntry {
+  readonly id: string;
+  readonly principal: string;
 }
 
 /**
@@ -425,9 +488,10 @@ export async function lockBackfillEntries(
  * every one of these rows at `FOR NO KEY UPDATE`, so this statement cannot
  * wait.
  */
-async function commitReferencedEntries(
+export async function commitReferencedEntries(
   queryable: Queryable,
   candidates: readonly string[],
+  principals: ReferencePrincipals,
 ): Promise<void> {
   const ids = queryableCandidates(candidates);
   if (ids.length === 0) return;
@@ -436,16 +500,29 @@ async function commitReferencedEntries(
         SET committed_at = COALESCE(committed_at, now()),
             expires_at = NULL,
             unreferenced_at = NULL
-      WHERE id = ANY($1::text[])`,
-    [ids],
+      WHERE id = ANY($1::text[])
+        AND ($2::text[] IS NULL OR principal = ANY($2::text[]))`,
+    [ids, principalFilter(principals)],
   );
 }
 
 /**
- * Stamp the entries among `previous` that no document references any more.
+ * The principals whose entries a writer may reference, or `undefined` for any
+ * entry. See the module docstring.
+ */
+export type ReferencePrincipals = readonly string[] | undefined;
+
+function principalFilter(principals: ReferencePrincipals): string[] | null {
+  if (principals === undefined) return null;
+  return principals.filter((key) => typeof key === 'string' && isLosslessJsonString(key));
+}
+
+/**
+ * Stamp the entries among `previous` that nothing references any more.
  *
- * "Any more" is global, not scoped: another scene of this stage, or another
- * stage entirely, keeping a row is enough to leave the entry alone. The
+ * "Any more" is global, not scoped: another scene of this stage, another stage
+ * entirely, or a reference root (`asset_root_refs`) keeping a row is enough to
+ * leave the entry alone -- see `./liveness.ts`. The
  * `unreferenced_at IS NULL` guard makes the stamp the moment the LAST
  * reference went, so a document rewritten repeatedly cannot keep pushing an
  * entry's grace period out.
@@ -457,7 +534,7 @@ async function commitReferencedEntries(
  * `KEY SHARE` an insert-only reference writer takes, so a reference row can
  * still commit after the lock was taken, and only a later snapshot sees it.
  */
-async function stampUnreferencedEntries(
+export async function stampUnreferencedEntries(
   queryable: Queryable,
   previous: readonly string[],
 ): Promise<void> {
@@ -468,9 +545,7 @@ async function stampUnreferencedEntries(
         SET unreferenced_at = now()
       WHERE entries.id = ANY($1::text[])
         AND entries.unreferenced_at IS NULL
-        AND NOT EXISTS (
-              SELECT 1 FROM document_asset_refs AS refs WHERE refs.asset_id = entries.id
-            )`,
+        AND ${ENTRY_UNREFERENCED_SQL}`,
     [ids],
   );
 }
@@ -479,19 +554,21 @@ async function replaceScopeRows(
   queryable: Queryable,
   stageId: string,
   scope: DocumentAssetScope,
+  principals: ReferencePrincipals,
 ): Promise<void> {
   await queryable.query(
     `DELETE FROM document_asset_refs
       WHERE stage_id = $1 AND scope = $2 AND scene_id = $3`,
     [stageId, scope.scope, scope.sceneId],
   );
-  await insertScopeRows(queryable, stageId, scope);
+  await insertScopeRows(queryable, stageId, scope, principals);
 }
 
 async function insertScopeRows(
   queryable: Queryable,
   stageId: string,
   scope: DocumentAssetScope,
+  principals: ReferencePrincipals,
 ): Promise<void> {
   const ids = queryableCandidates(scope.candidates);
   if (ids.length === 0) return;
@@ -512,9 +589,10 @@ async function insertScopeRows(
      SELECT $1, $2, $3, entries.id
        FROM asset_entries AS entries
       WHERE entries.id = ANY($4::text[])
+        AND ($5::text[] IS NULL OR entries.principal = ANY($5::text[]))
       ORDER BY entries.id ASC
      ON CONFLICT DO NOTHING`,
-    [stageId, scope.scope, scope.sceneId, ids],
+    [stageId, scope.scope, scope.sceneId, ids, principalFilter(principals)],
   );
 }
 
@@ -522,6 +600,11 @@ async function insertScopeRows(
 export interface SyncDocumentAssetReferencesInput {
   readonly stageId: string;
   readonly scope: DocumentAssetScope;
+  /**
+   * Reference only entries held by these principals. Omit to reference any
+   * entry the registry holds. See the module docstring.
+   */
+  readonly principals?: readonly string[];
 }
 
 /**
@@ -536,15 +619,15 @@ export async function syncDocumentAssetReferences(
   queryable: Queryable,
   input: SyncDocumentAssetReferencesInput,
 ): Promise<void> {
-  const { stageId, scope } = input;
+  const { stageId, scope, principals } = input;
   const previous = await referencedAssetIds(queryable, stageId, scope);
   // Every entry lock this transaction will need, ascending, before the first
   // write to either table -- see lockEntriesInOrder.
   await lockWriteEntries(queryable, scope.candidates, previous);
   await recordAssetReferenceTracking(queryable);
   await forgetDocumentAssetWithdrawal(queryable, stageId);
-  await replaceScopeRows(queryable, stageId, scope);
-  await commitReferencedEntries(queryable, scope.candidates);
+  await replaceScopeRows(queryable, stageId, scope, principals);
+  await commitReferencedEntries(queryable, scope.candidates, principals);
   await stampUnreferencedEntries(queryable, previous);
 }
 
@@ -552,10 +635,13 @@ export async function syncDocumentAssetReferences(
 export interface SyncStageAssetReferencesInput {
   readonly stageId: string;
   readonly scopes: readonly DocumentAssetScope[];
+  /** As {@link SyncDocumentAssetReferencesInput.principals}. */
+  readonly principals?: readonly string[];
 }
 
 /**
- * Replace every reference row of one stage: the full-save counterpart of
+ * Replace document-derived reference rows of one stage, preserving retained
+ * records: the full-save counterpart of
  * {@link syncDocumentAssetReferences}.
  *
  * Deleting the stage's rows and re-inserting from the scopes is what makes a
@@ -575,18 +661,50 @@ export async function syncStageAssetReferences(
   queryable: Queryable,
   input: SyncStageAssetReferencesInput,
 ): Promise<void> {
-  const { stageId, scopes } = input;
+  const { stageId, scopes, principals } = input;
   const previous = await referencedAssetIds(queryable, stageId);
   const next = scopes.flatMap((scope) => [...scope.candidates]);
   await lockWriteEntries(queryable, next, previous);
   await recordAssetReferenceTracking(queryable);
   await forgetDocumentAssetWithdrawal(queryable, stageId);
-  await queryable.query('DELETE FROM document_asset_refs WHERE stage_id = $1', [stageId]);
+  await queryable.query(
+    "DELETE FROM document_asset_refs WHERE stage_id = $1 AND scope <> 'retained'",
+    [stageId],
+  );
   for (const scope of scopes) {
-    await insertScopeRows(queryable, stageId, scope);
+    await insertScopeRows(queryable, stageId, scope, principals);
   }
-  await commitReferencedEntries(queryable, next);
+  await commitReferencedEntries(queryable, next, principals);
   await stampUnreferencedEntries(queryable, previous);
+}
+
+/**
+ * Retain assets for a server-owned record within a document's lifetime.
+ * Run inside the record's creation transaction. Full saves and scene changes
+ * preserve these references; document deletion/withdrawal releases them.
+ * Callers authorize the document owner and pass only its allowed principals.
+ */
+export async function retainDocumentAssets(
+  queryable: Queryable,
+  input: {
+    readonly stageId: string;
+    readonly referenceId: string;
+    readonly assetIds: readonly string[];
+    readonly principals: readonly string[];
+  },
+): Promise<void> {
+  if (!input.referenceId || !isLosslessJsonString(input.referenceId))
+    throw new Error('A lossless retained-reference id is required.');
+  const stage = await queryable.query('SELECT id FROM document_stages WHERE id=$1 FOR UPDATE', [
+    input.stageId,
+  ]);
+  if (!stage.rows.length || (await documentAssetReferencesWithdrawn(queryable, input.stageId)))
+    throw new Error('Cannot retain assets for an unavailable document.');
+  await syncDocumentAssetReferences(queryable, {
+    stageId: input.stageId,
+    scope: { scope: 'retained', sceneId: input.referenceId, candidates: input.assetIds },
+    principals: input.principals,
+  });
 }
 
 /** Which rows to drop: one scene's, or every row of the stage. */
@@ -661,7 +779,7 @@ export async function backfillDocumentAssetReferences(
   queryable: Queryable,
   input: SyncDocumentAssetReferencesInput,
 ): Promise<void> {
-  await insertScopeRows(queryable, input.stageId, input.scope);
+  await insertScopeRows(queryable, input.stageId, input.scope, input.principals);
 }
 
 /**
@@ -731,6 +849,21 @@ export async function forgetDocumentAssetWithdrawal(
 
 /** True when some document store on this database maintains reference rows. */
 export async function assetReferenceTrackingEnabled(queryable: Queryable): Promise<boolean> {
-  const result = await queryable.query('SELECT 1 FROM asset_reference_tracking LIMIT 1');
-  return result.rows.length > 0;
+  return (await assetReferenceTrackingState(queryable)).enabled;
+}
+
+/**
+ * Whether some document store on this database maintains reference rows, and
+ * the highest reference-rule version any writer on it has recorded.
+ */
+export async function assetReferenceTrackingState(
+  queryable: Queryable,
+): Promise<{ enabled: boolean; ruleVersion: number }> {
+  const result = await queryable.query<{ rule_version: number | string }>(
+    'SELECT rule_version FROM asset_reference_tracking LIMIT 1',
+  );
+  const row = result.rows[0];
+  return row
+    ? { enabled: true, ruleVersion: Number(row.rule_version) }
+    : { enabled: false, ruleVersion: 0 };
 }

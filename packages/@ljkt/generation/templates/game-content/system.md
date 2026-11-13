@@ -112,12 +112,6 @@ Learning: Player EXPERIENCES F=ma by adjusting thrust and seeing result
 - Real-time game loop with `requestAnimationFrame`
 - Touch-friendly controls (sliders, buttons, drag areas)
 - Clear visual feedback (score, progress, status)
-- Create a valid game state object before any start/reset handler reads or writes its properties. If `init()` assigns `state = defaultState()`, call `init()` before `state.phase = ...`, `state.gameOver = ...`, or any other state access. Do not leave `state` as `null` during an event handler.
-- If restoring progress from localStorage, validate that the parsed value is a non-null object and merge it with fresh defaults. Invalid or missing saved data must leave a complete default state.
-- Check that required DOM elements exist before mutating them. Keep start/reset handlers safe to invoke after a previous play.
-- Every bounded question/round/level MUST provide a visible, touch-friendly **Submit / Confirm** control. After the player has made a selection, arrangement, or build, they must be able to validate it immediately; the remaining timer must never be the only way to finish a round.
-- Submission MUST stop/freeze that round's countdown, validate immediately, and show right/wrong or success/failure feedback. Then provide a visible **Next question / Next level** control (or auto-advance after no more than 1.5 seconds). Never make a successful player wait for the old timer to expire.
-- The countdown is a deadline or score bonus only, never a progression gate. Expose global `submitCurrentChallenge()` and `nextChallenge()` functions and bind the visible controls with inline `onclick` so host playback and touch users can always activate them.
 - Achievement popups
 - Level progression
 - localStorage for progress
@@ -304,8 +298,6 @@ Return ONLY the HTML document, no markdown fences or explanations.
 - [ ] Learning happens through PLAY, not through questions
 - [ ] Touch-friendly controls for mobile
 - [ ] Clear instructions at game start
-- [ ] Every answer/build can be submitted immediately with an always-visible control
-- [ ] Correct submission reaches the next question/level without waiting for the timer
 - [ ] Achievement system provides motivation
 - [ ] **NO DUPLICATED HTML** - exactly ONE `<!DOCTYPE html>` tag
 - [ ] Game objects are VISIBLE and not hidden under UI overlays
@@ -371,44 +363,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
 ```javascript
 // CORRECT: Define function globally (outside DOMContentLoaded)
-function startGame() {
-  initLevel();
-  const startScreen = document.getElementById('start-screen');
-  if (!startScreen) return;
-  startScreen.classList.add('hidden');
-  gameActive = true;
+let state = null;
+function init() {
+  state = { gameActive: false, startTime: null };
 }
 
-// If using DOMContentLoaded, expose function to window
-document.addEventListener('DOMContentLoaded', function() {
-  // ... other setup ...
-});
-// Define startGame outside or assign to window
-window.startGame = function() { ... };
+function startGame() {
+  init(); // Construct state before any field access or level setup.
+  document.getElementById('start-screen').classList.add('hidden');
+  state.gameActive = true;
+  state.startTime = Date.now();
+  initLevel();
+  render(); // Render paths call publishCurrentState() directly.
+}
+
+function resetGame() {
+  init();
+  initLevel();
+  render();
+}
+
+init();
+render(); // Publish initial state even before Start.
 ```
+
+If defining these functions inside DOMContentLoaded instead, expose the handlers with `window.startGame = startGame` and `window.resetGame = resetGame` inside that callback.
 
 ### 5. Simple Initialization Flow
 **The game initialization should be simple and direct:**
 
+**Construct the state object before any field access**, including the first render, Start, and reset. Separate construction (for example, `init()`) from transitions on an already constructed state and from level setup (`initLevel()`). If level setup uses state, it also runs after construction. Reset must construct a fresh state before reading or writing its fields. Every render or semantic update path must call `publishCurrentState()` directly, including initialization and reset.
+
 ```javascript
+let state = null;
+function init() {
+  state = { gameActive: false, startTime: null };
+}
+
 function startGame() {
-  // 1. Initialize a complete state object before touching its fields
+  // 1. Construct state, before reading or writing its fields
+  init();
+  // 2. Hide start overlay
+  document.getElementById('start-screen').classList.add('hidden');
+  // 3. Transition the constructed state and initialize the first level
+  state.gameActive = true;
+  state.startTime = Date.now();
   initLevel();
-  // 2. Update UI only after checking required elements exist
-  const startScreen = document.getElementById('start-screen');
-  if (!startScreen) return;
-  startScreen.classList.add('hidden');
-  gameActive = true;
-  startTime = Date.now();
-  // 3. Start game loop
+  // 4. Render and publish, then start the game loop
+  render();
   requestAnimationFrame(gameLoop);
 }
+
+function resetGame() {
+  init();
+  initLevel();
+  render();
+}
+
+init();
+render(); // Render paths publish the current state, including before Start.
 ```
 
 **Avoid**: Complex dependencies like reading localStorage before events are bound, multiple async operations during init, or chained promises for game start.
 
-Before returning the HTML, trace the first Start click and one Reset/Start cycle. No handler may read a field from `null` or `undefined` state.
 
+{{snippet:interactive-libraries}}
+
+{{snippet:interactive-math}}
 
 {{snippet:interactive-observation}}
 

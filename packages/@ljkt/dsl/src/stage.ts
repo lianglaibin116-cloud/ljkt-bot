@@ -66,9 +66,12 @@ export type VideoManifest = Record<string, VideoManifestEntry>;
  * instead of living in device-local storage.
  */
 export interface VoiceDesign {
-  /** gender / age / role */
+  /** gender / age / role, written in the course language */
   identity: string;
-  /** Language-independent catalogue preference, when known. */
+  /**
+   * Language-independent vocal gender for newly generated agents.
+   * Absent on older documents; readers then keep the previous English-identity fallback.
+   */
   gender?: 'male' | 'female';
   /** pitch / vocal quality */
   texture: string;

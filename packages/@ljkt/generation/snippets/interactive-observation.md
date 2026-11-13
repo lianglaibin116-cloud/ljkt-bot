@@ -26,13 +26,11 @@ Total UTF-8 JSON must stay at or under 32768 bytes, and must not nest more than 
 
 Publish the initial state even before the student presses Start. Publish after every semantic change, including reset and programmatic actions. Put publication in the functions that create/remove objects or change phase, including those called by timers or animation loops — not just in click/input handlers. For example, when a word appears automatically, publish the new word list immediately; do not leave “zero words” until the next user action. Pure animation frames need no extra publication unless a reported value changes. Input changes must be published even if the drawing or calculation has not completed.
 
-Every call to `publishState` MUST pass a valid JSON-serializable observation object. Never call `publishState()` with no argument, including from initial render, reveal/update, or reset handlers. Prefer one `publishCurrentState()` function that constructs the current observation and calls `publishState(observation)`; call that function from every state-changing path. Do not patch an existing update function after it has already been called to compensate for a missing observation.
-
-Publish a compact projection, not raw application state: omit DOM nodes, chart instances, timers, functions, base64 strings, full event logs, and unbounded history arrays. For a long-running game or simulation report the current step and bounded summary counts instead. This keeps publication within the 32768-byte limit.
-
 This is a replaced data projection, not history, storage or a new global state manager. Reading it has no side effects: state is published by the existing interaction and render paths, and collection only copies the inert data node. Do not redraw to answer a state request. A failed publication removes the old node rather than leaving stale values behind as current.
 
 Use this publication helper in the generated HTML; constructing the application state is your responsibility.
+
+Never call `publishState()` without an observation: it rejects `undefined` and aborts the current script. Use one canonical `publishCurrentState()` that constructs the complete observation from the current application state and passes it to `publishState(observation)`. Call that projection directly from the initial render, every semantic change, reset, and programmatic or timer-driven updates. Do not wrap or monkey-patch update functions after the fact to add publication; a late wrapper cannot repair a failure in the original update path.
 
 ```javascript
 function publishState(observation) {
@@ -55,6 +53,38 @@ function publishState(observation) {
     throw error;
   }
 }
+```
+
+For example, a reveal activity can use this single projection path. Adapt the state and summary to the lesson; construct the state before the first render and reset it before rendering again.
+
+```javascript
+let activityState = { step: 1 };
+
+function publishCurrentState() {
+  publishState({
+    summary: 'Step ' + activityState.step,
+    state: { step: activityState.step }
+  });
+}
+
+function updateReveal() {
+  document.getElementById('step').textContent = activityState.step;
+  publishCurrentState();
+}
+
+function advanceStep() {
+  activityState.step++;
+  updateReveal();
+}
+
+function resetActivity() {
+  activityState = { step: 1 };
+  updateReveal();
+}
+
+updateReveal(); // Initial state, before any user action.
+// Buttons, programmatic actions, and timers call advanceStep/resetActivity
+// directly; each path renders and publishes its current state.
 ```
 
 If the activity has an apply/run step, capture the inputs a run actually used when it starts, and write them to `rendered` only after that run has successfully become the displayed result. A cancelled or superseded run must not update `rendered`, and a parameter edit alone must never advance it.

@@ -1,6 +1,6 @@
 {
   "name": "@ljkt/editor",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "description": "Composable slide editing core, React surface, and UI for OpenMAIC.",
   "type": "module",
   "main": "./dist/core/index.js",
@@ -34,7 +34,7 @@
     "directory": "packages/@ljkt/editor"
   },
   "scripts": {
-    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && rollup -c --forceExit && tsc --emitDeclarationOnly --declarationDir dist",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && rollup -c && tsc --emitDeclarationOnly --declarationDir dist",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build"
@@ -56,7 +56,8 @@
     "prosemirror-schema-list": "^1.5.1",
     "prosemirror-state": "^1.4.4",
     "prosemirror-view": "^1.41.5",
-    "react-colorful": "^5.7.0"
+    "react-colorful": "^5.7.0",
+    "@ljkt/geometry": "workspace:^"
   },
   "peerDependencies": {
     "react": ">=18",

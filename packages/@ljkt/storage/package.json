@@ -1,6 +1,6 @@
 {
   "name": "@ljkt/storage",
-  "version": "0.31.1",
+  "version": "0.39.3",
   "description": "The MAIC pluggable persistence layer: document / runtime / KV / asset primitives with browser and HTTP backends, depending only on @ljkt/dsl.",
   "type": "module",
   "main": "./dist/index.js",
@@ -70,6 +70,10 @@
     "./server/reference": {
       "types": "./dist/server/reference.d.ts",
       "import": "./dist/server/reference.js"
+    },
+    "./pg-migrations": {
+      "types": "./dist/pg-migrations.d.ts",
+      "import": "./dist/pg-migrations.js"
     },
     "./pg-json": {
       "types": "./dist/pg-json.d.ts",

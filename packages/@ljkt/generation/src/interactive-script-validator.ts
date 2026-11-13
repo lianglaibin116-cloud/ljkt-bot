@@ -6,16 +6,6 @@ export interface InteractiveScriptSyntaxFailure {
   readonly message: string;
 }
 
-export interface InteractiveCanvasReferenceFailure {
-  readonly scriptIndex: number;
-  readonly message: string;
-}
-
-export interface InteractiveCanvasGeometryFailure {
-  readonly scriptIndex: number;
-  readonly message: string;
-}
-
 /**
  * Classic script type essences. Empty means the type attribute was omitted.
  * The rest are the JavaScript MIME type essences browsers still execute,
@@ -118,24 +108,6 @@ function extractScriptElements(markup: string): ScriptElement[] {
   return scripts;
 }
 
-function collectCanvasIds(
-  parent: DefaultTreeAdapterTypes.ParentNode,
-  canvasIds: Set<string>,
-): void {
-  for (const child of parent.childNodes) {
-    if (!isElement(child)) continue;
-    if (child.tagName === 'canvas') {
-      const id = child.attrs.find((attribute) => attribute.name.toLowerCase() === 'id')?.value;
-      if (id) canvasIds.add(id);
-    }
-    if (isTemplate(child)) {
-      collectCanvasIds(child.content, canvasIds);
-    } else {
-      collectCanvasIds(child, canvasIds);
-    }
-  }
-}
-
 function classicScriptType(attributes: ReadonlyMap<string, string>): string {
   const raw = (attributes.get('type') ?? '').trim().toLowerCase();
   // MIME parameters (`text/javascript; charset=utf-8`) are not part of the type.
@@ -179,108 +151,6 @@ export function findInteractiveScriptSyntaxFailure(
     if (!isExecutableClassicInline(script) || !script.source.trim()) continue;
     const message = classicScriptSyntaxError(script.source);
     if (message) return { scriptIndex: index + 1, message };
-  }
-  return null;
-}
-
-/**
- * Catch the common generated-simulation failure where `canvas` is assigned
- * from a static DOM lookup whose target is missing or is not a canvas. This is
- * intentionally limited to explicit canvas declarations; dynamic DOM code
- * and other widget types are outside this static check.
- */
-export function findInteractiveCanvasReferenceFailure(
-  html: string,
-): InteractiveCanvasReferenceFailure | null {
-  const canvasIds = new Set<string>();
-  collectCanvasIds(parse(html), canvasIds);
-
-  const scripts = extractScriptElements(html);
-  const canvasLookup =
-    /\b(?:const|let|var)\s+canvas\s*=\s*document\s*\.\s*(?:getElementById\s*\(\s*(['"])([^'"]+)\1\s*\)|querySelector\s*\(\s*(['"])#([^'"]+)\3\s*\))/g;
-
-  for (let index = 0; index < scripts.length; index += 1) {
-    const script = scripts[index]!;
-    if (!isExecutableClassicInline(script)) continue;
-
-    canvasLookup.lastIndex = 0;
-    for (
-      let match = canvasLookup.exec(script.source);
-      match;
-      match = canvasLookup.exec(script.source)
-    ) {
-      const canvasId = match[2] ?? match[4];
-      if (canvasId && !canvasIds.has(canvasId)) {
-        return {
-          scriptIndex: index + 1,
-          message: `canvas is looked up by id "${canvasId}", but no <canvas id="${canvasId}"> exists`,
-        };
-      }
-    }
-  }
-  return null;
-}
-
-/**
- * Catch the unambiguous case where a canvas ellipse is called with a literal
- * negative radius. Dynamic geometry still needs a browser run; this guard is
- * deliberately narrow so it does not reject valid calculations or comments.
- */
-export function findInteractiveCanvasGeometryFailure(
-  html: string,
-): InteractiveCanvasGeometryFailure | null {
-  const scripts = extractScriptElements(html);
-  const ellipseCall = /\b(?:\w+\.)?ellipse\s*\(/g;
-
-  for (let index = 0; index < scripts.length; index += 1) {
-    const script = scripts[index]!;
-    if (!isExecutableClassicInline(script)) continue;
-    ellipseCall.lastIndex = 0;
-
-    for (
-      let match = ellipseCall.exec(script.source);
-      match;
-      match = ellipseCall.exec(script.source)
-    ) {
-      const open = ellipseCall.lastIndex - 1;
-      let depth = 1;
-      let quote = '';
-      let escaped = false;
-      let argumentStart = open + 1;
-      let argumentIndex = 0;
-
-      for (let cursor = open + 1; cursor < script.source.length; cursor += 1) {
-        const char = script.source[cursor]!;
-        if (quote) {
-          if (escaped) escaped = false;
-          else if (char === '\\') escaped = true;
-          else if (char === quote) quote = '';
-          continue;
-        }
-        if (char === '"' || char === "'" || char === '`') {
-          quote = char;
-          continue;
-        }
-        if (char === '(' || char === '[' || char === '{') depth += 1;
-        else if (char === ')' || char === ']' || char === '}') {
-          depth -= 1;
-          if (depth === 0) break;
-        } else if (char === ',' && depth === 1) {
-          const argument = script.source.slice(argumentStart, cursor).trim();
-          if (
-            (argumentIndex === 2 || argumentIndex === 3) &&
-            /^-\s*(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(argument)
-          ) {
-            return {
-              scriptIndex: index + 1,
-              message: `ellipse() argument ${argumentIndex + 1} is a negative literal (${argument}); radii must be non-negative`,
-            };
-          }
-          argumentIndex += 1;
-          argumentStart = cursor + 1;
-        }
-      }
-    }
   }
   return null;
 }

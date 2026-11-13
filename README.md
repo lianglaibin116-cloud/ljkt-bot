@@ -1,6 +1,8 @@
-# 灵境课堂 Bot 0.2.0
+# 灵境课堂 Bot 0.2.1
 
 提供 macOS ARM64 与 Windows x64 桌面应用。桌面端采用独立构建的 React 界面、本机课程服务和 Electron 窗口；界面保留左侧历史、居中聊天、右侧课件工作区与幻彩书页 Logo。
+
+0.2.1 将本机灵境课堂 1.4.1 的共享 DSL、生成、导入、渲染、编辑和存储包同步至 Bot；桌面工作流仍保持 Bot 独立实现。Windows 安装包由 GitHub Actions 在 Windows 构建机上生成。
 
 ## 直接试用
 

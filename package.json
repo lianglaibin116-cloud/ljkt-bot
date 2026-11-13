@@ -1,6 +1,6 @@
 {
   "name": "ljkt-bot",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "license": "MIT",
   "engines": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "postinstall": "pnpm run build:packages",
-    "build:packages": "cd packages/mathml2omml && npm run build && cd ../pptxgenjs && npm run build && cd ../@ljkt/dsl && pnpm run build && cd ../generation && pnpm run build && cd ../storage && pnpm run build && cd ../importer && pnpm run build && cd ../renderer && pnpm run build && cd ../editor && pnpm run build && cd ../../.. && node scripts/sync-maic-importer.mjs && node scripts/sync-interactive-katex.mjs",
+    "build:packages": "cd packages/mathml2omml && npm run build && cd ../pptxgenjs && npm run build && cd ../@ljkt/dsl && pnpm run build && cd ../geometry && pnpm run build && cd ../generation && pnpm run build && cd ../storage && pnpm run build && cd ../importer && pnpm run build && cd ../renderer && pnpm run build && cd ../editor && pnpm run build && cd ../../.. && node scripts/sync-maic-importer.mjs && node scripts/sync-interactive-katex.mjs",
     "sync:maic-importer": "node scripts/sync-maic-importer.mjs",
     "sync:interactive-katex": "node scripts/sync-interactive-katex.mjs",
     "gen:video-export-katex": "node scripts/generate-video-export-katex.mjs",
@@ -187,7 +187,8 @@
     "unpdf": "^1.4.0",
     "use-stick-to-bottom": "^1.1.1",
     "zod": "^4.3.5",
-    "zustand": "^5.0.10"
+    "zustand": "^5.0.10",
+    "@ljkt/geometry": "workspace:*"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.16",

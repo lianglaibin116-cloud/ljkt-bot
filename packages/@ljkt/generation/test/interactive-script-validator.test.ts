@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  findInteractiveCanvasGeometryFailure,
-  findInteractiveCanvasReferenceFailure,
-  findInteractiveScriptSyntaxFailure,
-} from '../src/interactive-script-validator.js';
+import { findInteractiveScriptSyntaxFailure } from '../src/interactive-script-validator.js';
 
 describe('findInteractiveScriptSyntaxFailure', () => {
   it('accepts valid classic inline scripts', () => {
@@ -202,71 +198,5 @@ describe('findInteractiveScriptSyntaxFailure', () => {
       scriptIndex: 2,
       message: expect.stringMatching(/Unexpected identifier 'counts'/),
     });
-  });
-});
-
-describe('findInteractiveCanvasReferenceFailure', () => {
-  it('reports a canvas lookup whose id is absent from the markup', () => {
-    expect(
-      findInteractiveCanvasReferenceFailure(
-        '<canvas id="scene"></canvas><script>const canvas = document.getElementById("canvas"); draw(canvas.clientWidth);</script>',
-      ),
-    ).toEqual({
-      scriptIndex: 1,
-      message: 'canvas is looked up by id "canvas", but no <canvas id="canvas"> exists',
-    });
-  });
-
-  it('accepts an id that identifies an actual canvas', () => {
-    expect(
-      findInteractiveCanvasReferenceFailure(
-        '<canvas id="scene"></canvas><script>const canvas = document.querySelector("#scene");</script>',
-      ),
-    ).toBeNull();
-  });
-
-  it('rejects a matching id attached to a non-canvas element', () => {
-    expect(
-      findInteractiveCanvasReferenceFailure(
-        '<div id="scene"></div><script>const canvas = document.getElementById("scene");</script>',
-      ),
-    ).not.toBeNull();
-  });
-
-  it('does not constrain dynamic canvas bindings or scripts without a canvas binding', () => {
-    expect(
-      findInteractiveCanvasReferenceFailure(
-        '<div id="host"></div><script>const canvas = document.createElement("canvas");</script>',
-      ),
-    ).toBeNull();
-  });
-});
-
-describe('findInteractiveCanvasGeometryFailure', () => {
-  it('rejects a negative literal ellipse radius before the widget is returned', () => {
-    expect(
-      findInteractiveCanvasGeometryFailure(
-        '<canvas></canvas><script>ctx.ellipse(10, 20, -12.5, 8, 0, 0, Math.PI * 2);</script>',
-      ),
-    ).toEqual({
-      scriptIndex: 1,
-      message: 'ellipse() argument 3 is a negative literal (-12.5); radii must be non-negative',
-    });
-  });
-
-  it('does not mistake nested commas or quoted commas for ellipse arguments', () => {
-    expect(
-      findInteractiveCanvasGeometryFailure(
-        '<script>ctx.ellipse(point(1, 2), 20, Math.max(0, width - 2), Math.abs(height), 0, 0, 1);</script>',
-      ),
-    ).toBeNull();
-  });
-
-  it('does not validate scripts inside a template', () => {
-    expect(
-      findInteractiveCanvasGeometryFailure(
-        '<template><script>ctx.ellipse(0,0,-1,2,0,0,1)</script></template><script>ctx.ellipse(0,0,1,2,0,0,1)</script>',
-      ),
-    ).toBeNull();
   });
 });

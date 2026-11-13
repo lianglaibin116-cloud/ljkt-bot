@@ -242,12 +242,21 @@ describe('PgAssetStore registry behavior with PGlite', () => {
     });
   }
 
-  test('schema is idempotent and has one PGlite-compatible statement per entry', async () => {
-    const statements: string[] = [];
-    await ensureAssetSchema(recordingQueryable(db, statements));
-    await ensureAssetSchema(recordingQueryable(db, statements));
-    expect(statements).toEqual([...ASSET_PG_SCHEMA, ...ASSET_PG_SCHEMA].map(normalizeSql));
-    expect(ASSET_PG_SCHEMA).toHaveLength(15);
+  test('schema is applied once and has one PGlite-compatible statement per entry', async () => {
+    const fresh = new PGlite();
+    await fresh.waitReady;
+    const schema = new Set(ASSET_PG_SCHEMA.map(normalizeSql));
+    const first: string[] = [];
+    const second: string[] = [];
+    await ensureAssetSchema(recordingQueryable(fresh, first));
+    await ensureAssetSchema(recordingQueryable(fresh, second));
+    await fresh.close();
+    expect(first.filter((statement) => schema.has(statement))).toEqual(
+      ASSET_PG_SCHEMA.map(normalizeSql),
+    );
+    // Recorded as applied: a later start issues no schema statement at all.
+    expect(second.filter((statement) => schema.has(statement))).toEqual([]);
+    expect(ASSET_PG_SCHEMA).toHaveLength(21);
     expect(ASSET_PG_SCHEMA.every((statement) => !statement.includes(';'))).toBe(true);
   });
 
@@ -503,8 +512,16 @@ describe('PgAssetStore registry behavior with PGlite', () => {
     // the blob row's lock, and precede the entry that references it. The write
     // transaction also pins a lock-wait budget first, so a future
     // lock-contention variant of a registry write fails loudly instead of
-    // hanging.
-    expect(existing.map((sql) => sql.split(' ')[0])).toEqual(['SET', 'INSERT', 'UPDATE', 'INSERT']);
+    // hanging, and runs its body under a savepoint, so a failed write leaves
+    // nothing behind in a transaction its caller goes on to commit.
+    expect(existing.map((sql) => sql.split(' ')[0])).toEqual([
+      'SET',
+      'SAVEPOINT',
+      'INSERT',
+      'UPDATE',
+      'INSERT',
+      'RELEASE',
+    ]);
     // The bound is on the write transaction's lock waits, not a silent
     // statement timeout: the wait that must fail loudly is the row-lock wait
     // (the self-deadlock variant), while a long byte write is still allowed to
@@ -561,12 +578,11 @@ describe('PgAssetStore registry behavior with PGlite', () => {
     await local.close();
   });
 
-  test('a non-transactional byte layer leaves an orphan the collector cannot see', async () => {
-    // An object store cannot join the registry transaction, so a rollback
-    // strands its bytes -- and strands them with no blob row, which is what
-    // puts them beyond reference counting. Recovering them is deployment
-    // housekeeping (a lifecycle rule or a bucket-versus-table reconciliation),
-    // not something the collector can do.
+  test('a non-transactional byte layer uploads nothing when the registry cannot open a write', async () => {
+    // An object store cannot join the registry transaction, so its bytes are
+    // staged: the stage's own short transaction commits a pinned blob row
+    // first, and only then are the bytes uploaded. A registry that cannot
+    // commit that transaction therefore strands no bytes at all.
     const local = new PGlite();
     await local.waitReady;
     await ensureAssetSchema(local);
@@ -586,15 +602,59 @@ describe('PgAssetStore registry behavior with PGlite', () => {
 
     expect((await local.query('SELECT * FROM asset_entries')).rows).toEqual([]);
     expect((await local.query('SELECT * FROM asset_blobs')).rows).toEqual([]);
-    expect(await layer.read(contentHash)).toEqual(bytes('crash window'));
+    expect((await local.query('SELECT * FROM asset_blob_stages')).rows).toEqual([]);
+    expect(await layer.read(contentHash)).toBeNull();
+    await local.close();
+  });
+
+  test('a staged upload whose allocation fails leaves bytes the collector reclaims', async () => {
+    // The stage committed a blob row stamped unreferenced before the upload,
+    // so when the allocating transaction then fails the uploaded bytes are
+    // still counted: the stage pin is released and the blob drains on the
+    // ordinary grace period instead of being stranded beyond the collector.
+    const local = new PGlite();
+    await local.waitReady;
+    await ensureAssetSchema(local);
+    const layer = new MemoryByteStore();
+    const failing = new PgAssetStore(local, {
+      byteStore: layer,
+      withTransaction: (body) =>
+        local.transaction(async (tx: Queryable) => {
+          let allocates = false;
+          const watched: Queryable = {
+            query: (sql, params) => {
+              if (sql.includes('INSERT INTO asset_entries')) allocates = true;
+              return tx.query(sql, params);
+            },
+          };
+          const result = await body(watched);
+          if (allocates) throw new Error('injected allocation failure');
+          return result;
+        }) as Promise<never>,
+    });
+    const data = blob('allocation window');
+    const { contentHash } = await contentHashOf(data);
+
+    await expect(failing.put(PRINCIPAL, data)).rejects.toThrow(/registry put failed/);
+
+    expect((await local.query('SELECT * FROM asset_entries')).rows).toEqual([]);
+    expect((await local.query('SELECT * FROM asset_blob_stages')).rows).toEqual([]);
+    expect(
+      (
+        await local.query<{ stamped: boolean }>(
+          'SELECT unreferenced_at IS NOT NULL AS stamped FROM asset_blobs',
+        )
+      ).rows,
+    ).toEqual([{ stamped: true }]);
+    expect(await layer.read(contentHash)).toEqual(bytes('allocation window'));
 
     const collector = new AssetCollector(local, layer, {
       withTransaction: transactions(local),
       graceMs: 0,
-      now: () => new Date('2026-01-01T00:00:00.000Z'),
+      now: () => new Date(Date.now() + 60_000),
     });
-    expect(await collector.collect()).toBe(0);
-    expect(await layer.read(contentHash)).toEqual(bytes('crash window'));
+    expect(await collector.collect()).toBe(1);
+    expect(await layer.read(contentHash)).toBeNull();
     await local.close();
   });
 
@@ -923,7 +983,9 @@ describe('PgAssetStore registry behavior with PGlite', () => {
 
     // document_asset_refs references asset_entries, so PostgreSQL refuses to
     // truncate the entries without it.
-    await db.query('TRUNCATE document_asset_refs, asset_entries, asset_blobs');
+    await db.query(
+      'TRUNCATE asset_root_refs, document_asset_refs, asset_entries, asset_blob_stages, asset_blobs',
+    );
     await db.query('TRUNCATE asset_reference_tracking, document_asset_withdrawals');
     const collectorBytes: AssetByteStore = {
       // Out-of-registry so the collector's deletion guard lets the failing
@@ -952,6 +1014,49 @@ describe('PgAssetStore registry behavior with PGlite', () => {
     }
     expect(collectorError).toBeInstanceOf(Error);
     await expectNoDigestSubstring(String(collectorError), data);
+  });
+});
+
+describe('PgAssetStore.reassignPrincipal with PGlite', () => {
+  let db: PGlite;
+  let store: PgAssetStore;
+
+  beforeEach(async () => {
+    db = new PGlite();
+    await db.waitReady;
+    await ensureAssetSchema(db);
+    store = new PgAssetStore(db, options(db, new PgAssetByteStore(db), { quotaBytes: 8 }));
+  });
+
+  afterEach(async () => {
+    await db.close();
+  });
+
+  test('moves every entry to the target, which then reads and removes them as its own', async () => {
+    const first = await store.put(PRINCIPAL, blob('abcd'));
+    const second = await store.put(PRINCIPAL, blob('efgh'));
+    const theirs = await store.put(OTHER_PRINCIPAL, blob('ijkl'));
+
+    await expect(store.reassignPrincipal(PRINCIPAL.key, OTHER_PRINCIPAL.key)).resolves.toBe(2);
+
+    await expect(store.resolve(PRINCIPAL, first)).resolves.toBeNull();
+    for (const id of [first, second, theirs]) {
+      await expect(store.resolve(OTHER_PRINCIPAL, id)).resolves.not.toBeNull();
+    }
+    // The merge does not refuse on quota (12 bytes against 8): the target
+    // keeps everything and cannot allocate until it is back under.
+    await expect(store.put(OTHER_PRINCIPAL, blob('m'))).rejects.toBeInstanceOf(
+      AssetQuotaExceededError,
+    );
+    await store.remove(OTHER_PRINCIPAL, first);
+    await expect(store.resolve(OTHER_PRINCIPAL, first)).resolves.toBeNull();
+    await expect(store.reassignPrincipal(PRINCIPAL.key, OTHER_PRINCIPAL.key)).resolves.toBe(0);
+  });
+
+  test('is a no-op for the same principal and refuses empty keys', async () => {
+    await store.put(PRINCIPAL, blob('abcd'));
+    await expect(store.reassignPrincipal(PRINCIPAL.key, PRINCIPAL.key)).resolves.toBe(0);
+    await expect(store.reassignPrincipal('', PRINCIPAL.key)).rejects.toThrow(/non-empty/);
   });
 });
 

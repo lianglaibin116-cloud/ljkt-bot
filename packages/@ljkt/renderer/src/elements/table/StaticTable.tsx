@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, useRef, type CSSProperties } from 'react';
 import type { PPTTableElement, TableCell, TableCellBorder } from '@ljkt/dsl';
 import { getTableSubThemeColor } from '../../utils/element';
 import { getTextStyle } from './tableUtils';
+import { useInlineMath, useInnerHtmlGrid } from '../../utils/inlineMath';
 
 function cellBorderCss(b?: TableCellBorder): string | undefined {
   if (!b || b.width <= 0) return undefined;
@@ -38,6 +39,11 @@ export function StaticTable({ elementInfo }: StaticTableProps) {
   const safeWidth = Number.isFinite(width) && width > 0 ? width : 1;
   const safeCellMinHeight =
     Number.isFinite(cellMinHeight) && cellMinHeight >= 0 ? cellMinHeight : 40;
+  const tableRef = useRef<HTMLTableElement>(null);
+  const cellText = tableData.map((row) => row.map((cell) => cell.text ?? ''));
+  // Stable per-cell values: React then leaves unchanged cell markup alone.
+  const cellHtml = useInnerHtmlGrid(cellText);
+  useInlineMath(tableRef, cellText.flat().join(''));
 
   const [subThemeDark, subThemeLight] = useMemo(() => {
     if (!theme) return ['', ''];
@@ -84,6 +90,8 @@ export function StaticTable({ elementInfo }: StaticTableProps) {
 
   return (
     <table
+      ref={tableRef}
+      data-inline-math-root=""
       className="slide-renderer-prose"
       style={{
         width: '100%',
@@ -98,88 +106,83 @@ export function StaticTable({ elementInfo }: StaticTableProps) {
         ))}
       </colgroup>
       <tbody>
-        {tableData.map((row, rowIdx) => {
-          const rowHeight = Number.isFinite(tableRowHeights[rowIdx])
-            ? tableRowHeights[rowIdx]
-            : safeCellMinHeight;
+        {tableData.map((row, rowIdx) => (
+          <tr
+            key={rowIdx}
+            style={{
+              height: `${Number.isFinite(tableRowHeights[rowIdx]) ? tableRowHeights[rowIdx] : safeCellMinHeight}px`,
+            }}
+          >
+            {row.map((cell, colIdx) => {
+              // parser side (transformParsedToSlides) 已经把 hMerge/vMerge
+              // continuation 单元格剔除了，data[r] 只剩 top-left cells；浏览器
+              // 的 HTML table layout 通过 td.colSpan/rowSpan 自动算正确位置，
+              // 不需要再手动算 hiddenCells（旧实现用 data-index 比对 grid-coord
+              // key，混了两种坐标系，把 colspan 跨过的 grid-coord 等于另一格
+              // 的 data-index 时会误隐藏，slide 26 表头 "权重"/"好" 就是中招）。
+              const bgColor = getCellBg(rowIdx, colIdx, cell.style?.backcolor);
+              const headerColor = getHeaderTextColor(rowIdx);
+              const textStyle = getTextStyle(cell.style);
+              const colspan = Number.isFinite(cell.colspan) && cell.colspan > 0 ? cell.colspan : 1;
+              const rowspan = Number.isFinite(cell.rowspan) && cell.rowspan > 0 ? cell.rowspan : 1;
 
-          return (
-            <tr key={rowIdx} style={{ height: `${rowHeight}px` }}>
-              {row.map((cell, colIdx) => {
-                // parser side (transformParsedToSlides) 已经把 hMerge/vMerge
-                // continuation 单元格剔除了，data[r] 只剩 top-left cells；浏览器
-                // 的 HTML table layout 通过 td.colSpan/rowSpan 自动算正确位置，
-                // 不需要再手动算 hiddenCells（旧实现用 data-index 比对 grid-coord
-                // key，混了两种坐标系，把 colspan 跨过的 grid-coord 等于另一格
-                // 的 data-index 时会误隐藏，slide 26 表头 "权重"/"好" 就是中招）。
-                const bgColor = getCellBg(rowIdx, colIdx, cell.style?.backcolor);
-                const headerColor = getHeaderTextColor(rowIdx);
-                const textStyle = getTextStyle(cell.style);
-                const colspan =
-                  Number.isFinite(cell.colspan) && cell.colspan > 0 ? cell.colspan : 1;
-                const rowspan =
-                  Number.isFinite(cell.rowspan) && cell.rowspan > 0 ? cell.rowspan : 1;
+              if (headerColor && !cell.style?.color) {
+                textStyle.color = headerColor;
+              }
 
-                if (headerColor && !cell.style?.color) {
-                  textStyle.color = headerColor;
-                }
+              // 单元格自带逐边描边时按边渲染（未定义的边不画）；否则回退到
+              // 表级 outline 套四边的旧行为，保留真·网格表格的表现。
+              const cellBorders = cell.borders;
+              const borderCss: CSSProperties =
+                cellBorders &&
+                (cellBorders.top || cellBorders.bottom || cellBorders.left || cellBorders.right)
+                  ? {
+                      borderTop: cellBorderCss(cellBorders.top) ?? 'none',
+                      borderBottom: cellBorderCss(cellBorders.bottom) ?? 'none',
+                      borderLeft: cellBorderCss(cellBorders.left) ?? 'none',
+                      borderRight: cellBorderCss(cellBorders.right) ?? 'none',
+                    }
+                  : { border: borderStyle };
 
-                // 单元格自带逐边描边时按边渲染（未定义的边不画）；否则回退到
-                // 表级 outline 套四边的旧行为，保留真·网格表格的表现。
-                const cellBorders = cell.borders;
-                const borderCss: CSSProperties =
-                  cellBorders &&
-                  (cellBorders.top || cellBorders.bottom || cellBorders.left || cellBorders.right)
-                    ? {
-                        borderTop: cellBorderCss(cellBorders.top) ?? 'none',
-                        borderBottom: cellBorderCss(cellBorders.bottom) ?? 'none',
-                        borderLeft: cellBorderCss(cellBorders.left) ?? 'none',
-                        borderRight: cellBorderCss(cellBorders.right) ?? 'none',
-                      }
-                    : { border: borderStyle };
-
-                return (
-                  <td
-                    key={`${rowIdx}:${colIdx}:${cell.id || 'cell'}`}
-                    colSpan={colspan > 1 ? colspan : undefined}
-                    rowSpan={rowspan > 1 ? rowspan : undefined}
+              return (
+                <td
+                  key={`${rowIdx}:${colIdx}:${cell.id || 'cell'}`}
+                  colSpan={colspan > 1 ? colspan : undefined}
+                  rowSpan={rowspan > 1 ? rowspan : undefined}
+                  style={{
+                    ...borderCss,
+                    backgroundColor: bgColor,
+                    ...textStyle,
+                  }}
+                >
+                  <div
+                    className="slide-renderer-cell-text"
                     style={{
-                      ...borderCss,
-                      backgroundColor: bgColor,
-                      ...textStyle,
+                      minHeight: `${(Number.isFinite(tableRowHeights[rowIdx]) ? tableRowHeights[rowIdx] : safeCellMinHeight) - 4}px`,
+                      padding: cell.padding,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      lineHeight: 1,
+                      justifyContent:
+                        cell.vAlign === 'top'
+                          ? 'flex-start'
+                          : cell.vAlign === 'bottom'
+                            ? 'flex-end'
+                            : 'center',
                     }}
-                  >
-                    <div
-                      className="slide-renderer-cell-text"
-                      style={{
-                        minHeight: `${Math.max(0, rowHeight - 4)}px`,
-                        padding: cell.padding,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        lineHeight: 1,
-                        justifyContent:
-                          cell.vAlign === 'top'
-                            ? 'flex-start'
-                            : cell.vAlign === 'bottom'
-                              ? 'flex-end'
-                              : 'center',
-                      }}
-                      // cell.text is already final HTML (transformParsedToSlides
-                      // escapes text + converts \n/spaces and keeps <p> positioning
-                      // styles). Do NOT run formatText here — its space→&nbsp;
-                      // replacement corrupts style attributes like
-                      // `margin-left: calc(42px + 0.25em)` → the title indent is
-                      // lost and collides with the cell's left icon (slide 5).
-                      dangerouslySetInnerHTML={{
-                        __html: typeof cell.text === 'string' ? cell.text : '',
-                      }}
-                    />
-                  </td>
-                );
-              })}
-            </tr>
-          );
-        })}
+                    // cell.text is already final HTML (transformParsedToSlides
+                    // escapes text + converts \n/spaces and keeps <p> positioning
+                    // styles). Do NOT run formatText here — its space→&nbsp;
+                    // replacement corrupts style attributes like
+                    // `margin-left: calc(42px + 0.25em)` → the title indent is
+                    // lost and collides with the cell's left icon (slide 5).
+                    dangerouslySetInnerHTML={cellHtml[rowIdx][colIdx]}
+                  />
+                </td>
+              );
+            })}
+          </tr>
+        ))}
       </tbody>
     </table>
   );

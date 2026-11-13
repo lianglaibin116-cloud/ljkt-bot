@@ -22,35 +22,6 @@ describe('action parser', () => {
       ),
     ).toEqual([]);
   });
-
-  it('converts a model-labelled text action into speech without losing narration', () => {
-    const actions = parseActionsFromStructuredOutput(
-      JSON.stringify([
-        { type: 'action', name: 'text', params: { content: 'Explain the lunar rover.' } },
-        { type: 'action', name: 'speech', params: { text: 'Continue.' } },
-      ]),
-      'slide',
-    );
-    expect(actions.map((action) => action.type)).toEqual(['speech', 'speech']);
-    expect(actions[0]).toMatchObject({ text: 'Explain the lunar rover.' });
-  });
-
-  it('rejects unknown or incomplete actions and prevents params from replacing the action type', () => {
-    const actions = parseActionsFromStructuredOutput(
-      JSON.stringify([
-        { type: 'action', name: 'text', params: {} },
-        { type: 'action', name: 'name', params: { content: 'invalid' } },
-        { type: 'action', name: 'play_video', params: {} },
-        { type: 'action', name: 'speech', params: { type: 'text', text: 'Valid speech' } },
-        { type: 'action', name: 'play_video', params: { elementId: 'video-1' } },
-      ]),
-      'slide',
-    );
-    expect(actions).toEqual([
-      expect.objectContaining({ type: 'speech', text: 'Valid speech' }),
-      expect.objectContaining({ type: 'play_video', elementId: 'video-1' }),
-    ]);
-  });
 });
 
 describe('interactive HTML post-processing', () => {
@@ -63,15 +34,5 @@ describe('interactive HTML post-processing', () => {
     expect(once).toContain('const price = "$5";');
     expect(once).toContain('katex.min.css');
     expect(twice.match(/katex\.min\.css/g) ?? []).toHaveLength(1);
-  });
-
-  it('still injects auto-render when KaTeX is only mentioned in the authored page', () => {
-    const html =
-      '<html><head></head><body><script>renderMathInElement(document.body); // katex</script></body></html>';
-    const processed = postProcessInteractiveHtml(html);
-    expect(processed).toContain('contrib/auto-render.min.js');
-    expect(processed.indexOf('contrib/auto-render.min.js')).toBeLessThan(
-      processed.indexOf('renderMathInElement(document.body); // katex'),
-    );
   });
 });

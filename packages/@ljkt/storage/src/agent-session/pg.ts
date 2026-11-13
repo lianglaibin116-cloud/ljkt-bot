@@ -8,7 +8,7 @@
  */
 import { randomUUID } from 'node:crypto';
 
-import { splitSqlStatements } from '../document/pg.js';
+import { applySchemaMigrations, type SchemaMigrationSet } from '../pg-migrations.js';
 import { encodeJson } from '../pg-json.js';
 import { sanitizePgText } from '../pg-text.js';
 import type { Queryable, WithTransaction } from '../runtime/pg.js';
@@ -26,6 +26,7 @@ import {
   type AgentSessionMeta,
   type AgentSessionAutomaticTitleStore,
   type AgentSessionStore,
+  type AgentSessionSkillStore,
   type AgentSessionTitleStore,
   type AgentSessionTransaction,
   type AgentSessionUrlSource,
@@ -88,8 +89,8 @@ export interface PgAgentSessionStoreOptions extends AgentSessionHooks {
   now?: () => number;
 }
 
-/** Pinned default schema for the PostgreSQL agent-session backend. */
-export const AGENT_SESSION_PG_SCHEMA = `
+/** Baseline (version 1) of the agent-session schema, for the default table names. */
+const AGENT_SESSION_PG_BASELINE = `
 CREATE TABLE IF NOT EXISTS agent_sessions (
   id                  TEXT PRIMARY KEY,
   owner_id            TEXT NOT NULL,
@@ -225,6 +226,25 @@ CREATE TABLE IF NOT EXISTS agent_owner_session_events (
     CHECK (attempt IS NULL OR attempt >= 0)
 );
 
+CREATE TABLE IF NOT EXISTS agent_session_urls (
+  session_id TEXT NOT NULL REFERENCES agent_sessions(id) ON DELETE CASCADE,
+  url        TEXT NOT NULL,
+  source     TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (session_id, url),
+  CONSTRAINT agent_session_urls_source_known CHECK (source IN ('user','web_search'))
+);
+
+CREATE INDEX IF NOT EXISTS agent_session_urls_session_created_idx
+  ON agent_session_urls (session_id, created_at);
+`;
+
+/**
+ * Version 2: replace the closed owner-event type constraint of databases
+ * created before `session_title` events with its superset. A one-time step: it
+ * drops the old constraint.
+ */
+const AGENT_SESSION_PG_OWNER_EVENT_TYPE_V2 = `
 DO $agent_session_owner_event_type_constraint$
 BEGIN
   IF EXISTS (
@@ -277,19 +297,38 @@ BEGIN
   END IF;
 END
 $agent_session_owner_event_type_validation$;
-
-CREATE TABLE IF NOT EXISTS agent_session_urls (
-  session_id TEXT NOT NULL REFERENCES agent_sessions(id) ON DELETE CASCADE,
-  url        TEXT NOT NULL,
-  source     TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  PRIMARY KEY (session_id, url),
-  CONSTRAINT agent_session_urls_source_known CHECK (source IN ('user','web_search'))
-);
-
-CREATE INDEX IF NOT EXISTS agent_session_urls_session_created_idx
-  ON agent_session_urls (session_id, created_at);
 `;
+
+/**
+ * The agent-session backend's migrations, for the default table names
+ * (recorded under the store `agent-session`). Both run outside a transaction:
+ * each constraint install must release its ACCESS EXCLUSIVE lock before the
+ * validation that follows scans existing rows, and every statement is guarded,
+ * so a run interrupted part-way is simply repeated.
+ */
+export const AGENT_SESSION_PG_MIGRATIONS: SchemaMigrationSet = {
+  store: 'agent-session',
+  migrations: [
+    { version: 1, name: 'baseline', up: AGENT_SESSION_PG_BASELINE, transaction: false },
+    {
+      version: 2,
+      name: 'owner_event_type_known_v2',
+      up: AGENT_SESSION_PG_OWNER_EVENT_TYPE_V2,
+      transaction: false,
+    },
+    {
+      version: 3,
+      name: 'locale',
+      up: `ALTER TABLE agent_sessions ADD COLUMN IF NOT EXISTS locale TEXT;`,
+      transaction: true,
+    },
+  ],
+};
+
+/** Pinned default schema for the PostgreSQL agent-session backend: every migration's SQL. */
+export const AGENT_SESSION_PG_SCHEMA = AGENT_SESSION_PG_MIGRATIONS.migrations
+  .map((migration) => migration.up)
+  .join('');
 
 function quoteIdentifier(identifier: string): string {
   if (!/^[a-z_][a-z0-9_]*$/.test(identifier)) {
@@ -306,14 +345,14 @@ function resolveTableNames(overrides?: Partial<AgentSessionTableNames>): AgentSe
   return names;
 }
 
-function schemaFor(names: AgentSessionTableNames): string {
-  if (
-    Object.entries(DEFAULT_AGENT_SESSION_TABLE_NAMES).every(
-      ([key, value]) => names[key as keyof AgentSessionTableNames] === value,
-    )
-  ) {
-    return AGENT_SESSION_PG_SCHEMA;
-  }
+function usesDefaultTableNames(names: AgentSessionTableNames): boolean {
+  return Object.entries(DEFAULT_AGENT_SESSION_TABLE_NAMES).every(
+    ([key, value]) => names[key as keyof AgentSessionTableNames] === value,
+  );
+}
+
+/** Rewrite default-name schema SQL for overridden table names. */
+function renameTables(names: AgentSessionTableNames, sql: string): string {
   const s = quoteIdentifier(names.sessions);
   const e = quoteIdentifier(names.events);
   const t = quoteIdentifier(names.entries);
@@ -324,7 +363,8 @@ function schemaFor(names: AgentSessionTableNames): string {
   // index names (`agent_sessions_status_live_idx`, ...) are re-keyed by the
   // same replaceAll that re-keys their tables, so no separate prefix rewriting
   // is performed or needed.
-  return AGENT_SESSION_PG_SCHEMA.replaceAll(TITLE_STATE_CONSTRAINT, TITLE_STATE_CONSTRAINT_SENTINEL)
+  return sql
+    .replaceAll(TITLE_STATE_CONSTRAINT, TITLE_STATE_CONSTRAINT_SENTINEL)
     .replaceAll(OWNER_EVENT_TYPE_CONSTRAINT_V2, OWNER_EVENT_TYPE_CONSTRAINT_V2_SENTINEL)
     .replaceAll('agent_owner_session_event_counters', names.ownerEventCounters)
     .replaceAll('agent_owner_session_events', names.ownerEvents)
@@ -358,7 +398,9 @@ function schemaFor(names: AgentSessionTableNames): string {
 }
 
 /**
- * Create all backend-owned tables when absent and apply their additive migrations.
+ * Create all backend-owned tables, or bring an existing database up to date, by
+ * applying the pending {@link AGENT_SESSION_PG_MIGRATIONS}. Safe to call on every
+ * start; a schema change is a new migration.
  *
  * Call this on a queryable that is not already inside an explicit transaction.
  * Constraint installs and validations are separate statements so each install's
@@ -368,10 +410,21 @@ export async function ensureAgentSessionSchema(
   queryable: Queryable,
   tableNames?: Partial<AgentSessionTableNames>,
 ): Promise<void> {
-  const schema = schemaFor(resolveTableNames(tableNames));
-  for (const statement of splitSqlStatements(schema)) {
-    await queryable.query(statement);
+  const names = resolveTableNames(tableNames);
+  if (usesDefaultTableNames(names)) {
+    await applySchemaMigrations(queryable, AGENT_SESSION_PG_MIGRATIONS);
+    return;
   }
+  // Overridden tables are their own store: their versions are recorded apart
+  // from the default tables', which may live in the same database.
+  await applySchemaMigrations(
+    queryable,
+    {
+      store: `agent-session:${Object.values(names).join(',')}`,
+      migrations: AGENT_SESSION_PG_MIGRATIONS.migrations,
+    },
+    { rewriteSql: (sql) => renameTables(names, sql) },
+  );
 }
 
 interface SessionRow extends Record<string, unknown> {
@@ -382,6 +435,7 @@ interface SessionRow extends Record<string, unknown> {
   stage_id: string;
   skill_id: string | null;
   origin: string | null;
+  locale: string | null;
   existing_course: boolean;
   status: AgentSessionMeta['status'];
   attempt: number;
@@ -394,7 +448,7 @@ interface SessionRow extends Record<string, unknown> {
   updated_at: Date | string;
 }
 
-const SESSION_COLUMNS = `id, owner_id, prompt, title, stage_id, skill_id, origin,
+const SESSION_COLUMNS = `id, owner_id, prompt, title, stage_id, skill_id, origin, locale,
   existing_course, status, attempt, delivered_user_message_seq, lease_worker_id, lease_worker_pid,
   lease_heartbeat_at, error, created_at, updated_at`;
 
@@ -420,6 +474,7 @@ function sessionMeta(row: SessionRow): AgentSessionMeta {
     stageId: row.stage_id,
     ...(row.skill_id ? { skillId: row.skill_id } : {}),
     ...(row.origin ? { origin: row.origin } : {}),
+    ...(row.locale ? { locale: row.locale } : {}),
     existingCourse: row.existing_course,
     status: row.status,
     attempt: Number(row.attempt),
@@ -449,6 +504,7 @@ let savepointSerial = 0;
 export class PgAgentSessionStore
   implements
     AgentSessionStore,
+    AgentSessionSkillStore,
     AgentSessionTitleStore,
     AgentSessionAutomaticTitleStore,
     AgentSessionEventLog,
@@ -527,8 +583,8 @@ export class PgAgentSessionStore
       const result = await tx.query<SessionRow>(
         `INSERT INTO ${this.table('sessions')}
           (id, owner_id, prompt, title, title_state, stage_id, skill_id, origin, existing_course,
-           status, attempt)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0)
+           status, attempt, locale)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, $11)
          RETURNING ${SESSION_COLUMNS}`,
         [
           id,
@@ -541,6 +597,7 @@ export class PgAgentSessionStore
           input.origin ?? null,
           input.existingCourse ?? false,
           input.status ?? 'queued',
+          input.locale ? sanitizePgText(input.locale).slice(0, 35) : null,
         ],
       );
       const meta = sessionMeta(result.rows[0]!);
@@ -689,6 +746,9 @@ export class PgAgentSessionStore
     const staleBefore = this.clock() - options.leaseTtlMs;
     const params: unknown[] = [staleBefore, workerId, options.maxAttempts + 1];
     const targeted = options.sessionId ? ` AND id = $${params.push(options.sessionId)}` : '';
+    const excluded = options.excludeSessionIds?.length
+      ? ` AND NOT(id=ANY($${params.push([...options.excludeSessionIds])}::text[]))`
+      : '';
     // A successful ask_user is durable in the event log before the run settles.
     // Textless user messages may carry newly attached materials, but they are
     // not answers. Keep such work queued until a later nonblank user message
@@ -715,7 +775,7 @@ export class PgAgentSessionStore
               (status = 'running'
                AND (lease_heartbeat_at IS NULL OR lease_heartbeat_at < $1)
                AND (lease_worker_id IS NULL OR lease_worker_id <> $2)))
-         AND (attempt < $3 OR status = 'running')${askAdmission}${targeted}
+         AND (attempt < $3 OR status = 'running')${askAdmission}${targeted}${excluded}
        ORDER BY created_at LIMIT 5`,
       params,
     );
@@ -988,6 +1048,26 @@ export class PgAgentSessionStore
     });
   }
 
+  async detachSessionSkill(
+    sessionId: string,
+    input: Parameters<AgentSessionSkillStore['detachSessionSkill']>[1],
+  ): Promise<boolean> {
+    return this.transaction(async (tx) => {
+      const result = await tx.query<{ id: string }>(
+        `UPDATE ${this.table('sessions')}
+         SET skill_id = NULL, updated_at = now()
+         WHERE id = $1 AND owner_id = $2 AND skill_id = $3
+           AND lease_worker_id = $4 AND attempt = $5
+           AND status = 'running' AND deleted_at IS NULL
+         RETURNING id`,
+        [sessionId, input.ownerId, input.skillId, input.workerId, input.attempt],
+      );
+      if (!result.rows.length) return false;
+      await this.insertEvent(tx, sessionId, { ...input.notice, attempt: input.attempt });
+      return true;
+    });
+  }
+
   async pruneMessageUpdates(sessionId: string, messageEndSeq: number): Promise<number> {
     const result = await this.queryable.query<{ seq: number }>(
       `WITH completed_message AS (
@@ -1063,6 +1143,7 @@ export class PgAgentSessionStore
       materials?: unknown[];
       elementRefs?: unknown[];
       courseRefs?: unknown[];
+      locale?: string;
     },
     options: PostAgentUserMessageOptions = {},
   ): Promise<PostAgentUserMessageResult> {
@@ -1109,6 +1190,7 @@ export class PgAgentSessionStore
           ...(input.materials?.length ? { materials: input.materials } : {}),
           ...(input.elementRefs?.length ? { elementRefs: input.elementRefs } : {}),
           ...(input.courseRefs?.length ? { courseRefs: input.courseRefs } : {}),
+          ...(input.locale ? { locale: input.locale.slice(0, 35) } : {}),
         },
       });
       const row = await this.loadSession(tx, sessionId, false);
@@ -1161,6 +1243,7 @@ export class PgAgentSessionStore
         delivery: String(data.delivery ?? ''),
         materials: Array.isArray(data.materials) ? data.materials : [],
         ...(Array.isArray(data.courseRefs) ? { courseRefs: data.courseRefs } : {}),
+        ...(typeof data.locale === 'string' && data.locale ? { locale: data.locale } : {}),
       };
     });
   }
@@ -1310,14 +1393,15 @@ export class PgAgentSessionStore
     return this.transaction((tx) => this.requeueIn(tx, sessionId, false));
   }
 
-  async requestCancel(sessionId: string): Promise<void> {
+  async requestCancel(sessionId: string, options?: { settle?: boolean }): Promise<void> {
     await this.transaction(async (tx) => {
       const ts = this.clock();
       const result = await tx.query<{ id: string }>(
         `UPDATE ${this.table('sessions')}
          SET cancel_requested_at = $2, updated_at = now()
-         WHERE id = $1 AND deleted_at IS NULL AND cancel_requested_at IS NULL RETURNING id`,
-        [sessionId, ts],
+         WHERE id = $1 AND deleted_at IS NULL AND cancel_requested_at IS NULL
+           AND (NOT $3::boolean OR status IN ('queued','running')) RETURNING id`,
+        [sessionId, ts, options?.settle === true],
       );
       if (result.rows[0]) {
         await this.appendProjection({ type: 'session_cancel_requested', sessionId, ts }, tx);
@@ -1325,6 +1409,16 @@ export class PgAgentSessionStore
         // its per-session SSE reader) at COMMIT, so an abort lands within
         // milliseconds instead of on the fallback poll (reference semantics).
         await this.cancelHook?.(tx, sessionId);
+      }
+      if (options?.settle) {
+        const pending = await tx.query<{ attempt: number }>(
+          `SELECT attempt FROM ${this.table('sessions')}
+           WHERE id=$1 AND deleted_at IS NULL AND status IN ('queued','running')
+             AND cancel_requested_at IS NOT NULL FOR UPDATE`,
+          [sessionId],
+        );
+        if (pending.rows[0])
+          await this.settleCancelledAtClaim(tx, sessionId, ts, Number(pending.rows[0].attempt));
       }
     });
   }

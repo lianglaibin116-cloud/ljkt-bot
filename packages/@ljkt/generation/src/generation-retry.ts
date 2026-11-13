@@ -20,9 +20,8 @@ export interface GenerationRetryOptions<T> {
 
 const DEFAULT_MAX_RETRIES = 5;
 const DEFAULT_BASE_DELAY_MS = 1000;
-const DEFAULT_MAX_DELAY_MS = 16000;
-const DEFAULT_RATE_LIMIT_DELAY_MS = 30000;
-const MAX_RETRY_AFTER_MS = 300000;
+/** Ceiling for one classroom narration retry sleep, including jitter. */
+export const DEFAULT_MAX_DELAY_MS = 16000;
 const RETRYABLE_STATUS_CODES = new Set([408, 409, 425, 429]);
 const NON_RETRYABLE_STATUS_CODES = new Set([400, 401, 403, 404, 422]);
 
@@ -101,56 +100,6 @@ function statusCodeFrom(value: unknown): number | undefined {
   return undefined;
 }
 
-function statusCodeFromTree(value: unknown, seen = new Set<unknown>()): number | undefined {
-  if (!value || seen.has(value)) return undefined;
-  seen.add(value);
-
-  const statusCode = statusCodeFrom(value);
-  if (statusCode !== undefined) return statusCode;
-
-  return unwrapErrors(value)
-    .map((nested) => statusCodeFromTree(nested, seen))
-    .find((status): status is number => status !== undefined);
-}
-
-function parseRetryAfterMs(value: unknown): number | undefined {
-  if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
-    return Math.min(MAX_RETRY_AFTER_MS, Math.ceil(value));
-  }
-  if (typeof value !== 'string') return undefined;
-
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-
-  const seconds = Number(trimmed);
-  if (Number.isFinite(seconds) && seconds >= 0) {
-    return Math.min(MAX_RETRY_AFTER_MS, Math.ceil(seconds * 1000));
-  }
-
-  const retryAt = Date.parse(trimmed);
-  if (!Number.isFinite(retryAt)) return undefined;
-  return Math.min(MAX_RETRY_AFTER_MS, Math.max(0, retryAt - Date.now()));
-}
-
-function retryAfterMsFrom(value: unknown, seen = new Set<unknown>()): number | undefined {
-  if (!value || seen.has(value) || !isRecord(value)) return undefined;
-  seen.add(value);
-
-  const direct = parseRetryAfterMs(value.retryAfterMs);
-  if (direct !== undefined) return direct;
-
-  const responseHeaders = value.responseHeaders;
-  if (isRecord(responseHeaders)) {
-    const header = responseHeaders['retry-after'] ?? responseHeaders['Retry-After'];
-    const parsedHeader = parseRetryAfterMs(header);
-    if (parsedHeader !== undefined) return parsedHeader;
-  }
-
-  return unwrapErrors(value)
-    .map((nested) => retryAfterMsFrom(nested, seen))
-    .find((delay): delay is number => delay !== undefined);
-}
-
 function messageFrom(value: unknown): string {
   if (value instanceof Error) return value.message;
   if (!isRecord(value)) return String(value);
@@ -226,25 +175,6 @@ function retryDelayMs(
   return Math.min(maxDelayMs, exponentialDelay + jitter);
 }
 
-function retryDelayForErrorMs(
-  error: unknown,
-  attempt: number,
-  baseDelayMs: number,
-  maxDelayMs: number,
-  random: () => number,
-): number {
-  const exponentialDelay = retryDelayMs(attempt, baseDelayMs, maxDelayMs, random);
-  const retryAfterMs = retryAfterMsFrom(error);
-
-  if (retryAfterMs !== undefined) {
-    return Math.max(exponentialDelay, retryAfterMs);
-  }
-
-  return statusCodeFromTree(error) === 429
-    ? Math.max(exponentialDelay, DEFAULT_RATE_LIMIT_DELAY_MS)
-    : exponentialDelay;
-}
-
 export async function withGenerationRetry<T>(
   operation: (attempt: number) => Promise<T>,
   options: GenerationRetryOptions<T>,
@@ -288,7 +218,7 @@ export async function withGenerationRetry<T>(
         throw error;
       }
 
-      const nextDelayMs = retryDelayForErrorMs(error, attempt, baseDelayMs, maxDelayMs, random);
+      const nextDelayMs = retryDelayMs(attempt, baseDelayMs, maxDelayMs, random);
       await options.onRetry?.({
         label: options.label,
         attempt,

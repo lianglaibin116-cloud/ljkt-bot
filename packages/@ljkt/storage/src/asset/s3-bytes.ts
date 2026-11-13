@@ -32,7 +32,7 @@ interface S3GetObjectOutput {
 }
 
 export interface S3AssetByteStoreClient {
-  send(command: unknown): Promise<unknown>;
+  send(command: unknown, options?: { abortSignal?: AbortSignal }): Promise<unknown>;
 }
 
 export interface S3AssetByteStoreCommands {
@@ -74,13 +74,32 @@ export interface S3AssetByteStoreOptions {
   signer?: S3AssetByteStoreSigner;
   /** Bucket dedicated to content-hash-named asset objects. */
   bucket: string;
+  /** Empty for course assets; isolated consumers supply a validated prefix. */
+  prefix?: string;
 }
 
 const AWS_S3_CLIENT_PACKAGE = '@aws-sdk/client-s3';
 const AWS_S3_PRESIGNER_PACKAGE = '@aws-sdk/s3-request-presigner';
 
+/**
+ * The slice of the AWS SDK client config this package passes through.
+ *
+ * The SDK still owns region, endpoint, and credential resolution. Hosts may
+ * override path-style addressing explicitly; otherwise the loader reads the
+ * adapter-specific environment opt-in.
+ */
+export interface S3AssetByteStoreClientConfig {
+  /** Use endpoint/bucket/key addressing for S3-compatible object stores. */
+  forcePathStyle?: boolean;
+}
+
+function forcePathStyleFromEnvironment(): boolean | undefined {
+  const value = typeof process === 'undefined' ? undefined : process.env.AWS_S3_FORCE_PATH_STYLE;
+  return value === 'true' || value === '1' ? true : undefined;
+}
+
 interface S3Sdk {
-  S3Client: new (options: Record<string, never>) => S3AssetByteStoreClient;
+  S3Client: new (options: S3AssetByteStoreClientConfig) => S3AssetByteStoreClient;
   PutObjectCommand: new (input: S3PutObjectInput) => unknown;
   GetObjectCommand: new (input: S3GetObjectInput) => unknown;
   DeleteObjectCommand: new (input: S3ObjectInput) => unknown;
@@ -158,12 +177,17 @@ function missingPresigner(error: unknown): Error {
  * never runs for it. A host that wants resolution deferred to first use can
  * construct `new S3AssetByteStore({ client, bucket })` itself instead.
  */
-export async function loadS3AssetByteStore(bucket: string): Promise<AssetByteStore> {
+export async function loadS3AssetByteStore(
+  bucket: string,
+  options: S3AssetByteStoreClientConfig = {},
+): Promise<AssetByteStore> {
   try {
     const sdk = await importS3Sdk();
     return new S3AssetByteStore({
       bucket,
-      client: new sdk.S3Client({}),
+      client: new sdk.S3Client({
+        forcePathStyle: options.forcePathStyle ?? forcePathStyleFromEnvironment(),
+      }),
       commands: sdkCommands(sdk),
     });
   } catch (error) {
@@ -173,8 +197,19 @@ export async function loadS3AssetByteStore(bucket: string): Promise<AssetByteSto
   }
 }
 
-function s3Failure(operation: string): Error {
-  return new Error(`@ljkt/storage: S3 asset byte ${operation} failed`);
+function s3Failure(operation: string, error?: unknown): Error {
+  // Only stable categories escape the SDK boundary: messages/causes can contain credentials.
+  const name = error && typeof error === 'object' && 'name' in error ? error.name : undefined;
+  const code = ['AccessDenied', 'InvalidAccessKeyId', 'SignatureDoesNotMatch'].includes(
+    String(name),
+  )
+    ? 'ASSET_STORAGE_PERMISSION'
+    : ['NoSuchBucket', 'CredentialsProviderError', 'InvalidRegion'].includes(String(name))
+      ? 'ASSET_STORAGE_CONFIG'
+      : ['TimeoutError', 'AbortError', 'RequestTimeout'].includes(String(name))
+        ? 'ASSET_STORAGE_TIMEOUT'
+        : 'ASSET_STORAGE_UNAVAILABLE';
+  return Object.assign(new Error(`@ljkt/storage: S3 asset byte ${operation} failed`), { code });
 }
 
 /**
@@ -201,6 +236,7 @@ function isNotFound(error: unknown): boolean {
 export class S3AssetByteStore implements AssetByteStore {
   private readonly client: S3AssetByteStoreClient;
   private readonly bucket: string;
+  private readonly prefix: string;
   /**
    * Objects live in the object store, never in the registry's own PostgreSQL,
    * so the plain `write` / `read` / `delete` can never contend for the
@@ -221,6 +257,21 @@ export class S3AssetByteStore implements AssetByteStore {
     this.resolvedCommands = options.commands;
     this.resolvedSigner = options.signer;
     this.bucket = options.bucket;
+    const prefix = options.prefix ?? '';
+    if (prefix && !/^(?:[A-Za-z0-9_-]+\/)+$/.test(prefix))
+      throw new Error('Invalid object namespace');
+    this.prefix = prefix;
+  }
+
+  withPrefix(prefix: string): AssetByteStore {
+    if (!prefix) throw new Error('An isolated namespace must not be empty');
+    return new S3AssetByteStore({
+      client: this.client,
+      bucket: this.bucket,
+      commands: this.resolvedCommands,
+      signer: this.resolvedSigner,
+      prefix: this.prefix + prefix,
+    });
   }
 
   /**
@@ -283,21 +334,28 @@ export class S3AssetByteStore implements AssetByteStore {
     return pending;
   }
 
-  async write(hash: ContentHash, bytes: Uint8Array): Promise<void> {
+  async write(
+    hash: ContentHash,
+    bytes: Uint8Array,
+    options?: { signal?: AbortSignal },
+  ): Promise<void> {
     // Resolved outside the try so a missing optional dependency reports itself
     // by name instead of being flattened into an opaque "write failed".
+    options?.signal?.throwIfAborted();
     const commands = await this.commands();
+    options?.signal?.throwIfAborted();
     try {
       await this.client.send(
         commands.put({
           Bucket: this.bucket,
-          Key: hash,
+          Key: this.prefix + hash,
           Body: bytes,
           ContentLength: bytes.byteLength,
         }),
+        ...(options?.signal ? [{ abortSignal: options.signal }] : []),
       );
-    } catch {
-      throw s3Failure('write');
+    } catch (error) {
+      throw s3Failure('write', error);
     }
   }
 
@@ -305,7 +363,7 @@ export class S3AssetByteStore implements AssetByteStore {
     const commands = await this.commands();
     try {
       const output = (await this.client.send(
-        commands.get({ Bucket: this.bucket, Key: hash }),
+        commands.get({ Bucket: this.bucket, Key: this.prefix + hash }),
       )) as S3GetObjectOutput;
       if (!output.Body) throw s3Failure('read');
       return Uint8Array.from(await output.Body.transformToByteArray());
@@ -318,7 +376,7 @@ export class S3AssetByteStore implements AssetByteStore {
   async delete(hash: ContentHash): Promise<void> {
     const commands = await this.commands();
     try {
-      await this.client.send(commands.delete({ Bucket: this.bucket, Key: hash }));
+      await this.client.send(commands.delete({ Bucket: this.bucket, Key: this.prefix + hash }));
     } catch (error) {
       if (isNotFound(error)) return;
       throw s3Failure('delete');
@@ -359,7 +417,7 @@ export class S3AssetByteStore implements AssetByteStore {
         this.client,
         commands.get({
           Bucket: this.bucket,
-          Key: hash,
+          Key: this.prefix + hash,
           ResponseContentType: headers.contentType,
           ...(headers.contentDisposition === undefined
             ? {}

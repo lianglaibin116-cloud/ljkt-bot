@@ -4,7 +4,6 @@
  */
 
 import { nanoid } from 'nanoid';
-import { isWidgetType } from '@ljkt/dsl';
 import { MAX_PDF_CONTENT_CHARS, MAX_VISION_IMAGES } from './constants.js';
 import { parseJsonResponse } from './json-repair.js';
 import { noopGenerationLogger, type GenerationLogger } from './logger.js';
@@ -169,19 +168,14 @@ export async function generateSceneOutlinesFromRequirements(
       return { success: false, error: 'Failed to parse scene outlines response' };
     }
 
-    const enriched = rawOutlines.map((outline, index) =>
-      normalizeUnsupportedSceneType(
-        {
-          ...outline,
-          id: outline.id || nanoid(),
-          order: index + 1,
-          // LLMs occasionally emit mediaGenerations as a string or object; every
-          // downstream consumer requires an array, so drop non-array values here.
-          ...(Array.isArray(outline.mediaGenerations) ? null : { mediaGenerations: undefined }),
-        },
-        logger,
-      ),
-    );
+    const enriched = rawOutlines.map((outline, index) => ({
+      ...outline,
+      id: outline.id || nanoid(),
+      order: index + 1,
+      // LLMs occasionally emit mediaGenerations as a string or object; every
+      // downstream consumer requires an array, so drop non-array values here.
+      ...(Array.isArray(outline.mediaGenerations) ? null : { mediaGenerations: undefined }),
+    }));
 
     const result = uniquifyMediaElementIds(enriched);
 
@@ -211,69 +205,32 @@ export function sanitizeProceduralSkillOutline(outline: SceneOutline): SceneOutl
   };
 }
 
-/** Keep media requests, but never pass an LLM-invented scene type downstream. */
-function normalizeUnsupportedSceneType(
-  outline: SceneOutline,
-  logger: GenerationLogger,
-): SceneOutline {
-  const runtimeType = (outline as { type?: unknown }).type;
-  if (isWidgetType(runtimeType)) {
-    logger.warn(
-      `Outline "${outline.title}" used widget type "${runtimeType}" as its scene type; normalizing to interactive/${runtimeType}`,
-    );
-    return {
-      ...outline,
-      type: 'interactive',
-      widgetType: runtimeType,
-      widgetOutline: outline.widgetOutline ?? { concept: outline.title },
-    };
-  }
-  if (
-    runtimeType === 'slide' ||
-    runtimeType === 'quiz' ||
-    runtimeType === 'interactive' ||
-    runtimeType === 'pbl'
-  ) {
-    return outline;
-  }
-  logger.warn(
-    `Outline "${outline.title}" used unsupported scene type ${JSON.stringify(runtimeType)}; normalizing to slide`,
-  );
-  return { ...outline, type: 'slide' };
-}
-
 export function applyOutlineFallbacks(
   outline: SceneOutline,
   hasLanguageModel: boolean,
   options: OutlineFallbackOptions = {},
 ): SceneOutline {
   const logger = options.logger ?? noopGenerationLogger;
-  const normalizedOutline = normalizeUnsupportedSceneType(outline, logger);
+  const hasWidgetConfig = outline.widgetType && outline.widgetOutline;
 
-  const hasWidgetConfig = normalizedOutline.widgetType && normalizedOutline.widgetOutline;
-
-  if (normalizedOutline.widgetType === 'procedural-skill' && !options.allowProceduralSkill) {
+  if (outline.widgetType === 'procedural-skill' && !options.allowProceduralSkill) {
     logger.warn(
-      `Procedural-skill outline "${normalizedOutline.title}" is not enabled, falling back to diagram`,
+      `Procedural-skill outline "${outline.title}" is not enabled, falling back to diagram`,
     );
-    return sanitizeProceduralSkillOutline(normalizedOutline);
+    return sanitizeProceduralSkillOutline(outline);
   }
 
-  if (
-    normalizedOutline.type === 'interactive' &&
-    !normalizedOutline.interactiveConfig &&
-    !hasWidgetConfig
-  ) {
+  if (outline.type === 'interactive' && !outline.interactiveConfig && !hasWidgetConfig) {
     logger.warn(
-      `Interactive outline "${normalizedOutline.title}" missing interactiveConfig and widget config, falling back to slide`,
+      `Interactive outline "${outline.title}" missing interactiveConfig and widget config, falling back to slide`,
     );
-    return { ...normalizedOutline, type: 'slide' };
+    return { ...outline, type: 'slide' };
   }
-  if (normalizedOutline.type === 'pbl' && (!normalizedOutline.pblConfig || !hasLanguageModel)) {
+  if (outline.type === 'pbl' && (!outline.pblConfig || !hasLanguageModel)) {
     logger.warn(
-      `PBL outline "${normalizedOutline.title}" missing pblConfig or languageModel, falling back to slide`,
+      `PBL outline "${outline.title}" missing pblConfig or languageModel, falling back to slide`,
     );
-    return { ...normalizedOutline, type: 'slide' };
+    return { ...outline, type: 'slide' };
   }
-  return normalizedOutline;
+  return outline;
 }

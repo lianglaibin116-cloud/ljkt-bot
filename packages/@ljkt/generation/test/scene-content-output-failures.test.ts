@@ -52,66 +52,10 @@ describe('scene content model-output failures', () => {
 
     expect(content).toBeNull();
     expect(failures).toEqual([{ code: 'invalid-model-output' }]);
-    expect(aiCall).toHaveBeenCalledTimes(2);
+    expect(aiCall).toHaveBeenCalledTimes(1);
     expect(
       errors.some((message) => message.includes('script #2') && message.includes('counts')),
     ).toBe(true);
-  });
-
-  it('rejects simulation HTML when its canvas lookup does not match a canvas element', async () => {
-    const errors: string[] = [];
-    const aiCall: AICallFn = vi.fn(
-      async () =>
-        '<!DOCTYPE html><html><body><canvas id="visualization"></canvas><script>const canvas = document.getElementById("canvas"); initialize(canvas.clientWidth);</script></body></html>',
-    );
-    const failures: SceneContentFailure[] = [];
-
-    const content = await generateWidgetContent(widgetOutline(), aiCall, undefined, {
-      logger: {
-        ...silentLogger,
-        error(message) {
-          errors.push(String(message));
-        },
-      },
-      onFailure: (failure) => failures.push(failure),
-    });
-
-    expect(content).toBeNull();
-    expect(failures).toEqual([{ code: 'invalid-model-output' }]);
-    expect(errors.some((message) => message.includes('no <canvas id="canvas"> exists'))).toBe(true);
-  });
-
-  it('repairs statically invalid canvas geometry once before rejecting the widget', async () => {
-    const aiCall = vi
-      .fn<AICallFn>(async () => '')
-      .mockResolvedValueOnce(
-        '<!DOCTYPE html><html><body><canvas></canvas><script>ctx.ellipse(1, 2, -12.5, 3, 0, 0, 1);</script></body></html>',
-      )
-      .mockResolvedValueOnce('<!DOCTYPE html><html><body><canvas></canvas></body></html>');
-
-    const content = await generateWidgetContent(widgetOutline(), aiCall);
-
-    expect(content).not.toBeNull();
-    expect(aiCall).toHaveBeenCalledTimes(2);
-    expect(aiCall.mock.calls[1]?.[1]).toContain('ellipse() argument 3 is a negative literal');
-    expect(aiCall.mock.calls[1]?.[1]).toContain('Previous HTML:');
-  });
-
-  it('includes the browser error and previous HTML in a bounded repair request', async () => {
-    const aiCall = vi.fn<AICallFn>(async () => '<!DOCTYPE html><html><body>repaired</body></html>');
-    const previousHtml = '<!DOCTYPE html><html><body>old widget</body></html>';
-
-    const content = await generateWidgetContent(widgetOutline(), aiCall, undefined, {
-      interactiveRepair: {
-        html: previousHtml,
-        errors: ['[error] ellipse radius must be non-negative'],
-      },
-    });
-
-    expect(content).not.toBeNull();
-    expect(aiCall).toHaveBeenCalledTimes(1);
-    expect(aiCall.mock.calls[0]?.[1]).toContain('[error] ellipse radius must be non-negative');
-    expect(aiCall.mock.calls[0]?.[1]).toContain(previousHtml);
   });
 
   it.each([

@@ -81,30 +81,6 @@ describe('generateSceneOutlinesFromRequirements', () => {
     expect(result.data?.languageDirective).toBe(DEFAULT_LANGUAGE_DIRECTIVE);
   });
 
-  test('normalizes a hallucinated video scene to a slide and preserves its video request', async () => {
-    const result = await generateSceneOutlinesFromRequirements(
-      { requirement: 'Show a lunar rover collecting soil on video' },
-      undefined,
-      undefined,
-      async () =>
-        JSON.stringify([
-          {
-            ...baseOutline,
-            type: 'video',
-            mediaGenerations: [
-              { type: 'video', prompt: 'Lunar rover collecting soil', elementId: 'gen_vid_1' },
-            ],
-          },
-        ]),
-    );
-    expect(result.success).toBe(true);
-    expect(result.data?.outlines[0]?.type).toBe('slide');
-    expect(result.data?.outlines[0]?.mediaGenerations?.[0]).toMatchObject({
-      type: 'video',
-      prompt: 'Lunar rover collecting soil',
-    });
-  });
-
   test('passes media enable flags into prompt conditionals', async () => {
     let capturedPrompt = '';
     const aiCall: AICallFn = async (system, user) => {
@@ -163,57 +139,6 @@ describe('generateSceneOutlinesFromRequirements', () => {
 });
 
 describe('outline fallbacks', () => {
-  test('recovers a stored video-type outline for scene-content retry', () => {
-    const videoOutline = {
-      ...baseOutline,
-      type: 'video',
-      mediaGenerations: [
-        { type: 'video', prompt: 'Lunar rover collecting soil', elementId: 'gen_vid_1' },
-      ],
-    } as unknown as SceneOutline;
-    expect(applyOutlineFallbacks(videoOutline, true)).toMatchObject({
-      type: 'slide',
-      mediaGenerations: [{ type: 'video', prompt: 'Lunar rover collecting soil' }],
-    });
-  });
-
-  test('normalizes a hallucinated top-level game type into an interactive game widget', () => {
-    const invalidGameOutline = {
-      ...baseOutline,
-      type: 'game',
-      title: 'Prompt Engineer Challenge',
-      widgetOutline: {
-        concept: 'Prompt engineering',
-        gameType: 'puzzle',
-        challenge: 'Match prompts to outcomes',
-      },
-    } as unknown as SceneOutline;
-
-    expect(applyOutlineFallbacks(invalidGameOutline, true)).toMatchObject({
-      type: 'interactive',
-      widgetType: 'game',
-      widgetOutline: {
-        concept: 'Prompt engineering',
-        gameType: 'puzzle',
-        challenge: 'Match prompts to outcomes',
-      },
-    });
-  });
-
-  test('adds a minimal widget outline when normalizing a bare top-level game type', () => {
-    const invalidGameOutline = {
-      ...baseOutline,
-      type: 'game',
-      title: 'Prompt Engineer Challenge',
-    } as unknown as SceneOutline;
-
-    expect(applyOutlineFallbacks(invalidGameOutline, true)).toMatchObject({
-      type: 'interactive',
-      widgetType: 'game',
-      widgetOutline: { concept: 'Prompt Engineer Challenge' },
-    });
-  });
-
   test('downgrades incomplete interactive and PBL outlines', () => {
     expect(applyOutlineFallbacks({ ...baseOutline, type: 'interactive' }, true).type).toBe('slide');
     expect(applyOutlineFallbacks({ ...baseOutline, type: 'pbl' }, true).type).toBe('slide');

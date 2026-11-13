@@ -87,6 +87,10 @@ describe.skipIf(!contractUrl)('PgAgentSessionStore with PostgreSQL 16', () => {
     // CASCADE keeps this order-independent against any table that references
     // agent_sessions without this suite listing it — see the probe test below.
     await truncateAgentSessionTables(pool as Queryable);
+    // The cases below build tables an earlier release created under custom
+    // names, and such a release recorded no schema versions: forget any a
+    // previous case (or a previous run on this database) recorded for them.
+    await pool.query(`DELETE FROM openmaic_schema_migrations WHERE store LIKE 'agent-session:%'`);
     store = new PgAgentSessionStore(pool as Queryable, { withTransaction: transactionFor(pool) });
   });
 
@@ -109,6 +113,41 @@ describe.skipIf(!contractUrl)('PgAgentSessionStore with PostgreSQL 16', () => {
       ),
   });
   runAgentSessionUrlContract('PostgreSQL 16 (node-postgres)', () => store);
+
+  test('concurrent recovery detaches a Skill and records its notice exactly once', async () => {
+    await store.createSession(makeAgentSessionInput({ skillId: 'usk_deleted' }));
+    const claim = await store.claimNextSession('worker-a', 101, {
+      leaseTtlMs: 10_000,
+      maxAttempts: 3,
+    });
+    const input = {
+      ownerId: 'owner-a',
+      workerId: 'worker-a',
+      attempt: claim!.attempt,
+      skillId: 'usk_deleted',
+      notice: {
+        ts: 102,
+        type: 'skill_detached',
+        data: { skillName: 'my-method', throughMessageSeq: 0 },
+      },
+    };
+    expect(
+      await store.detachSessionSkill('session-1', { ...input, ownerId: 'foreign-owner' }),
+    ).toBe(false);
+    const results = await Promise.all([
+      store.detachSessionSkill('session-1', input),
+      store.detachSessionSkill('session-1', input),
+    ]);
+    expect(results.sort()).toEqual([false, true]);
+    const recovered = await store.getSession('session-1');
+    expect(recovered).toMatchObject({ stageId: 'stage-1' });
+    expect(recovered?.skillId).toBeUndefined();
+    expect(
+      (await store.readEventsAfter('session-1', 0)).filter(
+        (event) => event.type === 'skill_detached',
+      ),
+    ).toHaveLength(1);
+  });
 
   test('orders title projection timestamps by the actual locked update', async () => {
     await store.createSession(makeAgentSessionInput());
@@ -184,6 +223,10 @@ describe.skipIf(!contractUrl)('PgAgentSessionStore with PostgreSQL 16', () => {
         const recorder: Queryable = {
           async query<TRow extends Record<string, unknown>>(text: string) {
             statements.push(text);
+            // The schema migration lock is granted; nothing else answers rows.
+            if (text.includes('pg_try_advisory_lock')) {
+              return { rows: [{ locked: true }] as unknown as TRow[] };
+            }
             return { rows: [] as TRow[] };
           },
         };

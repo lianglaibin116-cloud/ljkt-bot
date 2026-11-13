@@ -10,7 +10,7 @@
  */
 
 import type { Action, ActionType } from '@ljkt/dsl';
-import { isActionType, SLIDE_ONLY_ACTIONS, validateAction } from '@ljkt/dsl';
+import { SLIDE_ONLY_ACTIONS } from '@ljkt/dsl';
 import { nanoid } from 'nanoid';
 import { parse as parsePartialJson, Allow } from 'partial-json';
 import { jsonrepair } from 'jsonrepair';
@@ -106,30 +106,14 @@ export function parseActionsFromStructuredOutput(
       try {
         // Support both new format (name/params) and legacy format (tool_name/parameters)
         const actionName = typedItem.name || typedItem.tool_name;
-        const rawParams = typedItem.params || typedItem.parameters || {};
-        const actionParams =
-          rawParams && typeof rawParams === 'object' && !Array.isArray(rawParams)
-            ? (rawParams as Record<string, unknown>)
-            : {};
-        // Some models put narration in an action item instead of a text item.
-        // Keep the narration, but never persist "text" as an Action.type.
-        if (actionName === 'text') {
-          const text = actionParams.text ?? actionParams.content;
-          if (typeof text === 'string' && text.trim()) {
-            actions.push({ id: `action_${nanoid(8)}`, type: 'speech', text: text.trim() });
-          } else {
-            log.warn('Skipping text action without narration content');
-          }
-          continue;
-        }
-        if (!isActionType(actionName)) {
-          log.warn(`Skipping unknown action type: ${JSON.stringify(actionName)}`);
-          continue;
-        }
+        const actionParams = (typedItem.params || typedItem.parameters || {}) as Record<
+          string,
+          unknown
+        >;
         const action = {
-          ...actionParams,
           id: (typedItem.action_id || typedItem.tool_id || `action_${nanoid(8)}`) as string,
-          type: actionName,
+          type: actionName as Action['type'],
+          ...actionParams,
         } as Action;
         // `widget_setState.state` is required by the type, but the LLM may omit it.
         // The former TeacherAction→Action converter always defaulted it to `{}`;
@@ -137,13 +121,6 @@ export function parseActionsFromStructuredOutput(
         // `state: undefined` (SET_WIDGET_STATE handlers dereference it).
         if (action.type === 'widget_setState' && action.state == null) {
           action.state = {};
-        }
-        const validation = validateAction(action);
-        if (!validation.valid) {
-          log.warn(
-            `Skipping invalid ${action.type} action: ${validation.errors.map((issue) => issue.message).join('; ')}`,
-          );
-          continue;
         }
         actions.push(action);
       } catch (_e) {

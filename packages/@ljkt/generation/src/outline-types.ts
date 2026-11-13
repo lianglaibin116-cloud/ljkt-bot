@@ -1,4 +1,4 @@
-import type { SchoolCourseProfile, WidgetType } from '@ljkt/dsl';
+import type { WidgetType } from '@ljkt/dsl';
 
 export type { WidgetType } from '@ljkt/dsl';
 
@@ -28,8 +28,6 @@ export interface UserRequirements {
   webSearch?: boolean;
   interactiveMode?: boolean;
   taskEngineMode?: boolean;
-  teacherDemoMode?: boolean;
-  schoolCourseProfile?: SchoolCourseProfile;
 }
 
 export interface WidgetOutline {

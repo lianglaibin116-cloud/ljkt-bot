@@ -28,14 +28,6 @@ function markerReferences(svg: SVGSVGElement): string[] {
 }
 
 describe('BaseLineElement marker ids', () => {
-  it('renders an absurd model-produced width as a safe normal stroke', () => {
-    const { container } = render(
-      <BaseLineElement elementInfo={{ ...line, width: 880 }} animate={false} />,
-    );
-
-    expect(container.querySelector('path')?.getAttribute('stroke-width')).toBe('3');
-  });
-
   it('keeps marker references local to each render instance and stable while scaling', () => {
     const { container, rerender } = render(
       <div style={{ transform: 'scale(1)' }}>

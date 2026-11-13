@@ -121,56 +121,8 @@ describe('generation retry helper', () => {
       }),
     ).rejects.toMatchObject({ name: 'AbortError' });
 
-    expect(sleep).toHaveBeenCalledWith(30000, controller.signal);
+    expect(sleep).toHaveBeenCalledWith(1000, controller.signal);
     expect(operation).toHaveBeenCalledTimes(1);
-  });
-
-  it('honours provider Retry-After metadata for rate limits', async () => {
-    const sleep = vi.fn(async () => undefined);
-    let attempts = 0;
-
-    const result = await withGenerationRetry(
-      async () => {
-        attempts += 1;
-        if (attempts === 1) {
-          throw Object.assign(new Error('Rate limited'), {
-            statusCode: 429,
-            retryAfterMs: 45000,
-          });
-        }
-        return 'scene-ok';
-      },
-      {
-        label: 'scene content',
-        maxRetries: 1,
-        random: () => 0,
-        sleep,
-      },
-    );
-
-    expect(result).toBe('scene-ok');
-    expect(sleep).toHaveBeenCalledWith(45000, undefined);
-  });
-
-  it('uses a safe cooldown when a 429 response omits Retry-After', async () => {
-    const sleep = vi.fn(async () => undefined);
-    let attempts = 0;
-
-    await withGenerationRetry(
-      async () => {
-        attempts += 1;
-        if (attempts === 1) throw { statusCode: 429 };
-        return 'scene-ok';
-      },
-      {
-        label: 'scene content',
-        maxRetries: 1,
-        random: () => 0,
-        sleep,
-      },
-    );
-
-    expect(sleep).toHaveBeenCalledWith(30000, undefined);
   });
 
   it('aborts the default backoff sleep without waiting for its timer', async () => {

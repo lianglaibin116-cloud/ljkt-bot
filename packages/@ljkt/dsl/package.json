@@ -1,6 +1,6 @@
 {
   "name": "@ljkt/dsl",
-  "version": "0.11.2",
+  "version": "0.13.0",
   "description": "The MAIC slide DSL: the pure, dependency-free contract (types + JSON Schema + validators + version/migration helpers) that @ljkt/renderer and @ljkt/importer both depend on.",
   "type": "module",
   "main": "./dist/index.js",

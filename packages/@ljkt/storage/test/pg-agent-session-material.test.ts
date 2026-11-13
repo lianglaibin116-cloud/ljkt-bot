@@ -1,3 +1,4 @@
+import { applySchemaMigrations } from '../src/pg-migrations.js';
 import { PGlite } from '@electric-sql/pglite';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
@@ -8,6 +9,7 @@ import {
 } from '../src/agent-session/pg.js';
 import {
   DEFAULT_AGENT_SESSION_MATERIAL_TABLE_NAMES,
+  AGENT_SESSION_MATERIAL_PG_MIGRATIONS,
   PgAgentSessionMaterialStore,
   ensureAgentSessionMaterialSchema,
 } from '../src/material/pg.js';
@@ -75,6 +77,8 @@ describe('PgAgentSessionMaterialStore with PGlite', () => {
     // so `CREATE TABLE IF NOT EXISTS` cannot add it. CASCADE also drops the
     // partial unique index that depends on the column.
     await db.query('ALTER TABLE agent_session_materials DROP COLUMN owner_material_id CASCADE');
+    // ...and that release recorded no schema versions.
+    await db.query(`DELETE FROM openmaic_schema_migrations WHERE store = 'agent-session-material'`);
     const sessions = new PgAgentSessionStore(db, {
       withTransaction: (body) => db.transaction((tx: Queryable) => body(tx)),
     });
@@ -88,6 +92,7 @@ describe('PgAgentSessionMaterialStore with PGlite', () => {
     // Re-running the initializer is the in-place upgrade.
     await ensureAgentSessionMaterialSchema(db);
 
+    store = new PgAgentSessionMaterialStore(db);
     const legacy = await store.getMaterial('session-legacy', 'mat_legacy');
     expect(legacy).toMatchObject({ id: 'mat_legacy', ownerMaterialId: null });
 
@@ -107,6 +112,47 @@ describe('PgAgentSessionMaterialStore with PGlite', () => {
     expect(first.id).not.toBe(second.id);
     expect(first.ownerMaterialId).toBe('mat_owner');
     expect(second.ownerMaterialId).toBe('mat_owner');
+  });
+
+  test('adds extraction_reason_code to a table provisioned before the column existed', async () => {
+    await db.close();
+    db = new PGlite();
+    await db.waitReady;
+    await ensureAgentSessionSchema(db);
+    await applySchemaMigrations(db, {
+      ...AGENT_SESSION_MATERIAL_PG_MIGRATIONS,
+      migrations: AGENT_SESSION_MATERIAL_PG_MIGRATIONS.migrations.filter((m) => m.version === 1),
+    });
+    const sessions = new PgAgentSessionStore(db, {
+      withTransaction: (body) => db.transaction((tx: Queryable) => body(tx)),
+    });
+    await sessions.createSession({ id: 'session-legacy', ownerId: 'owner-a', prompt: 'p' });
+    await db.query(
+      `INSERT INTO agent_session_materials
+         (id, session_id, kind, text_chars, extraction_status, extraction_attempts,
+          extraction_error, created_at)
+       VALUES ('mat_legacy', 'session-legacy', 'source', 0, 'failed', 0, 'old diagnostic', now())`,
+    );
+
+    // Re-running the initializer is the in-place upgrade, and it is repeatable.
+    await ensureAgentSessionMaterialSchema(db);
+    await ensureAgentSessionMaterialSchema(db);
+
+    store = new PgAgentSessionMaterialStore(db);
+    const legacy = await store.getMaterial('session-legacy', 'mat_legacy');
+    expect(legacy?.extraction).toEqual({ status: 'failed', attempts: 0, error: 'old diagnostic' });
+    await store.enqueueExtraction('session-legacy', 'mat_legacy');
+    await store.claimNextExtraction('worker-a', { leaseTtlMs: 10_000 });
+    await store.settleExtractionFailure(
+      'mat_legacy',
+      'worker-a',
+      'no parser',
+      false,
+      'service_unavailable',
+    );
+    expect((await store.getMaterial('session-legacy', 'mat_legacy'))?.extraction.reasonCode).toBe(
+      'service_unavailable',
+    );
   });
 
   test('backfills owner_material_id onto a legacy row without touching extraction', async () => {
