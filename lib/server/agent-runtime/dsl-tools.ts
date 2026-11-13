@@ -832,6 +832,25 @@ export function buildDslCourseTools(deps: CourseToolDeps): AgentTool<never, neve
           true,
         );
       }
+      if (
+        resolved.scene.content.type === 'interactive' &&
+        next.content.type === 'interactive' &&
+        resolved.scene.content.html?.trim() &&
+        next.content.html !== resolved.scene.content.html
+      ) {
+        const html = next.content.html?.trim() ?? '';
+        if (
+          (!html && !next.content.url?.trim()) ||
+          /^__[A-Za-z0-9_]+__$/.test(html) ||
+          /^<!doctype\s+html\s*>$/i.test(html)
+        ) {
+          return toolResult(
+            'patch_stage rejected: do not replace an existing interactive page with an empty value, placeholder, or DOCTYPE alone. Submit the complete replacement in one patch_stage call, or edit exact anchors in the existing HTML. The original page was unchanged.',
+            { intent: params.intent, failedOp: params.ops.length },
+            true,
+          );
+        }
+      }
       try {
         await runStageMutation(signal, () =>
           putSceneBringingCurrent(deps.store, loaded.stageId, next),

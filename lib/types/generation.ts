@@ -120,8 +120,11 @@ export interface WidgetOutline {
   // Common field
   concept?: string;
 
+  // Free-text description of the intended interactions and layout
+  designIdea?: string;
+
   // Type-specific fields
-  keyVariables?: string[]; // simulation
+  keyVariables?: Array<string | { name?: string; range?: unknown; unit?: string; [key: string]: unknown }>; // simulation
   diagramType?: 'flowchart' | 'mindmap' | 'hierarchy' | 'system'; // diagram
   language?: 'python' | 'javascript' | 'typescript' | 'java' | 'cpp'; // code
   gameType?: 'quiz' | 'puzzle' | 'strategy' | 'card' | 'action'; // game
@@ -145,6 +148,8 @@ export interface WidgetOutline {
     details?: string;
   }>; // diagram - prescribed nodes and optional hierarchy
   challengeType?: string; // code - type of coding challenge
+  // Keep additional widget fields from model-generated outlines.
+  [key: string]: unknown;
 }
 
 /**

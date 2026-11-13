@@ -32,6 +32,11 @@ const CLOUD_METADATA_BLOCK_MESSAGE =
 const LOCAL_NETWORK_BLOCK_MESSAGE =
   'Local/private network URLs are not allowed. If this is a self-hosted deployment or internal gateway (including split-horizon DNS), set ALLOW_LOCAL_NETWORKS=true to allow local network targets.';
 
+// TUN proxies may return a synthetic address for a public provider hostname.
+const FAKE_IP_RANGE = ipaddr.IPv4.parseCIDR('198.18.0.0/15');
+const FAKE_IP_BLOCK_MESSAGE =
+  'The target resolved to 198.18.0.0/15, which usually means a TUN/fake-ip proxy answered the DNS lookup. Exclude the provider domain from fake-ip, or set ALLOW_LOCAL_NETWORKS=true for server-configured providers.';
+
 export class UnsafeNetworkTargetError extends Error {
   constructor(message: string) {
     super(message);
@@ -164,10 +169,17 @@ function isCloudMetadataAddress(value: string): boolean {
   return tunnelEmbeddedIPv4(canonical).some((embedded) => CLOUD_METADATA_ADDRESSES.has(embedded));
 }
 
+function isFakeIpRange(value: string): boolean {
+  const canonical = canonicalizeIp(value);
+  if (canonical === null) return false;
+  const address = ipaddr.parse(canonical);
+  return address.kind() === 'ipv4' && address.match(FAKE_IP_RANGE);
+}
+
 /**
  * Ranges that are never valid outbound proxy targets, with or without
  * `ALLOW_LOCAL_NETWORKS`: IANA reserved and special-use blocks (240.0.0.0/4,
- * 198.18.0.0/15, the TEST-NET blocks, 192.0.0.0/24, ...), multicast and
+ * the TEST-NET blocks, 192.0.0.0/24, ...), multicast and
  * broadcast. Private, loopback, link-local and carrier-grade NAT ranges are
  * deliberately excluded because allowing those is the whole point of the
  * opt-in (see {@link isOptInGovernedRange}).
@@ -179,6 +191,7 @@ function isCloudMetadataAddress(value: string): boolean {
 function isNeverAllowedRange(value: string): boolean {
   const canonical = canonicalizeIp(value);
   if (canonical === null) return false;
+  if (isFakeIpRange(canonical)) return false;
   const range = ipaddr.parse(canonical).range();
   return range === 'reserved' || range === 'multicast' || range === 'broadcast';
 }
@@ -264,6 +277,9 @@ export function connectionAddressBlockReason(
   }
   if (allowLocalNetworks) {
     return null;
+  }
+  if (isFakeIpRange(canonical)) {
+    return FAKE_IP_BLOCK_MESSAGE;
   }
   if (isOptInGovernedRange(canonical)) {
     return LOCAL_NETWORK_BLOCK_MESSAGE;
@@ -528,6 +544,10 @@ export async function validateUrlForSSRFWithPolicy(
     return null;
   }
 
+  if (isFakeIpRange(hostname)) {
+    return FAKE_IP_BLOCK_MESSAGE;
+  }
+
   if (
     hostname === 'localhost' ||
     hostname.endsWith('.local') ||
@@ -555,6 +575,10 @@ export async function validateUrlForSSRFWithPolicy(
 
   if (resolvedAddresses.some(({ address }) => isCloudMetadataAddress(address))) {
     return CLOUD_METADATA_BLOCK_MESSAGE;
+  }
+
+  if (resolvedAddresses.some(({ address }) => isFakeIpRange(address))) {
+    return FAKE_IP_BLOCK_MESSAGE;
   }
 
   if (

@@ -395,6 +395,24 @@ describe('patch_stage', () => {
     },
   );
 
+  it.each(['', '__TEMP_HTML__', '<!DOCTYPE html>'])(
+    'keeps an existing interactive page when a patch replaces it with %j',
+    async (replacement) => {
+      const current = state();
+      const patch = tool(dslTools(current.store), 'patch_stage');
+      const original = (current.get().scenes.find((scene) => scene.id === 'scene_widget')!.content as InteractiveContent).html;
+      const result = await patch.execute('empty-html', {
+        target: '/scenes/scene_widget',
+        intent: 'Replace widget HTML',
+        ops: [{ op: 'set', path: '/content/html', value: replacement }],
+      } as never);
+      expect(result).toMatchObject({ isError: true });
+      expect(textOf(result)).toContain('do not replace an existing interactive page');
+      expect(current.putScene).not.toHaveBeenCalled();
+      expect((current.get().scenes.find((scene) => scene.id === 'scene_widget')!.content as InteractiveContent).html).toBe(original);
+    },
+  );
+
   it('applies set/remove atomically and clears stale speech audio', async () => {
     const current = state();
     const patch = tool(dslTools(current.store), 'patch_stage');

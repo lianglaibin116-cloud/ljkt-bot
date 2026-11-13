@@ -1,8 +1,8 @@
-# 灵境课堂 Bot 0.2.1
+# 灵境课堂 Bot 0.2.2
 
 提供 macOS ARM64 与 Windows x64 桌面应用。桌面端采用独立构建的 React 界面、本机课程服务和 Electron 窗口；界面保留左侧历史、居中聊天、右侧课件工作区与幻彩书页 Logo。
 
-0.2.1 将本机灵境课堂 1.4.1 的共享 DSL、生成、导入、渲染、编辑和存储包同步至 Bot；桌面工作流仍保持 Bot 独立实现。Windows 安装包由 GitHub Actions 在 Windows 构建机上生成。
+0.2.2 对齐 OpenMAIC 官方稳定版 v1.4.2 的共享包：生成包 0.3.31、渲染包 0.2.1；其他共享包延续 v1.4.1 的相同版本。Bot 独立对话、工作区和本机课程数据保持独立。Windows 安装包由 GitHub Actions 在 Windows 构建机上生成。
 
 ## 直接试用
 

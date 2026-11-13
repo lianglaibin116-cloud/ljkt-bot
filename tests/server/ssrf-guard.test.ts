@@ -12,6 +12,7 @@ vi.mock('node:dns', () => ({
 
 const PRIVATE_NETWORK_BLOCK_MESSAGE =
   'Local/private network URLs are not allowed. If this is a self-hosted deployment or internal gateway (including split-horizon DNS), set ALLOW_LOCAL_NETWORKS=true to allow local network targets.';
+const FAKE_IP_BLOCK_PART = 'TUN/fake-ip proxy';
 const CLOUD_METADATA_BLOCK_MESSAGE =
   'Cloud instance metadata endpoints are never allowed as outbound targets, even with ALLOW_LOCAL_NETWORKS=true.';
 const ALLOW_LOCAL_NETWORKS_GUIDANCE = 'ALLOW_LOCAL_NETWORKS=true';
@@ -109,7 +110,6 @@ describe('validateUrlForSSRF', () => {
       'http://100.64.0.1/',
       'http://100.100.100.100/',
       'http://240.0.0.1/',
-      'http://198.18.0.1/',
       'http://[::ffff:100.64.0.1]/',
       'http://224.0.0.1/',
       'http://255.255.255.255/',
@@ -344,7 +344,6 @@ describe('validateUrlForSSRF', () => {
       { address: '100.64.0.1', family: 4 },
       { address: '100.100.100.100', family: 4 },
       { address: '240.0.0.1', family: 4 },
-      { address: '198.18.0.1', family: 4 },
       { address: '::ffff:100.64.0.1', family: 6 },
     ];
 
@@ -425,7 +424,6 @@ describe('validateUrlForSSRF', () => {
 
     for (const url of [
       'http://240.0.0.1/',
-      'http://198.18.0.1/',
       'http://224.0.0.1/',
       'http://255.255.255.255/',
     ]) {
@@ -745,10 +743,32 @@ describe('connectionAddressBlockReason', () => {
   it('matches validateUrlForSSRF for reserved/multicast ranges, opt-in or not', async () => {
     const { connectionAddressBlockReason } = await import('@/lib/server/ssrf-guard');
 
-    for (const address of ['240.0.0.1', '198.18.0.1', '224.0.0.1', '255.255.255.255']) {
+    for (const address of ['240.0.0.1', '224.0.0.1', '255.255.255.255']) {
       expect(connectionAddressBlockReason(address, false)).toBe(PRIVATE_NETWORK_BLOCK_MESSAGE);
       expect(connectionAddressBlockReason(address, true)).toBe(PRIVATE_NETWORK_BLOCK_MESSAGE);
     }
+  });
+
+  it('allows TUN fake-ip only with the local-network opt-in, with proxy guidance otherwise', async () => {
+    const { connectionAddressBlockReason, validateUrlForSSRFWithPolicy } =
+      await import('@/lib/server/ssrf-guard');
+    for (const address of ['198.18.0.1', '198.19.255.254', '::ffff:198.18.0.1']) {
+      expect(connectionAddressBlockReason(address, false)).toContain(FAKE_IP_BLOCK_PART);
+      expect(connectionAddressBlockReason(address, true)).toBeNull();
+    }
+    await expect(
+      validateUrlForSSRFWithPolicy('https://198.18.0.1', { allowLocalNetworks: false }),
+    ).resolves.toContain(FAKE_IP_BLOCK_PART);
+    await expect(
+      validateUrlForSSRFWithPolicy('https://198.18.0.1', { allowLocalNetworks: true }),
+    ).resolves.toBeNull();
+    lookupMock.mockResolvedValue([{ address: '198.19.0.8', family: 4 }]);
+    await expect(
+      validateUrlForSSRFWithPolicy('https://model.example', { allowLocalNetworks: false }),
+    ).resolves.toContain(FAKE_IP_BLOCK_PART);
+    await expect(
+      validateUrlForSSRFWithPolicy('https://model.example', { allowLocalNetworks: true }),
+    ).resolves.toBeNull();
   });
 
   it('governs CGNAT addresses by the opt-in and keeps metadata blocked with the flag', async () => {
