@@ -1,3 +1,5 @@
+import { version as botVersion } from '../../../../package.json';
+
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -6,7 +8,7 @@ export function GET() {
     {
       application: 'ljkt-bot',
       instance: process.env.LJKT_BOT_INSTANCE_ID ?? 'web',
-      version: '0.2.0',
+      version: botVersion,
     },
     { headers: { 'Cache-Control': 'no-store' } },
   );
