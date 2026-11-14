@@ -40,6 +40,8 @@ import {
   type StageManifest,
 } from '@/lib/workbench/stage-freshness';
 import { applyGenerateTtsResultToScenes } from '@/lib/workbench/tts-stage-sync';
+import { recordAgentChange } from '@/lib/edit/course-edit';
+import { useCourseTimeline } from '@/lib/edit/course-timeline';
 
 /**
  * pi's own `AgentEvent` types, which the runner appends verbatim.
@@ -176,6 +178,7 @@ export function useWorkbenchStream(sessionId: string | null): void {
         return;
       }
       applyEvent(parsed);
+      noteCourseTimelineRun(parsed.type);
       markAttached();
 
       // Async media completion (generate_video's detached job) settles into
@@ -218,6 +221,7 @@ export function useWorkbenchStream(sessionId: string | null): void {
         return;
       }
       applyEvents(compactReplayEvents(backlog));
+      for (const event of backlog) noteCourseTimelineRun(event.type);
       // Replay the media_ready side effect too: a failed job never lands in
       // the document, so without this fold a re-attached client would keep
       // the placeholder's skeleton instead of the error state.
@@ -266,6 +270,15 @@ export function useWorkbenchStream(sessionId: string | null): void {
       if (useWorkbenchStore.getState().sessionId === sessionId) setAttached(false);
     };
   }, [sessionId, applyEvent, applyEvents, setAttached, finishReplayState, setError]);
+}
+
+/** Keep edits arriving from this workbench exchange grouped as one undo step. */
+function noteCourseTimelineRun(type: string): void {
+  const timeline = useCourseTimeline.getState();
+  const now = Date.now();
+  if (type === 'agent_start') timeline.beginAgentRun(now);
+  else if (type === 'agent_end') timeline.endAgentRun(now);
+  else timeline.touchAgentRun(now);
 }
 
 /**
@@ -541,6 +554,12 @@ export function useStageFreshnessSync(
         throw new Error(`batch scene fetch returned nothing for ${requestedStage}`);
       }
 
+      const beforeState = useStageStore.getState();
+      const beforeDocument = {
+        stage: beforeState.stage,
+        scenes: beforeState.scenes,
+        currentSceneId: beforeState.currentSceneId,
+      };
       const appliedIds = new Set(fetched.map((scene) => scene.id));
       const merge = mergeFetchedScenes({
         current: useStageStore.getState().scenes,
@@ -559,6 +578,14 @@ export function useStageFreshnessSync(
             scenes: nextScenes,
             ...(currentSceneId !== current ? { currentSceneId } : {}),
           };
+        });
+        // A workbench checkpoint can bring back pages edited by the agent or
+        // another session. Record that remote document change so course undo
+        // cannot silently jump over it.
+        recordAgentChange(beforeDocument, {
+          stage: useStageStore.getState().stage,
+          scenes: useStageStore.getState().scenes,
+          currentSceneId: useStageStore.getState().currentSceneId,
         });
       }
 

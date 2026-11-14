@@ -26,12 +26,11 @@ interface SceneContextValue<T = unknown> {
 const SceneContext = createContext<SceneContextValue | null>(null);
 
 /**
- * Controlled data source for `SceneProvider`. Edit surfaces own a private
- * SlideEditHistory (undo/redo, op stream, autosave) and must NOT write
- * edits straight back into the live stage store; they pass a controller so
- * the unmodified slide renderer reads/writes the surface's staged content
- * instead. Omitting `controller` keeps the original stage-store-backed
- * behavior unchanged for the playback path.
+ * Controlled data source for `SceneProvider`. The Pro editor passes a
+ * controller so the renderer reads and writes through its canonical editor
+ * session; that session persists edits to the stage store and records them on
+ * the course-wide undo timeline. Omitting `controller` keeps the playback
+ * path's direct stage-store behavior.
  */
 export interface SceneDataController<T = unknown> {
   sceneId: string;

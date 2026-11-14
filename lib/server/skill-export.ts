@@ -6,7 +6,7 @@ import JSZip from 'jszip';
 import { dump as dumpYaml, load as loadYaml } from 'js-yaml';
 import { UserSkillError, validateUserSkillInput, type UserSkillFields } from '@ljkt/storage';
 
-export const openClawSkillDir = join(process.cwd(), 'skills', 'openmaic');
+export const ljktSkillDir = join(process.cwd(), 'skills', 'ljkt');
 export const builtinSkillsDir = join(process.cwd(), 'skills', 'agent-runtime');
 
 /** A download id may name only one entry below a known skill root. */
@@ -48,8 +48,8 @@ export async function buildSkillDirZip(dir: string, root: string): Promise<Buffe
   return zip;
 }
 
-export function buildOpenClawSkillZip(): Promise<Buffer | null> {
-  return buildSkillDirZip(openClawSkillDir, 'openmaic');
+export function buildLJKTSkillZip(): Promise<Buffer | null> {
+  return buildSkillDirZip(ljktSkillDir, 'ljkt');
 }
 
 export function buildBuiltinSkillZip(id: string): Promise<Buffer | null> {

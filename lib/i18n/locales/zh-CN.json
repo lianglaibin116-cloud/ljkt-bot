@@ -770,6 +770,9 @@
     "dock": {
       "elementRefHint": "元素引用 —— 选中元素随下一条消息发给 Agent",
       "globalTools": "全局工具"
+    },
+    "courseHistory": {
+      "stepExpired": "撤销历史中的媒体资源已超过保留期限，此步骤已移除。"
     }
   },
   "classroomComplete": {

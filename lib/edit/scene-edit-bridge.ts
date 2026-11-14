@@ -1,13 +1,11 @@
 /**
  * Scene-context → slide-ops bridge.
  *
- * The slide renderer (`components/slide-renderer`) commits every edit by
+ * The slide renderer (`components/slide-renderer`) commits some edits by
  * handing its scene-context provider a whole post-edit `SlideContent`
- * (drag/resize/rotate hooks call `updateSlide({ elements })`). The edit
- * surface owns a real `SlideEditHistory` of canonical `SlideEditOperation`s
- * (so undo/redo, persistence and PPTX round-trip stay coherent), not an
- * opaque content blob. This module diffs the committed snapshot back into
- * the ops the kernel + export pipeline understand.
+ * (drag/resize/rotate hooks call `updateSlide({ elements })`). The course
+ * timeline stores document diffs; this adapter derives canonical slide ops so
+ * renderer updates can be coalesced and compared consistently.
  *
  * Pure + dependency-free so it is unit-testable in isolation; the React
  * wiring (which feeds `next` in and stores the resulting history) lives in

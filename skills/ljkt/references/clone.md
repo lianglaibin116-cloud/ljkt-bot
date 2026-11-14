@@ -21,7 +21,7 @@ Establish which LJKT checkout will be used for setup and runtime actions.
 Clone:
 
 ```bash
-git clone https://github.com/THU-MAIC/OpenMAIC.git
+git clone https://github.com/lianglaibin116-cloud/ljkt-bot.git
 cd LJKT
 ```
 

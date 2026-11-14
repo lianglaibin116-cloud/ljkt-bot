@@ -770,6 +770,9 @@
     "dock": {
       "elementRefHint": "元素引用 —— 選取元素隨下一則訊息發給 Agent",
       "globalTools": "全域工具"
+    },
+    "courseHistory": {
+      "stepExpired": "復原記錄中的媒體資源已超過保留期限，此步驟已移除。"
     }
   },
   "whiteboard": {

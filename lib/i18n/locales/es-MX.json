@@ -770,6 +770,9 @@
     "dock": {
       "elementRefHint": "Referencias de elementos: elige elementos para enviar con tu próximo mensaje",
       "globalTools": "Herramientas globales"
+    },
+    "courseHistory": {
+      "stepExpired": "Se quitó este paso porque sus archivos multimedia superaron el plazo de retención."
     }
   },
   "classroomComplete": {

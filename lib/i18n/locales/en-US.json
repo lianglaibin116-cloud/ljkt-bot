@@ -770,6 +770,9 @@
     "dock": {
       "elementRefHint": "Element references — pick elements to send with your next message",
       "globalTools": "Global tools"
+    },
+    "courseHistory": {
+      "stepExpired": "This history step was removed because its media exceeded the retention window."
     }
   },
   "classroomComplete": {

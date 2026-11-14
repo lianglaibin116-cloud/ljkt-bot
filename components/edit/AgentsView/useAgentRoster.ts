@@ -34,6 +34,7 @@ import {
 } from '@/lib/edit/agent-ops';
 import { useStageStore } from '@/lib/store/stage';
 import { useAgentRegistry } from '@/lib/orchestration/registry/store';
+import { commitCourseEdit } from '@/lib/edit/course-edit';
 import type { GeneratedAgentConfig } from '@/lib/types/stage';
 
 // ---------------------------------------------------------------------------
@@ -114,7 +115,7 @@ export function useAgentRoster(): AgentRosterController {
   // (React #185). setStageAgents already no-ops when there is no stage.
   useEffect(() => {
     if (!isDirtyRef.current) return;
-    setStageAgents(histState.present);
+    commitCourseEdit({ coalesceKey: 'agent-roster' }, () => setStageAgents(histState.present));
   }, [histState.present, setStageAgents]);
 
   /**

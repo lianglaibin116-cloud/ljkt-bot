@@ -57,9 +57,21 @@ if (process.platform === 'darwin') {
         .toFile(join(iconset, `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`));
     }
   }
-  icon = join(build, 'lingjing.icns');
-  const result = spawnSync('iconutil', ['-c', 'icns', iconset, '-o', icon], { stdio: 'inherit' });
-  if (result.status !== 0) throw new Error('Could not build the approved Logo icon.');
+  const icnsPath = join(build, 'lingjing.icns');
+  icon = join(build, 'lingjing');
+  const result = spawnSync('iconutil', ['-c', 'icns', iconset, '-o', icnsPath], {
+    stdio: 'inherit',
+  });
+  if (result.status !== 0) {
+    // Some recent macOS toolchains reject a valid generated iconset with
+    // "Invalid Iconset". sips still emits a valid ICNS from the 512px master.
+    const fallback = spawnSync(
+      'sips',
+      ['-s', 'format', 'icns', join(iconset, 'icon_512x512.png'), '--out', icnsPath],
+      { stdio: 'inherit' },
+    );
+    if (fallback.status !== 0) throw new Error('Could not build the approved Logo icon.');
+  }
 } else if (process.platform === 'win32') {
   const sizes = [16, 32, 48, 64, 128, 256];
   const images = await Promise.all(

@@ -770,6 +770,9 @@
     "dock": {
       "elementRefHint": "要素参照 — 次のメッセージと一緒に送る要素を選ぶ",
       "globalTools": "全体ツール"
+    },
+    "courseHistory": {
+      "stepExpired": "履歴内のメディア保存期限が過ぎたため、この操作を履歴から削除しました。"
     }
   },
   "classroomComplete": {

@@ -8,6 +8,7 @@ import { HeaderControls } from '@/components/stage/header-controls';
 import { isMaicEditorEnabled } from '@/lib/config/feature-flags';
 import { preloadEditor } from '@/lib/edit/preload-editor';
 import { sceneEditorRegistry } from '@/lib/edit/scene-editor-registry';
+import { useCourseTimelineShortcuts } from '@/lib/edit/use-course-history';
 import { getScenePagerState } from '@/lib/edit/scene-pager';
 import { useStageStore } from '@/lib/store/stage';
 import { useInWorkbenchPanel } from '@/lib/workbench/panel-context';
@@ -43,6 +44,7 @@ export function EditChromeRoot({ scene, isEditable, onToggleEditMode }: EditChro
   // conversation on the left is its successor — the agent it would talk to
   // is the one building this course).
   const inWorkbenchPanel = useInWorkbenchPanel();
+  useCourseTimelineShortcuts(true);
 
   // Deck paging (‹ n/m ›). Same state source and setter the SlideNavRail
   // thumbnails use — `currentSceneId` / `setCurrentSceneId` — so flipping pages
@@ -100,8 +102,7 @@ export function EditChromeRoot({ scene, isEditable, onToggleEditMode }: EditChro
   // is no timeline there is no bench to hang other tools off either.
   const timelineEnabled = supportsNarrationTimeline(scene.type, authoringEnabled);
 
-  const pageEditor =
-    scene.type !== 'pbl' ? <ScenePageEditor key={scene.id} scene={scene} /> : null;
+  const pageEditor = scene.type !== 'pbl' ? <ScenePageEditor key={scene.id} scene={scene} /> : null;
 
   const headerControls = (
     <div className="flex items-center gap-2">

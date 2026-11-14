@@ -770,6 +770,9 @@
     "dock": {
       "elementRefHint": "Elementverweise – Elemente für die nächste Nachricht auswählen",
       "globalTools": "Globale Werkzeuge"
+    },
+    "courseHistory": {
+      "stepExpired": "Dieser Verlaufsschritt wurde entfernt, weil die zugehörigen Medien die Aufbewahrungsfrist überschritten haben."
     }
   },
   "classroomComplete": {

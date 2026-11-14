@@ -29,6 +29,7 @@ import { useWorkbenchProEditing } from '@/lib/workbench/use-workbench-pro-edit';
 import { WorkspaceCourseTabs, type WorkspaceCourseTabItem } from './WorkspaceCourseTabs';
 import { PaneFoldButton } from './PaneFoldButton';
 import { CourseDocumentsButton } from '@/components/course-documents/CourseDocumentsButton';
+import { HeaderHistoryControls } from '@/components/edit/EditShell/HeaderHistoryControls';
 
 export const WorkspaceClassroomPane = memo(function WorkspaceClassroomPane({
   browser,
@@ -132,6 +133,7 @@ export const WorkspaceClassroomPane = memo(function WorkspaceClassroomPane({
               {t('workspace.readOnlyBadge')}
             </span>
           ) : null}
+          {!readOnly ? <HeaderHistoryControls /> : null}
           {/* The workspace frames playback as LEARNING, not presenting: a soft
               accent-wash chip (the product violet at tint strength) instead of
               a solid dark block — an invitation, not an office command. The

@@ -6,10 +6,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildBuiltinSkillZip,
-  buildOpenClawSkillZip,
+  buildLJKTSkillZip,
   buildUserSkillZip,
   isSafeSkillId,
-  openClawSkillDir,
+  ljktSkillDir,
   parseUserSkillMarkdown,
   parseUserSkillZip,
 } from '@/lib/server/skill-export';
@@ -58,18 +58,18 @@ function skillMarkdown(body: string): string {
 }
 
 describe('skill export zips', () => {
-  it('packages the shipped OpenMAIC skill verbatim under openmaic/', async () => {
-    const zip = await buildOpenClawSkillZip();
+  it('packages the shipped LJKT skill verbatim under ljkt/', async () => {
+    const zip = await buildLJKTSkillZip();
     expect(zip).not.toBeNull();
     const loaded = await JSZip.loadAsync(zip!);
-    const onDisk = walkRelative(openClawSkillDir);
+    const onDisk = walkRelative(ljktSkillDir);
     const entries = Object.values(loaded.files)
       .filter((file) => !file.dir)
       .map((file) => file.name);
-    expect(new Set(entries)).toEqual(new Set(onDisk.map((path) => `openmaic/${path}`)));
+    expect(new Set(entries)).toEqual(new Set(onDisk.map((path) => `ljkt/${path}`)));
     for (const path of onDisk) {
-      expect(await loaded.file(`openmaic/${path}`)!.async('string')).toBe(
-        readFileSync(join(openClawSkillDir, path), 'utf8'),
+      expect(await loaded.file(`ljkt/${path}`)!.async('string')).toBe(
+        readFileSync(join(ljktSkillDir, path), 'utf8'),
       );
     }
   });

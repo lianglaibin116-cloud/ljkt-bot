@@ -770,6 +770,9 @@
     "dock": {
       "elementRefHint": "요소 참조 — 다음 메시지와 함께 보낼 요소 선택",
       "globalTools": "전역 도구"
+    },
+    "courseHistory": {
+      "stepExpired": "관련 미디어의 보존 기간이 지나 이 기록 단계를 삭제했습니다."
     }
   },
   "classroomComplete": {

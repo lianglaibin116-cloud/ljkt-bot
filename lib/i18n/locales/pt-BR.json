@@ -755,6 +755,9 @@
     "dock": {
       "elementRefHint": "Referências de elementos — escolha elementos para enviar na próxima mensagem",
       "globalTools": "Ferramentas globais"
+    },
+    "courseHistory": {
+      "stepExpired": "Esta etapa foi removida porque a mídia associada excedeu o prazo de retenção."
     }
   },
   "stage": {

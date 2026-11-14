@@ -31,6 +31,7 @@ import { Camera, ChevronDown, ChevronUp, Redo2, Undo2, UserMinus, UserPlus } fro
 import { cn } from '@/lib/utils/cn';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useStageStore } from '@/lib/store/stage';
+import { commitCourseEdit } from '@/lib/edit/course-edit';
 import type { GeneratedAgentConfig } from '@/lib/types/stage';
 import { useAgentRoster } from './useAgentRoster';
 import { AvatarPicker } from './AvatarPicker';
@@ -520,7 +521,7 @@ export function AgentRosterPanel({ flushRef, headerTrailing }: AgentRosterPanelP
           // unmount cleanup would never reach useAgentRoster's persistence
           // effect, which is precisely the close path this handle protects.
           rosterRef.current = next;
-          setStageAgents(next);
+          commitCourseEdit({}, () => setStageAgents(next));
         }
       },
     }),

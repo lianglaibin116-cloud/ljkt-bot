@@ -1,4 +1,4 @@
-/** Download the OpenMAIC skill, a builtin agent skill, or one owner skill as zip. */
+/** Download the LJKT skill, a builtin agent skill, or one owner skill as zip. */
 import type { NextRequest } from 'next/server';
 
 import { isAgentRuntimeConfigured } from '@/lib/config/feature-flags';
@@ -6,7 +6,7 @@ import { findUserSkill } from '@/lib/server/agent-runtime/user-skills';
 import { withRequestOwnerId } from '@/lib/server/agent-runtime/with-owner';
 import {
   buildBuiltinSkillZip,
-  buildOpenClawSkillZip,
+  buildLJKTSkillZip,
   buildUserSkillZip,
   isSafeSkillId,
 } from '@/lib/server/skill-export';
@@ -25,9 +25,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   if (!isSafeSkillId(id)) return new Response('Invalid skill id', { status: 400 });
 
-  if (id === 'openmaic') {
-    const zip = await buildOpenClawSkillZip();
-    return zip ? zipResponse(id, zip) : new Response('Not found', { status: 404 });
+  // Keep the old endpoint as an API alias for already installed clients. The
+  // downloaded archive itself is branded and rooted as `ljkt/`.
+  if (id === 'ljkt' || id === 'openmaic') {
+    const zip = await buildLJKTSkillZip();
+    return zip ? zipResponse('ljkt', zip) : new Response('Not found', { status: 404 });
   }
   const builtin = await buildBuiltinSkillZip(id);
   if (builtin) return zipResponse(id, builtin);

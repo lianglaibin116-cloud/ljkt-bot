@@ -770,6 +770,9 @@
     "dock": {
       "elementRefHint": "Tham chiếu phần tử — chọn phần tử để gửi kèm tin nhắn tiếp theo",
       "globalTools": "Công cụ chung"
+    },
+    "courseHistory": {
+      "stepExpired": "Đã xóa bước này vì phương tiện liên quan đã vượt quá thời hạn lưu giữ."
     }
   },
   "classroomComplete": {

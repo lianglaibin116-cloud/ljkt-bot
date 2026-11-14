@@ -41,6 +41,7 @@ import { useStageStore } from '@/lib/store/stage';
 import { useWorkbenchStore } from '@/lib/workbench/session-store';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { setElementIdById } from '@/components/edit/ActionsBar/actions-edit';
+import { commitCourseEdit } from '@/lib/edit/course-edit';
 import { cueLabel } from '@/components/edit/ActionsBar/cue-meta';
 import { clearCuePreview, previewCueEffect } from '@/components/edit/ActionsBar/cue-preview';
 import {
@@ -201,9 +202,11 @@ export function ElementPickLayer() {
       }
       const sc = stageState.scenes.find((s) => s.id === pt.sceneId);
       if (sc) {
-        useStageStore.getState().updateScene(pt.sceneId, {
-          actions: setElementIdById(sc.actions ?? [], pt.actionId, elementId),
-        });
+        commitCourseEdit({}, () =>
+          useStageStore.getState().updateScene(pt.sceneId, {
+            actions: setElementIdById(sc.actions ?? [], pt.actionId, elementId),
+          }),
+        );
       }
       finish();
     },

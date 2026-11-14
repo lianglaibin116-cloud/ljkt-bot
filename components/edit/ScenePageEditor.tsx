@@ -18,9 +18,9 @@ import { toRuntimeSlideContent } from '@/lib/agent/client/apply-regenerate';
 import { mayGenerateForStage, useMayGenerateForStage } from '@/lib/classroom/generation-permission';
 import { fetchSceneContent } from '@/lib/hooks/use-scene-generator';
 import { validateGeneratedInteractiveHtml } from '@/lib/interactive/validate-generated-html';
+import { commitCourseEdit } from '@/lib/edit/course-edit';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useStageStore } from '@/lib/store/stage';
-import { useSlideEditSession } from '@/components/edit/surfaces/slide/slide-edit-session';
 import {
   countInteractiveLayoutChanges,
   readInteractiveLayoutOverrides,
@@ -101,7 +101,9 @@ export function ScenePageEditor({ scene }: { readonly scene: EditableScene }) {
 
     const html = writeInteractiveLayoutOverrides(sourceHtml, draft.overrides);
     draft.finish(scene.id);
-    state.updateScene(scene.id, { content: { ...latest.content, html } });
+    commitCourseEdit({}, () =>
+      state.updateScene(scene.id, { content: { ...latest.content, html } }),
+    );
     toast.success(`已保存 ${changes} 处布局调整。`);
   }
 
@@ -124,15 +126,8 @@ export function ScenePageEditor({ scene }: { readonly scene: EditableScene }) {
       ...(outlineId ? { outlineId } : {}),
       ...(removeOldActions ? { actions: retainedActions } : {}),
     };
-    const updatedEditorSession =
-      scene.type === 'slide' &&
-      useSlideEditSession.getState().replaceFromGenerated(scene.id, content as SlideContent);
-    if (updatedEditorSession) {
-      if (Object.keys(metadataPatch).length > 0) state.updateScene(scene.id, metadataPatch);
-      useCanvasStore.getState().clearSelection();
-    } else {
-      state.updateScene(scene.id, { content, ...metadataPatch });
-    }
+    commitCourseEdit({}, () => state.updateScene(scene.id, { content, ...metadataPatch }));
+    if (scene.type === 'slide') useCanvasStore.getState().clearSelection();
     setOpen(false);
     toast.success('页面已更新，请检查讲解和动作时间轴。');
   }

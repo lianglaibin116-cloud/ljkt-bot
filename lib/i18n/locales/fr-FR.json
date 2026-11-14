@@ -770,6 +770,9 @@
     "dock": {
       "elementRefHint": "Références d’éléments — choisissez les éléments à joindre au prochain message",
       "globalTools": "Outils globaux"
+    },
+    "courseHistory": {
+      "stepExpired": "Cette étape a été supprimée, car ses médias ont dépassé la durée de conservation."
     }
   },
   "classroomComplete": {

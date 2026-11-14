@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { cn } from '@/lib/utils';
-import type { EditorCommand, SurfaceHistory } from '@/lib/edit/scene-editor-surface';
+import type { EditorCommand } from '@/lib/edit/scene-editor-surface';
+import { useCourseHistory } from '@/lib/edit/use-course-history';
 import { classroomExitLabelKey, exitClassroom } from '@/lib/workbench/classroom-exit';
 
 interface CommandBarProps {
   readonly title: string;
-  readonly history?: SurfaceHistory;
   readonly commands?: readonly EditorCommand[];
   /**
    * Right-edge slot owned by Stage. In Pro mode it carries the
@@ -33,8 +33,10 @@ interface CommandBarProps {
  * not a one-way state, so we deliberately do *not* place a "Done" pill
  * here that would compete with the Switch's affordance.
  */
-export function CommandBar({ title, history, commands, trailing }: CommandBarProps) {
+export function CommandBar({ title, commands, trailing }: CommandBarProps) {
   const { t } = useI18n();
+  // Undo and redo span the whole course, across slide, quiz, action, and page edits.
+  const courseHistory = useCourseHistory();
   const router = useRouter();
   const searchParams = useSearchParams();
   const exitLabel = t(classroomExitLabelKey(searchParams));
@@ -51,16 +53,24 @@ export function CommandBar({ title, history, commands, trailing }: CommandBarPro
         >
           <ArrowLeft className="h-4 w-4" />
         </IconButton>
-        {history && (
-          <>
-            <IconButton title={t('edit.undo')} disabled={!history.canUndo} onClick={history.undo}>
-              <Undo2 className="h-4 w-4" />
-            </IconButton>
-            <IconButton title={t('edit.redo')} disabled={!history.canRedo} onClick={history.redo}>
-              <Redo2 className="h-4 w-4" />
-            </IconButton>
-          </>
-        )}
+        <IconButton
+          title={t('edit.undo')}
+          aria-label={t('edit.undo')}
+          data-testid="edit-undo"
+          disabled={!courseHistory.canUndo}
+          onClick={courseHistory.undo}
+        >
+          <Undo2 className="h-4 w-4" />
+        </IconButton>
+        <IconButton
+          title={t('edit.redo')}
+          aria-label={t('edit.redo')}
+          data-testid="edit-redo"
+          disabled={!courseHistory.canRedo}
+          onClick={courseHistory.redo}
+        >
+          <Redo2 className="h-4 w-4" />
+        </IconButton>
         <span
           className={cn('ml-2 truncate text-sm font-semibold text-foreground/90')}
           title={title}

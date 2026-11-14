@@ -30,10 +30,7 @@ import {
   StorageLockUnavailableError,
 } from '@ljkt/storage/asset/collector';
 import { ensureAssetSchema } from '@ljkt/storage/asset/pg';
-import {
-  nodePostgresTransaction,
-  type ConnectableQueryable,
-} from '@ljkt/storage/server/reference';
+import { nodePostgresTransaction, type ConnectableQueryable } from '@ljkt/storage/server/reference';
 import { Pool } from 'pg';
 
 import { resolveAssetCollectionGraceMs } from '@/lib/persistence/asset-collection-grace';
@@ -124,8 +121,9 @@ export function startAssetCollectorSchedule(
     1_000,
   );
   // ASSET_COLLECTION_GRACE_MS: how long bytes survive after their last
-  // reference goes. Defaults to the package's one hour. This is the retention
-  // window a user's deleted bytes actually get, so raise it deliberately.
+  // reference goes. Course undo requires at least 45 minutes; the package
+  // default is one hour. This is the retention window a user's deleted bytes
+  // actually get, so raise it deliberately.
   // Shared with the persistence route, which needs the same number to enable
   // indirect byte egress safely.
   const graceMs = resolveAssetCollectionGraceMs();
