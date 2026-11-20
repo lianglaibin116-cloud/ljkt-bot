@@ -39,6 +39,7 @@ export interface PlaybackEngineCallbacks {
   onEffectFire?: (effect: Effect) => void;
 
   // Proactive discussion
+  enableDiscussions?: boolean;
   onProactiveShow?: (trigger: TriggerEvent) => void;
   onProactiveHide?: () => void;
 

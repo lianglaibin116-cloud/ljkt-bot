@@ -102,6 +102,7 @@ export interface PlaybackChromeRootHandle {
 }
 
 interface PlaybackChromeRootProps {
+  readonly teacherOnly?: boolean;
   readonly onRetryOutline?: (outlineId: string) => Promise<void>;
   /** Whether the Pro Switch in Header should be enabled. */
   readonly canEnterProMode?: boolean;
@@ -126,6 +127,7 @@ interface PlaybackChromeRootProps {
 export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackChromeRootProps>(
   function PlaybackChromeRoot(
     {
+      teacherOnly = false,
       onRetryOutline,
       canEnterProMode,
       onEnterProMode,
@@ -185,8 +187,10 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
     const setSidebarCollapsed = useSettingsStore((s) => s.setSidebarCollapsed);
     const chatAreaWidth = useSettingsStore((s) => s.chatAreaWidth);
     const setChatAreaWidth = useSettingsStore((s) => s.setChatAreaWidth);
-    const chatAreaCollapsed = useSettingsStore((s) => s.chatAreaCollapsed);
+    const savedChatAreaCollapsed = useSettingsStore((s) => s.chatAreaCollapsed);
     const setChatAreaCollapsed = useSettingsStore((s) => s.setChatAreaCollapsed);
+    const chatAreaCollapsed = teacherOnly || savedChatAreaCollapsed;
+    const toggleChatArea = teacherOnly ? undefined : () => setChatAreaCollapsed(!chatAreaCollapsed);
     const setTTSMuted = useSettingsStore((s) => s.setTTSMuted);
     const setTTSVolume = useSettingsStore((s) => s.setTTSVolume);
 
@@ -641,12 +645,12 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (navigator as any).keyboard?.lock?.(['Escape']).catch(() => {});
         setSidebarCollapsed(true);
-        setChatAreaCollapsed(true);
+        if (!teacherOnly) setChatAreaCollapsed(true);
       } catch {
         // Firefox may deny fullscreen from certain keyboard events (e.g. F11)
         console.warn('[Presentation] Fullscreen request denied — browser policy');
       }
-    }, [setChatAreaCollapsed, setSidebarCollapsed]);
+    }, [setChatAreaCollapsed, setSidebarCollapsed, teacherOnly]);
 
     useEffect(() => {
       const onFullscreenChange = () => {
@@ -804,6 +808,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
 
         // Create new PlaybackEngine
         const engine = new PlaybackEngine([currentScene], actionEngine, audioPlayerRef.current, {
+          enableDiscussions: !teacherOnly,
           onModeChange: (mode) => {
             setEngineMode(mode);
           },
@@ -1011,7 +1016,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
         cancelled = true;
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps -- Only re-run when scene changes, functions are stable refs
-    }, [currentScene]);
+    }, [currentScene, teacherOnly]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -1278,7 +1283,8 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
       ? scenes.length
       : scenes.findIndex((s) => s.id === currentSceneId);
     const totalScenesCount = scenes.length + (canAdvanceToPendingSlot ? 1 : 0);
-    const showElementReference = piChatEnabled && coursewareReferenceEnabled && mode === 'playback';
+    const showElementReference =
+      !teacherOnly && piChatEnabled && coursewareReferenceEnabled && mode === 'playback';
     const canPickSlideElement = Boolean(
       showElementReference &&
       !whiteboardOpen &&
@@ -1621,6 +1627,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
             break;
           case 'c':
           case 'C':
+            if (teacherOnly) break;
             event.preventDefault();
             setChatAreaCollapsed(!chatAreaCollapsed);
             break;
@@ -1646,6 +1653,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
       setTTSMuted,
       setTTSVolume,
       sidebarCollapsed,
+      teacherOnly,
       togglePresentation,
       ttsMuted,
       ttsVolume,
@@ -1766,7 +1774,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
               sidebarCollapsed={sidebarCollapsed}
               chatCollapsed={chatAreaCollapsed}
               onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-              onToggleChat={() => setChatAreaCollapsed(!chatAreaCollapsed)}
+              onToggleChat={toggleChatArea}
               onPrevSlide={handlePreviousScene}
               onNextSlide={handleNextScene}
               onPlayPause={handlePlayPause}
@@ -1818,6 +1826,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
             >
               <Roundtable
                 mode={mode}
+                teacherOnly={teacherOnly}
                 initialParticipants={participants}
                 playbackView={playbackView}
                 currentSpeech={liveSpeech}
@@ -1847,6 +1856,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
                 isTopicPending={isTopicPending}
                 canSendMessage={canSendReferencedMessage}
                 onMessageSend={async (msg) => {
+                  if (teacherOnly) return;
                   const draft = showElementReference ? draftElementReferenceRef.current : null;
                   const elementReferenceSnapshot: ElementReferenceSendSnapshot | undefined = draft
                     ? {
@@ -1955,7 +1965,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
                 sidebarCollapsed={sidebarCollapsed}
                 chatCollapsed={chatAreaCollapsed}
                 onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-                onToggleChat={() => setChatAreaCollapsed(!chatAreaCollapsed)}
+                onToggleChat={toggleChatArea}
                 onPrevSlide={handlePreviousScene}
                 onNextSlide={handleNextScene}
                 onWhiteboardClose={handleWhiteboardToggle}
@@ -2000,7 +2010,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
             width={chatAreaWidth}
             onWidthChange={setChatAreaWidth}
             collapsed={chatAreaCollapsed}
-            onCollapseChange={setChatAreaCollapsed}
+            onCollapseChange={teacherOnly ? undefined : setChatAreaCollapsed}
             activeBubbleId={activeBubbleId}
             onActiveBubble={(id) => setActiveBubbleId(id)}
             currentSceneId={currentSceneId}

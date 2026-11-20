@@ -68,9 +68,11 @@ const LOAD_UNAVAILABLE_ERROR = 'load-unavailable';
 export function ClassroomSurface({
   classroomId,
   variant = 'page',
+  teacherOnly = false,
 }: {
   readonly classroomId: string;
   readonly variant?: 'page' | 'pane';
+  readonly teacherOnly?: boolean;
 }) {
   const { loadFromStorage } = useStageStore();
   const loadedClassroomId = useStageStore((s) => s.stage?.id ?? null);
@@ -515,6 +517,7 @@ export function ClassroomSurface({
           ) : (
             <Stage
               classroomId={classroomId}
+              teacherOnly={teacherOnly}
               onRetryOutline={mayGenerate ? retrySingleOutline : undefined}
             />
           )}

@@ -1,0 +1,64 @@
+.ljbot-name-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(400px, calc(100% - 32px));
+  margin: auto;
+  padding: 22px;
+  border: 1px solid #e1e2da;
+  border-radius: 16px;
+  background: #faf9f6;
+  color: #252621;
+  box-shadow: 0 16px 56px #0003;
+}
+.ljbot-name-dialog::backdrop {
+  background: rgb(27 32 28 / 32%);
+}
+.ljbot-name-dialog form,
+.ljbot-name-dialog label {
+  display: grid;
+  gap: 8px;
+}
+.ljbot-name-dialog form {
+  gap: 16px;
+}
+.ljbot-name-dialog h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.ljbot-name-dialog label {
+  color: #51564b;
+  font-size: 13px;
+}
+.ljbot-name-dialog input,
+.ljbot-name-actions button {
+  padding: 8px 10px;
+  border: 1px solid #d9dbd1;
+  border-radius: 8px;
+  background: white;
+  color: #252621;
+}
+.ljbot-name-dialog input:focus,
+.ljbot-name-actions button:focus-visible {
+  outline: 2px solid #629178;
+  outline-offset: 2px;
+}
+.ljbot-name-dialog p {
+  margin: 0;
+  color: #9d3939;
+  font-size: 12px;
+}
+.ljbot-name-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 13px;
+}
+.ljbot-name-actions button[type='submit'] {
+  border-color: #2c5847;
+  background: #2c5847;
+  color: white;
+}
+.ljbot-name-actions button:disabled {
+  opacity: 0.55;
+}

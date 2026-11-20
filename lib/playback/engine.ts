@@ -673,8 +673,13 @@ export class PlaybackEngine {
 
       case 'discussion': {
         const discussionAction = action as DiscussionAction;
-        // Check if already consumed
         if (this.consumedDiscussions.has(discussionAction.id)) {
+          this.processNext(generation);
+          return;
+        }
+        // Teacher-only playback should continue without waiting for a live discussion.
+        if (this.callbacks.enableDiscussions === false) {
+          this.markDiscussionConsumed(discussionAction.id);
           this.processNext(generation);
           return;
         }

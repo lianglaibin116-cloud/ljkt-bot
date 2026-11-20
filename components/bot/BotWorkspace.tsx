@@ -32,6 +32,7 @@ import {
   X,
 } from 'lucide-react';
 import { SettingsDialog } from '@/components/settings';
+import { BotNameDialog } from '@/components/bot/BotNameDialog';
 import { BotCourseLibrary } from '@/components/bot/BotCourseLibrary';
 import { BotCourseSetup, type BotCourseSetupOptions } from '@/components/bot/BotCourseSetup';
 import { OutlinesEditor } from '@/components/generation/outlines-editor';
@@ -152,6 +153,9 @@ type BotFrameActions = {
 export default function BotWorkspace() {
   const [threads, setThreads] = useState<BotThread[]>([]);
   const [knowledgeFolders, setKnowledgeFolders] = useState<BotKnowledgeFolder[]>([]);
+  const [knowledgeFolderDialog, setKnowledgeFolderDialog] = useState<
+    { folder?: BotKnowledgeFolder } | null
+  >(null);
   const [thread, setThread] = useState<BotThread>(makeThread);
   const [loaded, setLoaded] = useState(false);
   const [draft, setDraft] = useState('');
@@ -206,8 +210,6 @@ export default function BotWorkspace() {
   });
   const pendingObjectUrls = useRef(new Map<string, { url: string; timeout: number }>());
   const executingActions = useRef(new Set<string>());
-  const providerId = useSettingsStore((state) => state.providerId);
-  const modelId = useSettingsStore((state) => state.modelId);
 
   const persist = useCallback(async (value: BotThread) => {
     if (
@@ -1085,56 +1087,29 @@ export default function BotWorkspace() {
     }
   };
 
-  const createKnowledgeFolder = async () => {
-    const name = window.prompt('新建资料文件夹名称');
-    if (!name?.trim()) return;
-    const normalizedName = name.trim().slice(0, 60);
-    if (
-      knowledgeFolders.some((folder) => folder.name.toLowerCase() === normalizedName.toLowerCase())
-    ) {
-      toast.error('已有同名资料文件夹。');
-      return;
-    }
-    const now = Date.now();
-    const folder: BotKnowledgeFolder = {
-      id: nanoid(),
-      name: normalizedName,
-      createdAt: now,
-      updatedAt: now,
-      materials: [],
-    };
-    try {
-      await saveBotKnowledgeFolder(folder);
-      setKnowledgeFolders((items) => [folder, ...items]);
-      setSelectedKnowledgeFolder(folder.id);
-      toast.success(`已创建资料文件夹“${folder.name}”。`);
-    } catch {
-      setError('资料文件夹未能保存，请检查本机存储空间。');
-    }
-  };
-
-  const renameKnowledgeFolder = async (folder: BotKnowledgeFolder) => {
-    const name = window.prompt('重命名资料文件夹', folder.name);
-    if (!name?.trim()) return;
-    const normalizedName = name.trim().slice(0, 60);
+  const saveKnowledgeFolderName = async (name: string, folder?: BotKnowledgeFolder) => {
+    if (name === folder?.name) return;
     if (
       knowledgeFolders.some(
-        (item) => item.id !== folder.id && item.name.toLowerCase() === normalizedName.toLowerCase(),
+        (item) => item.id !== folder?.id && item.name.toLowerCase() === name.toLowerCase(),
       )
     ) {
-      toast.error('已有同名资料文件夹。');
-      return;
+      throw new Error('已有同名资料文件夹。');
     }
-    const updated = { ...folder, name: normalizedName, updatedAt: Date.now() };
+
+    const now = Date.now();
+    const updated: BotKnowledgeFolder = folder
+      ? { ...folder, name, updatedAt: now }
+      : { id: nanoid(), name, createdAt: now, updatedAt: now, materials: [] };
     try {
       await saveBotKnowledgeFolder(updated);
-      setKnowledgeFolders((items) =>
-        [updated, ...items.filter((item) => item.id !== updated.id)].sort(
-          (left, right) => right.updatedAt - left.updatedAt,
-        ),
-      );
     } catch {
-      setError('资料文件夹未能重命名，请重试。');
+      throw new Error('资料文件夹未能保存，请检查本机存储空间后重试。');
+    }
+    setKnowledgeFolders((items) => [updated, ...items.filter((item) => item.id !== updated.id)]);
+    if (!folder) {
+      setSelectedKnowledgeFolder(updated.id);
+      toast.success(`已创建资料文件夹“${name}”。`);
     }
   };
 
@@ -1573,7 +1548,7 @@ export default function BotWorkspace() {
           资料文件夹
           <button
             title="新建资料文件夹"
-            onClick={() => void createKnowledgeFolder()}
+            onClick={() => setKnowledgeFolderDialog({})}
             disabled={!loaded || busy || uploadingFolderId !== ''}
           >
             <FolderPlus size={15} />
@@ -1630,7 +1605,7 @@ export default function BotWorkspace() {
               <button
                 title={`重命名“${folder.name}”`}
                 disabled={busy || uploadingFolderId !== ''}
-                onClick={() => void renameKnowledgeFolder(folder)}
+                onClick={() => setKnowledgeFolderDialog({ folder })}
               >
                 <Pencil size={12} />
               </button>
@@ -1993,27 +1968,34 @@ export default function BotWorkspace() {
                     <Paperclip size={17} />
                   )}
                 </button>
-                <button type="button" className="ljbot-model" onClick={() => setSettingsOpen(true)}>
-                  {modelId || providerId || '配置模型'}
-                  <ChevronRight size={12} />
-                </button>
               </div>
               <div>
-                <select
-                  className="ljbot-folder-select"
-                  aria-label="本对话资料文件夹"
-                  title="选择本对话可使用的资料文件夹"
-                  value={selectedKnowledgeFolderId}
-                  onChange={(event) => setSelectedKnowledgeFolder(event.target.value)}
-                  disabled={busy || !knowledgeFolders.length}
-                >
-                  <option value="">资料文件夹</option>
-                  {knowledgeFolders.map((folder) => (
-                    <option key={folder.id} value={folder.id}>
-                      {folder.name}（{folder.materials.length}份）
-                    </option>
-                  ))}
-                </select>
+                {knowledgeFolders.length ? (
+                  <select
+                    className="ljbot-folder-select"
+                    aria-label="本对话资料文件夹"
+                    title="选择本对话可使用的资料文件夹"
+                    value={selectedKnowledgeFolderId}
+                    onChange={(event) => setSelectedKnowledgeFolder(event.target.value)}
+                    disabled={busy}
+                  >
+                    <option value="">资料文件夹</option>
+                    {knowledgeFolders.map((folder) => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.name}（{folder.materials.length}份）
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <button
+                    type="button"
+                    className="ljbot-folder-create"
+                    disabled={!loaded || busy || uploadingFolderId !== ''}
+                    onClick={() => setKnowledgeFolderDialog({})}
+                  >
+                    新建资料文件夹
+                  </button>
+                )}
                 <select
                   aria-label="关联课件"
                   value={selectedCourse}
@@ -2276,6 +2258,17 @@ export default function BotWorkspace() {
             />
           )}
         </section>
+      )}
+      {knowledgeFolderDialog && (
+        <BotNameDialog
+          title={knowledgeFolderDialog.folder ? '重命名资料文件夹' : '新建资料文件夹'}
+          label="资料文件夹名称"
+          initialValue={knowledgeFolderDialog.folder?.name}
+          maxLength={60}
+          submitLabel={knowledgeFolderDialog.folder ? '保存' : '创建'}
+          onSubmit={(name) => saveKnowledgeFolderName(name, knowledgeFolderDialog.folder)}
+          onCancel={() => setKnowledgeFolderDialog(null)}
+        />
       )}
       <BotCourseLibrary
         open={libraryOpen}

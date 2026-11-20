@@ -34,6 +34,7 @@
 .ljbot-library header p { margin: 3px 0 0; color: #82847a; font-size: 12px; }
 .ljbot-library header button,
 .ljbot-library-toolbar button,
+.ljbot-library-archive,
 .ljbot-library-actions button {
   display: inline-flex;
   align-items: center;
@@ -88,6 +89,7 @@
 .ljbot-library-course-main p { max-width: 540px; overflow: hidden; margin: 5px 0 0; color: #66685e; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .ljbot-library-folder { display: flex; align-items: center; gap: 5px; color: #77796e; }
 .ljbot-library-folder select { max-width: 140px; padding: 6px; }
+.ljbot-library-archive { font-size: 12px; }
 .ljbot-library-actions { display: flex; align-items: center; gap: 6px; }
 .ljbot-library-actions button { padding: 7px 9px; font-size: 12px; }
 .ljbot-library-actions .danger { color: #9d3939; }

@@ -180,7 +180,8 @@ test('prepare task hands requirements to the right pane and displays reviewed ou
     route.fulfill({ status: 503, json: { error: 'Do not generate before outline approval' } }),
   );
   await seedConversation(page, true);
-  await expect(page.locator('.ljbot-model')).toContainText('MiniMax-M3');
+  await expect(page.locator('.ljbot-composer-tools')).not.toContainText('MiniMax-M3');
+  await expect(page.getByRole('button', { name: '模型与设置', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '开始整理大纲', exact: true }).click();
   await expect.poll(() => requests.length, { timeout: 15000 }).toBe(1);
   expect(requests[0]).toEqual({
@@ -223,7 +224,6 @@ test('failed outline stays visible, keeps its own draft and can be restarted fro
     });
   });
   await seedConversation(page, true);
-  await expect(page.locator('.ljbot-model')).toContainText('MiniMax-M3');
   await page.getByRole('button', { name: '开始整理大纲', exact: true }).click();
   const frame = page.frameLocator('iframe[title="课件预览和编辑"]');
   await expect(frame.getByText('模型服务暂时不可用，请重试', { exact: true })).toBeVisible();

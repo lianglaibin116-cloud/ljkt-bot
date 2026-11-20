@@ -15,6 +15,8 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { BotNameDialog } from '@/components/bot/BotNameDialog';
 import { useImportClassroom } from '@/lib/import/use-import-classroom';
 import type { ClassroomManifest } from '@/lib/export/classroom-zip-types';
 import {
@@ -23,6 +25,7 @@ import {
 } from '@/lib/export/use-export-classroom';
 import {
   createFolder,
+  FolderNameError,
   deleteStageData,
   loadStageData,
   listFolders,
@@ -58,6 +61,11 @@ export function BotCourseLibrary({
   const [folderFilter, setFolderFilter] = useState('all');
   const [showTrash, setShowTrash] = useState(false);
   const [error, setError] = useState('');
+  const [nameDialog, setNameDialog] = useState<
+    | { type: 'folder'; courseToMove?: StageListItem }
+    | { type: 'rename'; course: StageListItem }
+    | null
+  >(null);
   const [copyingCourseId, setCopyingCourseId] = useState<string | null>(null);
   const copyInProgress = useRef(false);
 
@@ -153,25 +161,44 @@ export function BotCourseLibrary({
     }
   };
 
-  const createNewFolder = async () => {
-    const name = window.prompt('新文件夹名称');
-    if (!name?.trim()) return;
+  const createNewFolder = async (name: string, courseToMove?: StageListItem) => {
+    let folder: FolderRecord;
     try {
-      await createFolder(name.trim());
-      await refresh();
-    } catch {
-      setError('文件夹未能创建，请检查名称是否重复或过长。');
+      folder = await createFolder(name);
+    } catch (cause) {
+      if (cause instanceof FolderNameError) {
+        const messages = {
+          empty: '请输入文件夹名称。',
+          duplicate: '已有同名课件文件夹。',
+          tooLong: '文件夹名称过长，最多约 20 个汉字或 40 个英文字母。',
+          limit: '课件文件夹已达到数量上限。',
+        };
+        throw new Error(messages[cause.kind]);
+      }
+      throw new Error('文件夹未能创建，请重试。');
     }
+    setFolders((items) => [...items, folder]);
+    if (courseToMove) {
+      try {
+        await setStageFolder(courseToMove.id, folder.id);
+        if (folderFilter === '') setFolderFilter(folder.id);
+        toast.success(`已归档到“${folder.name}”。`);
+      } catch {
+        await refresh();
+        setError('文件夹已创建，课件移动失败。请在课件旁选择该文件夹重试。');
+        return;
+      }
+    }
+    await refresh();
   };
 
-  const rename = async (course: StageListItem) => {
-    const name = window.prompt('课件名称', course.name)?.trim();
-    if (!name || name === course.name) return;
+  const rename = async (course: StageListItem, name: string) => {
+    if (name === course.name) return;
     try {
       await renameStage(course.id, name);
       await refresh();
     } catch {
-      setError('重命名失败，请重试。');
+      throw new Error('重命名失败，请重试。');
     }
   };
 
@@ -268,7 +295,7 @@ export function BotCourseLibrary({
                 <FileUp size={15} />
                 导入课堂
               </button>
-              <button onClick={() => void createNewFolder()}>
+              <button onClick={() => setNameDialog({ type: 'folder' })}>
                 <FolderPlus size={15} />
                 新建文件夹
               </button>
@@ -304,7 +331,7 @@ export function BotCourseLibrary({
                 </span>
                 {course.description && <p>{course.description}</p>}
               </div>
-              {!showTrash && (
+              {!showTrash && (folders.length ? (
                 <label className="ljbot-library-folder" title="移动到文件夹">
                   <Folder size={14} />
                   <select
@@ -320,7 +347,17 @@ export function BotCourseLibrary({
                     ))}
                   </select>
                 </label>
-              )}
+              ) : (
+                <button
+                  type="button"
+                  className="ljbot-library-folder ljbot-library-archive"
+                  aria-label={`归档 ${course.name}`}
+                  onClick={() => setNameDialog({ type: 'folder', courseToMove: course })}
+                >
+                  <Folder size={14} />
+                  归档…
+                </button>
+              ))}
               <div className="ljbot-library-actions">
                 {showTrash ? (
                   <>
@@ -345,7 +382,10 @@ export function BotCourseLibrary({
                       <Copy size={14} />
                       {copyingCourseId === course.id ? '正在复制' : '复制'}
                     </button>
-                    <button title="重命名课件" onClick={() => void rename(course)}>
+                    <button
+                      title="重命名课件"
+                      onClick={() => setNameDialog({ type: 'rename', course })}
+                    >
                       <Settings2 size={14} />
                       重命名
                     </button>
@@ -363,6 +403,25 @@ export function BotCourseLibrary({
           {visibleCourses.length} 份课件{importer.importing ? ` · 正在导入：${importer.phase}` : ''}
         </footer>
       </section>
+      {nameDialog?.type === 'folder' && (
+        <BotNameDialog
+          title={nameDialog.courseToMove ? '新建文件夹并归档' : '新建课件文件夹'}
+          label="文件夹名称"
+          submitLabel={nameDialog.courseToMove ? '创建并归档' : '创建'}
+          onSubmit={(name) => createNewFolder(name, nameDialog.courseToMove)}
+          onCancel={() => setNameDialog(null)}
+        />
+      )}
+      {nameDialog?.type === 'rename' && (
+        <BotNameDialog
+          title="重命名课件"
+          label="课件名称"
+          initialValue={nameDialog.course.name}
+          submitLabel="保存"
+          onSubmit={(name) => rename(nameDialog.course, name)}
+          onCancel={() => setNameDialog(null)}
+        />
+      )}
     </div>
   );
 }

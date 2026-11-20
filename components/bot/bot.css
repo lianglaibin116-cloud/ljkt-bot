@@ -560,16 +560,6 @@
   border-radius: 6px;
   color: #959b87;
 }
-.ljbot-model {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  font-size: 10px;
-  max-width: 180px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
 .ljbot-composer-tools select {
   font-size: 10px;
   color: #8c9480;
@@ -582,6 +572,15 @@
 .ljbot-composer-tools .ljbot-folder-select {
   max-width: 170px;
   color: #58705f;
+}
+.ljbot-composer-tools button.ljbot-folder-create {
+  color: #58705f;
+  background: #f6f7f0;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.ljbot-composer-tools button.ljbot-folder-create:disabled {
+  opacity: 0.5;
 }
 .ljbot-send {
   display: grid;
