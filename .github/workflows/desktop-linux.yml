@@ -1,0 +1,134 @@
+name: Linux desktop v0.2.3
+
+on:
+  push:
+    branches: [codex/build-v0.2.3-linux]
+
+permissions:
+  contents: read
+
+jobs:
+  package-linux-x64:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out the v0.2.3 snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: 849b935a27e034a0a778903379d0439a43e6c2f3
+          persist-credentials: false
+
+      - name: Install Electron runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgtk-3-0 libnss3 libxss1 libasound2 libatk1.0-0 libatk-bridge2.0-0 libgbm1 libxshmfence1 libfuse2
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and package Linux x64
+        run: |
+          node -e "if (process.arch !== 'x64' || require('./package.json').version !== '0.2.3' || require('./desktop/package.json').version !== '0.2.3') process.exit(1)"
+          pnpm bot:desktop:build
+          rm -rf .next
+          pnpm bot:desktop:package
+
+      - name: Build AppImage and Debian packages
+        run: |
+          installer="$RUNNER_TEMP/ljkt-linux-installer.yml"
+          cat > "$installer" <<'CONFIG'
+          appId: com.boante.lingjing.bot
+          productName: 灵境课堂 Bot
+          directories:
+            output: desktop/release/installers
+          extraMetadata:
+            homepage: https://github.com/lianglaibin116-cloud/ljkt-bot
+          linux:
+            executableName: LingjingBot
+            artifactName: LingjingBot-${version}-Linux-x64.${ext}
+            category: Education
+            maintainer: 黑龙江波安特教育科技有限公司
+            icon: public/lingjing-mark.png
+          CONFIG
+          node node_modules/electron-builder/out/cli/cli.js \
+            --config "$installer" \
+            --prepackaged "$PWD/desktop/release/灵境课堂 Bot-linux-x64" \
+            --linux AppImage deb --x64 --publish never
+
+      - name: Verify and start each Linux package
+        shell: bash
+        run: |
+          set -euo pipefail
+          installers="$PWD/desktop/release/installers"
+          appimage="$installers/LingjingBot-0.2.3-Linux-x64.AppImage"
+          deb="$installers/LingjingBot-0.2.3-Linux-x64.deb"
+          test -x "$appimage"
+          readelf -h "$appimage" | grep 'Advanced Micro Devices X86-64'
+          test "$(dpkg-deb -f "$deb" Architecture)" = amd64
+          test "$(dpkg-deb -f "$deb" Version)" = 0.2.3
+
+          smoke_root="$(mktemp -d "$RUNNER_TEMP/ljkt-linux-smoke.XXXXXX")"
+          smoke() (
+            executable="$1"
+            port="$2"
+            config="$smoke_root/config-$port"
+            log="$smoke_root/smoke-$port.log"
+            mkdir -p "$config"
+            XDG_CONFIG_HOME="$config" LJKT_BOT_DESKTOP_PORT="$port" \
+              setsid xvfb-run -a "$executable" --no-sandbox --disable-gpu >"$log" 2>&1 &
+            app_group=$!
+            cleanup() {
+              kill -- -"$app_group" 2>/dev/null || true
+              wait "$app_group" 2>/dev/null || true
+            }
+            trap cleanup EXIT
+            url="http://127.0.0.1:$port"
+            for attempt in $(seq 1 60); do
+              if curl --fail --silent --max-time 3 "$url/api/bot/health" > "$smoke_root/health-$port.json" \
+                && grep -q '"application"[[:space:]]*:[[:space:]]*"ljkt-bot"' "$smoke_root/health-$port.json"; then
+                curl --fail --silent --show-error --max-time 15 "$url/desktop/index.html" -o /dev/null
+                echo "Desktop health check passed for $executable"
+                exit 0
+              fi
+              sleep 2
+            done
+            cat "$log"
+            find "$config" -name desktop.log -type f -exec cat {} +
+            exit 1
+          )
+
+          mkdir "$smoke_root/appimage"
+          (cd "$smoke_root/appimage" && "$appimage" --appimage-extract > /dev/null)
+          smoke "$smoke_root/appimage/squashfs-root/AppRun" 30310
+          rm -rf "$smoke_root/appimage"
+
+          dpkg-deb -x "$deb" "$smoke_root/deb"
+          deb_binary="$(find "$smoke_root/deb/opt" -type f -name LingjingBot -print -quit)"
+          test -x "$deb_binary"
+          grep 'Exec=.*LingjingBot' "$smoke_root/deb/usr/share/applications/LingjingBot.desktop"
+          smoke "$deb_binary" 30311
+
+      - name: Upload Linux AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: LingjingBot-v0.2.3-Linux-x64-AppImage
+          path: desktop/release/installers/*.AppImage
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload Linux Debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: LingjingBot-v0.2.3-Linux-x64-DEB
+          path: desktop/release/installers/*.deb
+          if-no-files-found: error
+          retention-days: 30
