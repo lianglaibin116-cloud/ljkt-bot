@@ -99,6 +99,7 @@ jobs:
                 echo "Desktop health check passed for $executable"
                 exit 0
               fi
+              kill -0 "$app_group" 2>/dev/null || break
               sleep 2
             done
             cat "$log"
@@ -108,7 +109,8 @@ jobs:
 
           mkdir "$smoke_root/appimage"
           (cd "$smoke_root/appimage" && "$appimage" --appimage-extract > /dev/null)
-          smoke "$smoke_root/appimage/squashfs-root/AppRun" 30310
+          appdir="$smoke_root/appimage/squashfs-root"
+          APPDIR="$appdir" APPIMAGE="$appimage" smoke "$appdir/AppRun" 30310
           rm -rf "$smoke_root/appimage"
 
           dpkg-deb -x "$deb" "$smoke_root/deb"
