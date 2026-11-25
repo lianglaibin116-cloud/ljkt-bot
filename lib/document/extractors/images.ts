@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 
 export const MAX_DERIVED_IMAGES = 100;
+export const MAX_DOCUMENT_IMAGES = 300;
 export const MAX_DERIVED_IMAGE_BYTES = 2 * 1024 * 1024;
 const DERIVED_IMAGE_ATTEMPTS = [
   { dimension: 2048, quality: 82 },

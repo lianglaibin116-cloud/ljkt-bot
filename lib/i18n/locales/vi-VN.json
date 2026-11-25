@@ -293,7 +293,8 @@
       "qa": "HỎI ĐÁP",
       "discussion": "THẢO LUẬN",
       "lecture": "GIẢNG"
-    }
+    },
+    "interactiveMoreBelow": "Còn nội dung bên dưới"
   },
   "actions": {
     "names": {
@@ -344,6 +345,13 @@
     "startListening": "Nhập bằng giọng nói",
     "stopListening": "Dừng ghi âm"
   },
+  "mobileClassroom": {
+    "classroom": "Lớp học",
+    "directory": "Mục lục",
+    "lecture": "Bài giảng",
+    "chat": "Trò chuyện",
+    "materials": "Tài liệu lớp học"
+  },
   "stage": {
     "currentScene": "Cảnh hiện tại",
     "generating": "Đang tạo…",
@@ -353,6 +361,7 @@
     "confirmSwitchMessage": "Đang có một chủ đề dở dang. Chuyển cảnh sẽ kết thúc chủ đề đang học. Bạn có chắc không?",
     "generatingNextPage": "Cảnh đang được tạo, vui lòng đợi…",
     "courseComplete": "Đã học xong bài",
+    "endCourse": "Kết thúc khóa học",
     "fullscreen": "Toàn màn hình",
     "exitFullscreen": "Thoát toàn màn hình",
     "editCourse": "Sửa bài học",

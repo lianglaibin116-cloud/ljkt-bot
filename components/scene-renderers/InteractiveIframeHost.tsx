@@ -14,11 +14,12 @@ import {
   handleInteractiveLayoutEditorMessage,
   useInteractiveLayoutEditor,
 } from '@/lib/store/interactive-layout-editor';
+import { GENUI_LOGICAL_HEIGHT, GENUI_LOGICAL_WIDTH } from '@/lib/interactive/logical-viewport';
 import {
-  GENUI_LOGICAL_HEIGHT,
-  GENUI_LOGICAL_WIDTH,
-  fitGenUiViewport,
-} from '@/lib/interactive/logical-viewport';
+  GENUI_FIT_REPORT_REQUEST,
+  GENUI_FIT_SCROLL_REQUEST,
+  useGenUiFit,
+} from '@/lib/interactive/use-genui-fit';
 import { intersectClientBoxes } from '@/lib/edit/visible-client-rect';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useElementRefsStore } from '@/lib/store/element-refs';
@@ -30,6 +31,7 @@ import {
   makeInteractiveElementRef,
 } from '@/lib/workbench/element-refs';
 import { InteractiveRuntimeErrorBanner } from './InteractiveRuntimeErrorBanner';
+import { InteractiveMoreBelowCue } from './InteractiveMoreBelowCue';
 
 type InteractivePickerMessage = {
   __maicInteractive?: boolean;
@@ -407,6 +409,13 @@ function PooledIframe({
     [refs, sceneId],
   );
   const documentToken = entry.srcDoc ? `srcDoc:${entry.srcDoc}` : `src:${entry.src ?? ''}`;
+  const rect = entry.rect;
+  const fit = useGenUiFit(rect, documentToken);
+  const handleFitMessage = fit.handleMessage;
+  // The page reports its current content extent after the host listener is ready.
+  useEffect(() => {
+    iframeRef.current?.contentWindow?.postMessage(GENUI_FIT_REPORT_REQUEST, '*');
+  }, [fit.fitKey]);
 
   // Register the postMessage callback for this scene (moved here from the
   // placeholder, since the iframe now lives in the host). Stable per scene:
@@ -457,6 +466,7 @@ function PooledIframe({
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.source !== iframeRef.current?.contentWindow) return;
+      if (handleFitMessage(e.data)) return;
       const d = e.data as
         | (InteractivePickerMessage & { errorKind?: string; message?: unknown })
         | undefined;
@@ -493,8 +503,18 @@ function PooledIframe({
     };
     window.addEventListener('message', onMessage);
     iframeRef.current?.contentWindow?.postMessage({ __maicErrorReplayRequest: true }, '*');
+    iframeRef.current?.contentWindow?.postMessage(GENUI_FIT_REPORT_REQUEST, '*');
     return () => window.removeEventListener('message', onMessage);
-  }, [sceneId, entry.srcDoc, effectiveMode, onPlaybackCancel, onPlaybackPick, playbackArmed, t]);
+  }, [
+    sceneId,
+    entry.srcDoc,
+    effectiveMode,
+    handleFitMessage,
+    onPlaybackCancel,
+    onPlaybackPick,
+    playbackArmed,
+    t,
+  ]);
 
   // A content change reloads the iframe; drop the previous render's errors so the
   // captured set reflects the CURRENT page (e.g. after the agent applies a fix).
@@ -510,9 +530,8 @@ function PooledIframe({
     );
   }, [entry.srcDoc, playbackRate]);
 
-  const rect = entry.rect;
   const clip = entry.clip ?? rect;
-  const viewport = rect ? fitGenUiViewport(rect) : null;
+  const viewport = fit.viewport;
   const visibleViewport = viewport && clip ? intersectClientBoxes(viewport.box, clip) : null;
   // Require a real measured box before showing — a null or zero-size rect means
   // the slot hasn't laid out yet; showing then would flash a 0x0 iframe pinned
@@ -548,15 +567,15 @@ function PooledIframe({
     position: 'absolute',
     left: viewport && visibleViewport ? viewport.box.left - visibleViewport.left : 0,
     top: viewport && visibleViewport ? viewport.box.top - visibleViewport.top : 0,
-    width: GENUI_LOGICAL_WIDTH,
-    height: GENUI_LOGICAL_HEIGHT,
+    width: viewport?.width ?? GENUI_LOGICAL_WIDTH,
+    height: viewport?.height ?? GENUI_LOGICAL_HEIGHT,
     border: 0,
     transform: `scale(${viewport?.scale ?? 0})`,
     transformOrigin: 'top left',
   };
 
   return (
-    <div style={wrapStyle}>
+    <div className="interactive-iframe-viewport" style={wrapStyle}>
       <iframe
         key={`${sceneId}-${iframeRetryNonce}`}
         ref={iframeRef}
@@ -594,6 +613,13 @@ function PooledIframe({
               setIframeRetryNonce((nonce) => nonce + 1);
             }
           }}
+        />
+      ) : null}
+      {shown && fit.showMoreCue && !showRuntimeError && !playbackArmed ? (
+        <InteractiveMoreBelowCue
+          onClick={() =>
+            iframeRef.current?.contentWindow?.postMessage(GENUI_FIT_SCROLL_REQUEST, '*')
+          }
         />
       ) : null}
       {playbackArmed && (

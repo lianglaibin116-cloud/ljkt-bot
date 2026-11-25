@@ -293,7 +293,8 @@
       "qa": "Q/R",
       "discussion": "DISC",
       "lecture": "COURS"
-    }
+    },
+    "interactiveMoreBelow": "Suite plus bas"
   },
   "actions": {
     "names": {
@@ -344,6 +345,13 @@
     "startListening": "Saisie vocale",
     "stopListening": "Arrêter l’enregistrement"
   },
+  "mobileClassroom": {
+    "classroom": "Classe",
+    "directory": "Sommaire",
+    "lecture": "Cours",
+    "chat": "Chat",
+    "materials": "Supports du cours"
+  },
   "stage": {
     "currentScene": "Scène actuelle",
     "generating": "Génération…",
@@ -353,6 +361,7 @@
     "confirmSwitchMessage": "Un sujet est en cours. Changer de scène mettra fin au sujet actuel. Confirmez-vous ?",
     "generatingNextPage": "La scène est en cours de génération, veuillez patienter…",
     "courseComplete": "Cours terminé",
+    "endCourse": "Terminer le cours",
     "fullscreen": "Plein écran",
     "exitFullscreen": "Quitter le plein écran",
     "editCourse": "Modifier le cours",

@@ -97,6 +97,7 @@ export const botChatRequestSchema = z.object({
   materialNames: z.array(z.string().max(250)).max(12).optional(),
   materialContext: z.string().max(100000).optional(),
   historyOmittedCount: z.number().int().nonnegative().max(10000).optional(),
+  historyDigest: z.string().max(6000).optional(),
   thinkingConfig: z.unknown().optional(),
 });
 export type BotEvent =

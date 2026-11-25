@@ -13,6 +13,11 @@ import {
 } from 'react';
 import { useStageStore } from '@/lib/store';
 import { PENDING_SCENE_ID } from '@/lib/store/stage';
+import {
+  MobileClassroomNav,
+  type ClassroomPanel,
+} from '@/components/classroom/mobile-classroom-nav';
+import '@/components/classroom/mobile-classroom.css';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useSettingsStore } from '@/lib/store/settings';
 import { useI18n } from '@/lib/hooks/use-i18n';
@@ -142,6 +147,15 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
     ref,
   ) {
     const { t } = useI18n();
+    const [mobile, setMobile] = useState(false);
+    useEffect(() => {
+      const media = window.matchMedia('(max-width: 760px)');
+      const update = () => setMobile(media.matches);
+      update();
+      media.addEventListener('change', update);
+      return () => media.removeEventListener('change', update);
+    }, []);
+    const [mobilePanel, setMobilePanel] = useState<ClassroomPanel | null>(null);
     const {
       mode,
       stage,
@@ -1268,6 +1282,11 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
       }
     }, [currentSceneId, gatedSceneSwitch, canAdvanceToPendingSlot, isPendingScene, scenes]);
 
+    const handleEndCourse = useCallback(() => {
+      if (!isCourseComplete || isPendingScene) return;
+      void gatedSceneSwitch(PENDING_SCENE_ID);
+    }, [gatedSceneSwitch, isCourseComplete, isPendingScene]);
+
     useEffect(() => {
       const onTeacherControl = (event: Event) => {
         const action = (event as CustomEvent<TeacherControlAction>).detail;
@@ -1707,24 +1726,39 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
       return `calc(100% - ${headerHeight + roundtableHeight}px)`;
     })();
 
+    const chooseMobilePanel = (panel: ClassroomPanel | null) => {
+      setMobilePanel(panel);
+      if (panel === 'lecture' || panel === 'chat') {
+        chatAreaRef.current?.switchToTab(panel);
+      }
+    };
+
     return (
       <div
         ref={stageRef}
         className={cn(
           'flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-900',
+          mobile && 'classroom-mobile-stage',
           isPresenting && !controlsVisible && 'cursor-none',
         )}
+        data-mobile-panel={mobile ? (mobilePanel ?? 'classroom') : undefined}
       >
         <SceneSidebar
-          collapsed={sidebarCollapsed}
-          onCollapseChange={setSidebarCollapsed}
-          onSceneSelect={gatedSceneSwitch}
+          collapsed={mobile ? mobilePanel !== 'directory' : sidebarCollapsed}
+          onCollapseChange={(collapsed) => {
+            if (mobile) setMobilePanel(collapsed ? null : 'directory');
+            else setSidebarCollapsed(collapsed);
+          }}
+          onSceneSelect={(sceneId) => {
+            void gatedSceneSwitch(sceneId);
+            if (mobile) setMobilePanel(null);
+          }}
           onRetryOutline={onRetryOutline}
           isCourseComplete={isCourseComplete}
         />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative">
+        <div className="classroom-mobile-main flex-1 flex flex-col overflow-hidden min-w-0 relative">
           {/* Header — playback only. The Pro Switch fires `onEnterProMode`
             (passed by the parent Stage) which awaits our `teardown()`
             before the parent flips mode to 'edit'. */}
@@ -1742,6 +1776,7 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
               hideBackControl={hideHeaderBackControl}
               hideGlobalControls={hideHeaderGlobalControls}
               hideCourseActions={hideHeaderCourseActions}
+              onEndCourse={isCourseComplete && !isPendingScene ? handleEndCourse : undefined}
             />
           )}
 
@@ -1773,8 +1808,16 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
               whiteboardOpen={whiteboardOpen}
               sidebarCollapsed={sidebarCollapsed}
               chatCollapsed={chatAreaCollapsed}
-              onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-              onToggleChat={toggleChatArea}
+              onToggleSidebar={() =>
+                mobile
+                  ? chooseMobilePanel(mobilePanel === 'directory' ? null : 'directory')
+                  : setSidebarCollapsed(!sidebarCollapsed)
+              }
+              onToggleChat={() =>
+                mobile
+                  ? chooseMobilePanel(mobilePanel === 'chat' ? null : 'chat')
+                  : toggleChatArea?.()
+              }
               onPrevSlide={handlePreviousScene}
               onNextSlide={handleNextScene}
               onPlayPause={handlePlayPause}
@@ -2004,13 +2047,15 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
         {/* Chat Area — playback / autonomous always renders it here; Pro
           (edit) mode unmounts this whole PlaybackChromeRoot, so the
           edit branch has no chat. */}
-        <div className="flex shrink-0">
+        <div className="classroom-mobile-chat flex shrink-0">
           <ChatArea
             ref={chatAreaRef}
             width={chatAreaWidth}
             onWidthChange={setChatAreaWidth}
-            collapsed={chatAreaCollapsed}
-            onCollapseChange={teacherOnly ? undefined : setChatAreaCollapsed}
+            collapsed={
+              mobile ? mobilePanel !== 'lecture' && mobilePanel !== 'chat' : chatAreaCollapsed
+            }
+            onCollapseChange={mobile || teacherOnly ? undefined : setChatAreaCollapsed}
             activeBubbleId={activeBubbleId}
             onActiveBubble={(id) => setActiveBubbleId(id)}
             currentSceneId={currentSceneId}
@@ -2074,6 +2119,14 @@ export const PlaybackChromeRoot = forwardRef<PlaybackChromeRootHandle, PlaybackC
             shouldHoldAfterReveal={discussionTTS.shouldHold}
           />
         </div>
+
+        {mobile && (
+          <MobileClassroomNav
+            active={mobilePanel}
+            live={engineMode === 'playing' || chatIsStreaming}
+            onSelect={chooseMobilePanel}
+          />
+        )}
 
         {/* Scene switch confirmation dialog */}
         <AlertDialog

@@ -35,6 +35,9 @@ export interface ParsedPdfContent {
     position?: { x: number; y: number; width: number; height: number };
   }>;
 
+  /** Non-fatal provider warnings, such as pages or layout blocks not recognized. */
+  diagnostics?: Array<{ severity: 'warning' | 'error'; message: string }>;
+
   /** Metadata about the PDF */
   metadata?: {
     fileName?: string;

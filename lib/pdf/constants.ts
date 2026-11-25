@@ -7,6 +7,8 @@ import type { PDFProviderId, PDFProviderConfig } from './types';
 
 export const MINERU_CLOUD_DEFAULT_BASE = 'https://mineru.net/api/v4';
 export const ALIDOCMIND_DEFAULT_BASE = 'https://docmind-api.cn-hangzhou.aliyuncs.com';
+export const MINICPM_OCR_DEFAULT_BASE = 'https://api.modelbest.cn/v1';
+export const DEEPSEEK_OCR_DEFAULT_BASE = 'https://api.deepseek.com/v1';
 
 /**
  * PDF Provider Registry
@@ -42,6 +44,26 @@ export const PDF_PROVIDERS: Record<PDFProviderId, PDFProviderConfig> = {
     requiresApiKey: true,
     icon: '/logos/aliyun.svg',
     features: ['text', 'images', 'tables', 'formulas', 'layout-analysis', 'ocr'],
+  },
+
+  'minicpm-ocr': {
+    id: 'minicpm-ocr',
+    name: 'MiniCPM-OCR',
+    requiresApiKey: true,
+    baseUrl: MINICPM_OCR_DEFAULT_BASE,
+    icon: '/logos/minicpm-ocr.png',
+    features: ['text', 'tables', 'formulas', 'layout-analysis', 'ocr'],
+    displayEndpoint: `${MINICPM_OCR_DEFAULT_BASE}/document-parse/jobs`,
+    apiKeyOptionalWithBaseUrl: true,
+  },
+
+  'deepseek-ocr': {
+    id: 'deepseek-ocr',
+    name: 'DeepSeek OCR',
+    requiresApiKey: true,
+    icon: '/logos/deepseek.svg',
+    features: ['text', 'images', 'tables', 'formulas', 'layout-analysis', 'ocr'],
+    displayEndpoint: `${DEEPSEEK_OCR_DEFAULT_BASE}/tools/ocr`,
   },
 };
 

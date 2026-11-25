@@ -87,6 +87,33 @@ export function selectRecentMessages(
   };
 }
 
+/**
+ * Build a short, request-only digest from history omitted by the context
+ * budget. The complete transcript stays in Bot's local conversation store.
+ */
+export function buildHistoryDigest(messages: ContextMessage[], tokenBudget = 450): string {
+  if (!messages.length || tokenBudget <= 0) return '';
+
+  const selected = new Set<number>();
+  const firstUserIndex = messages.findIndex((message) => message.role === 'user');
+  if (firstUserIndex >= 0) selected.add(firstUserIndex);
+  for (let index = Math.max(0, messages.length - 8); index < messages.length; index++) {
+    selected.add(index);
+  }
+
+  const excerpts = [...selected]
+    .sort((left, right) => left - right)
+    .map((index) => {
+      const message = messages[index];
+      const role = message.role === 'user' ? '用户' : '助手';
+      const excerpt = takeWithinTokenBudget(message.content.replace(/\s+/gu, ' ').trim(), 72).text;
+      return excerpt ? `${role}：${excerpt}` : '';
+    })
+    .filter(Boolean);
+
+  return takeWithinTokenBudget(excerpts.join('\n'), tokenBudget).text;
+}
+
 function keywords(value: string): string[] {
   const terms = new Set(value.toLowerCase().match(/[a-z0-9_+#.-]{2,}/g) ?? []);
   const chinese = value.match(/[\u3400-\u9fff]{2,}/gu) ?? [];

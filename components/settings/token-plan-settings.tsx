@@ -23,6 +23,8 @@ import {
   Image as ImageIcon,
   Video,
   Volume2,
+  Mic,
+  FileText,
   Search,
   type LucideIcon,
 } from 'lucide-react';
@@ -68,6 +70,8 @@ const MODALITY_LABEL_KEYS: Record<TokenPlanModality, string> = {
   image: 'settings.imageSettings',
   video: 'settings.videoSettings',
   tts: 'settings.ttsSettings',
+  asr: 'settings.asrSettings',
+  document: 'settings.pdfSettings',
   webSearch: 'settings.webSearchSettings',
 };
 
@@ -76,6 +80,8 @@ const MODALITY_ICONS: Record<TokenPlanModality, LucideIcon> = {
   image: ImageIcon,
   video: Video,
   tts: Volume2,
+  asr: Mic,
+  document: FileText,
   webSearch: Search,
 };
 
@@ -114,6 +120,8 @@ const MODEL_PLAN_CAPABILITY_LABEL_KEYS: Record<TokenPlanModality, string> = {
   image: 'settings.tokenPlan.capImage',
   video: 'settings.tokenPlan.capVideo',
   tts: 'settings.tokenPlan.capTts',
+  asr: 'settings.asrSettings',
+  document: 'settings.pdfSettings',
   webSearch: 'settings.tokenPlan.capWebSearch',
 };
 
@@ -126,7 +134,7 @@ function modelPlanItems(preset: TokenPlanPreset): ModelPlanItem[] {
       items.push({ capability: 'llm', stageId, model });
     }
   }
-  for (const capability of ['image', 'video', 'tts'] as const) {
+  for (const capability of ['image', 'video', 'tts', 'asr', 'document'] as const) {
     const target = preset.modalities[capability];
     if (target) {
       items.push({
@@ -175,6 +183,8 @@ export function TokenPlanSettings() {
   const setImageProviderConfig = useSettingsStore((s) => s.setImageProviderConfig);
   const setVideoProviderConfig = useSettingsStore((s) => s.setVideoProviderConfig);
   const setTTSProviderConfig = useSettingsStore((s) => s.setTTSProviderConfig);
+  const setASRProviderConfig = useSettingsStore((s) => s.setASRProviderConfig);
+  const setPDFProviderConfig = useSettingsStore((s) => s.setPDFProviderConfig);
   const setWebSearchProviderConfig = useSettingsStore((s) => s.setWebSearchProviderConfig);
   const setImageProvider = useSettingsStore((s) => s.setImageProvider);
   const setImageModelId = useSettingsStore((s) => s.setImageModelId);
@@ -183,6 +193,8 @@ export function TokenPlanSettings() {
   const setModel = useSettingsStore((s) => s.setModel);
   const setStageRoute = useSettingsStore((s) => s.setStageRoute);
   const setTTSProvider = useSettingsStore((s) => s.setTTSProvider);
+  const setASRProvider = useSettingsStore((s) => s.setASRProvider);
+  const setPDFProvider = useSettingsStore((s) => s.setPDFProvider);
   const setWebSearchProvider = useSettingsStore((s) => s.setWebSearchProvider);
   // Read provider configs so the page can reflect already-persisted state
   // (other settings panels read the store directly; this page must too).
@@ -231,6 +243,8 @@ export function TokenPlanSettings() {
       setImageProviderConfig,
       setVideoProviderConfig,
       setTTSProviderConfig,
+      setASRProviderConfig,
+      setPDFProviderConfig,
       setWebSearchProviderConfig,
       setStageRoute,
       getStageRoutes: () => useSettingsStore.getState().llmStageRoutes,
@@ -280,6 +294,8 @@ export function TokenPlanSettings() {
       setImageProviderConfig,
       setVideoProviderConfig,
       setTTSProviderConfig,
+      setASRProviderConfig,
+      setPDFProviderConfig,
       setWebSearchProviderConfig,
     };
     setTokenPlanAuthorization(preset, checked, writeActions, nextState);
@@ -311,6 +327,8 @@ export function TokenPlanSettings() {
         setImageProviderConfig,
         setVideoProviderConfig,
         setTTSProviderConfig,
+        setASRProviderConfig,
+        setPDFProviderConfig,
         setWebSearchProviderConfig,
         setImageProvider,
         setImageModelId,
@@ -319,6 +337,8 @@ export function TokenPlanSettings() {
         setModel,
         setStageRoute,
         setTTSProvider,
+        setASRProvider,
+        setPDFProvider,
         setWebSearchProvider,
         // Enrollment + seed-fingerprint bookkeeping happen inside applyTokenPlan
         // so they stay in lockstep with what actually got written.
@@ -350,6 +370,8 @@ export function TokenPlanSettings() {
       setImageProviderConfig,
       setVideoProviderConfig,
       setTTSProviderConfig,
+      setASRProviderConfig,
+      setPDFProviderConfig,
       setWebSearchProviderConfig,
       setImageProvider,
       setImageModelId,
@@ -358,6 +380,8 @@ export function TokenPlanSettings() {
       setModel,
       setStageRoute,
       setTTSProvider,
+      setASRProvider,
+      setPDFProvider,
       setWebSearchProvider,
       t,
     ],

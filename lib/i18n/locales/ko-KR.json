@@ -293,7 +293,8 @@
       "qa": "Q&A",
       "discussion": "토론",
       "lecture": "강의"
-    }
+    },
+    "interactiveMoreBelow": "아래에 내용이 더 있습니다"
   },
   "actions": {
     "names": {
@@ -344,6 +345,13 @@
     "startListening": "음성 입력",
     "stopListening": "녹음 중단"
   },
+  "mobileClassroom": {
+    "classroom": "교실",
+    "directory": "목차",
+    "lecture": "강의",
+    "chat": "채팅",
+    "materials": "수업 자료"
+  },
   "stage": {
     "currentScene": "현재 장면",
     "generating": "생성 중...",
@@ -353,6 +361,7 @@
     "confirmSwitchMessage": "현재 진행 중인 주제가 있습니다. 장면을 전환하면 현재 주제가 종료됩니다. 계속하시겠습니까?",
     "generatingNextPage": "장면을 생성 중입니다. 잠시 기다려 주세요...",
     "courseComplete": "강좌 완료",
+    "endCourse": "강의 종료",
     "fullscreen": "전체화면",
     "exitFullscreen": "전체화면 종료",
     "editCourse": "강좌 편집",

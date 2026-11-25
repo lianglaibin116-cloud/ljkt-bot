@@ -61,3 +61,12 @@ export function isTransientExtractionError(error: unknown): boolean {
     /\b(?:timeout|timed out|network error|socket hang up|fetch failed)\b/i.test(message)
   );
 }
+
+
+/** A provider declined this particular source; retrying it or switching providers won't help. */
+export class MaterialSourceRefusedError extends MaterialExtractionError {
+  constructor(message: string) {
+    super(message, false);
+    this.name = 'MaterialSourceRefusedError';
+  }
+}

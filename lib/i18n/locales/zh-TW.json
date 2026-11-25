@@ -293,7 +293,8 @@
       "qa": "Q&A",
       "discussion": "討論",
       "lecture": "授課"
-    }
+    },
+    "interactiveMoreBelow": "下方還有內容"
   },
   "actions": {
     "names": {
@@ -344,6 +345,13 @@
     "startListening": "語音輸入",
     "stopListening": "停止錄音"
   },
+  "mobileClassroom": {
+    "classroom": "課堂",
+    "directory": "目錄",
+    "lecture": "筆記",
+    "chat": "聊天",
+    "materials": "課堂資料"
+  },
   "stage": {
     "currentScene": "目前場景",
     "generating": "生成中...",
@@ -353,6 +361,7 @@
     "confirmSwitchMessage": "目前主題正在進行中，切換頁面將結束目前主題。確定要切換嗎？",
     "generatingNextPage": "場景正在生成，請稍候...",
     "courseComplete": "課程完成",
+    "endCourse": "結束課程",
     "fullscreen": "全螢幕",
     "exitFullscreen": "離開全螢幕",
     "editCourse": "編輯課程",

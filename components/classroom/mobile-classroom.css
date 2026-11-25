@@ -1,0 +1,145 @@
+.mobile-classroom-nav {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .classroom-mobile-stage {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .classroom-mobile-stage > :first-child {
+    position: absolute !important;
+    inset: 0 auto 0 0;
+    z-index: 42;
+    width: min(86vw, 320px) !important;
+    transform: translateX(-105%);
+    transition: transform 180ms ease;
+    box-shadow: 18px 0 48px rgb(0 0 0 / 15%);
+  }
+
+  .classroom-mobile-stage[data-mobile-panel='directory'] > :first-child {
+    transform: translateX(0);
+  }
+
+  .classroom-mobile-main {
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    padding-bottom: 66px;
+    box-sizing: border-box;
+  }
+
+  .classroom-mobile-stage[data-mobile-panel='directory'] .classroom-mobile-main,
+  .classroom-mobile-stage[data-mobile-panel='lecture'] .classroom-mobile-main,
+  .classroom-mobile-stage[data-mobile-panel='chat'] .classroom-mobile-main {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .classroom-mobile-chat {
+    position: absolute !important;
+    inset: 0 0 62px auto;
+    z-index: 43;
+    width: min(100vw, 460px) !important;
+    transform: translateX(105%);
+    transition: transform 180ms ease;
+    background: hsl(var(--background));
+    box-shadow: -18px 0 48px rgb(0 0 0 / 14%);
+  }
+
+  .classroom-mobile-stage[data-mobile-panel='lecture'] .classroom-mobile-chat,
+  .classroom-mobile-stage[data-mobile-panel='chat'] .classroom-mobile-chat {
+    transform: translateX(0);
+  }
+
+  .classroom-mobile-chat > div {
+    width: 100% !important;
+    height: 100%;
+  }
+
+  .mobile-classroom-nav {
+    position: absolute;
+    z-index: 60;
+    inset: auto 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-height: calc(62px + env(safe-area-inset-bottom));
+    padding: 5px 8px env(safe-area-inset-bottom);
+    border-top: 1px solid rgb(148 163 184 / 25%);
+    background: rgb(255 255 255 / 96%);
+    box-shadow: 0 -8px 28px rgb(15 23 42 / 7%);
+    backdrop-filter: blur(18px);
+  }
+
+  .dark .mobile-classroom-nav {
+    border-color: rgb(71 85 105 / 55%);
+    background: rgb(15 23 42 / 96%);
+  }
+
+  .mobile-classroom-nav button {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: rgb(100 116 139);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.1;
+    cursor: pointer;
+  }
+
+  .mobile-classroom-nav button[aria-selected='true'] {
+    color: rgb(79 70 229);
+    background: rgb(99 102 241 / 9%);
+  }
+
+  .mobile-classroom-nav-live {
+    position: absolute;
+    top: 5px;
+    right: calc(50% - 18px);
+    display: none;
+    height: 10px;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .mobile-classroom-nav button[data-live='true'] .mobile-classroom-nav-live {
+    display: flex;
+  }
+
+  .mobile-classroom-nav-live b {
+    width: 2px;
+    height: 4px;
+    border-radius: 2px;
+    background: currentColor;
+    animation: mobile-classroom-wave 650ms ease-in-out infinite alternate;
+  }
+
+  .mobile-classroom-nav-live b:nth-child(2) {
+    height: 9px;
+    animation-delay: 120ms;
+  }
+
+  .mobile-classroom-nav-live b:nth-child(3) {
+    height: 6px;
+    animation-delay: 240ms;
+  }
+
+  @keyframes mobile-classroom-wave {
+    to { transform: scaleY(0.35); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-classroom-nav-live b {
+      animation: none;
+    }
+  }
+}

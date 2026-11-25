@@ -5,7 +5,13 @@
 /**
  * PDF Provider IDs
  */
-export type PDFProviderId = 'unpdf' | 'mineru' | 'mineru-cloud' | 'alidocmind';
+export type PDFProviderId =
+  | 'unpdf'
+  | 'mineru'
+  | 'mineru-cloud'
+  | 'alidocmind'
+  | 'minicpm-ocr'
+  | 'deepseek-ocr';
 
 /**
  * PDF Provider Configuration
@@ -15,6 +21,10 @@ export interface PDFProviderConfig {
   name: string;
   requiresApiKey: boolean;
   baseUrl?: string;
+  /** The request endpoint shown in settings, when the provider has a hosted one. */
+  displayEndpoint?: string;
+  /** Allow a self-hosted endpoint to run without an API key. */
+  apiKeyOptionalWithBaseUrl?: boolean;
   icon?: string;
   features: string[]; // ['text', 'images', 'tables', 'formulas', 'layout-analysis', etc.]
 }
@@ -42,6 +52,8 @@ export interface PDFParserConfig {
    * local network without ALLOW_LOCAL_NETWORKS (cloud metadata stays refused).
    */
   managed?: boolean;
+  /** Abort a long-running remote OCR job when extraction is cancelled. */
+  signal?: AbortSignal;
 }
 
 // Note: ParsedPdfContent is imported from @/lib/types/pdf to avoid duplication

@@ -293,7 +293,8 @@
       "qa": "أسئلة",
       "discussion": "نقاش",
       "lecture": "محاضرة"
-    }
+    },
+    "interactiveMoreBelow": "يوجد المزيد بالأسفل"
   },
   "actions": {
     "names": {
@@ -344,6 +345,13 @@
     "startListening": "إدخال صوتي",
     "stopListening": "إيقاف التسجيل"
   },
+  "mobileClassroom": {
+    "classroom": "الفصل",
+    "directory": "الفهرس",
+    "lecture": "المحاضرة",
+    "chat": "المحادثة",
+    "materials": "مواد الفصل"
+  },
   "stage": {
     "currentScene": "المشهد الحالي",
     "generating": "جارٍ التوليد...",
@@ -353,6 +361,7 @@
     "confirmSwitchMessage": "يوجد موضوع قيد التقدم حاليًا. سيؤدي تبديل المشهد إلى إنهاء الموضوع الحالي. هل أنت متأكد؟",
     "generatingNextPage": "جارٍ توليد المشهد، يرجى الانتظار...",
     "courseComplete": "اكتملت الدورة",
+    "endCourse": "إنهاء الدورة",
     "fullscreen": "ملء الشاشة",
     "exitFullscreen": "الخروج من ملء الشاشة",
     "editCourse": "تحرير الدورة",

@@ -293,7 +293,8 @@
       "qa": "Q&A",
       "discussion": "讨论",
       "lecture": "授课"
-    }
+    },
+    "interactiveMoreBelow": "下方还有内容"
   },
   "actions": {
     "names": {
@@ -344,6 +345,13 @@
     "startListening": "语音输入",
     "stopListening": "停止录音"
   },
+  "mobileClassroom": {
+    "classroom": "课堂",
+    "directory": "目录",
+    "lecture": "笔记",
+    "chat": "聊天",
+    "materials": "课堂资料"
+  },
   "stage": {
     "currentScene": "当前场景",
     "generating": "生成中...",
@@ -353,6 +361,7 @@
     "confirmSwitchMessage": "当前话题正在进行中，切换页面将结束当前话题。确定要切换吗？",
     "generatingNextPage": "场景正在生成，请稍候...",
     "courseComplete": "课程完成",
+    "endCourse": "结束课程",
     "fullscreen": "全屏",
     "exitFullscreen": "退出全屏",
     "editCourse": "编辑课程",

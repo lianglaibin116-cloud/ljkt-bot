@@ -473,28 +473,30 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
           </>
         ))}
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm">{t('settings.ttsSpeed')}</Label>
-          <span className="text-xs text-muted-foreground">
-            {cloneSpeedDisabled ? '1×' : `${ttsSpeed.toFixed(2)}×`}
-          </span>
+      {ttsProvider?.supportsSpeed !== false && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm">{t('settings.ttsSpeed')}</Label>
+            <span className="text-xs text-muted-foreground">
+              {cloneSpeedDisabled ? '1×' : `${ttsSpeed.toFixed(2)}×`}
+            </span>
+          </div>
+          <input
+            aria-label={t('settings.ttsSpeed')}
+            type="range"
+            min={ttsProvider?.speedRange?.min ?? 0.5}
+            max={ttsProvider?.speedRange?.max ?? 2}
+            step={0.05}
+            value={cloneSpeedDisabled ? 1 : ttsSpeed}
+            disabled={cloneSpeedDisabled}
+            onChange={(event) => setTTSSpeed(Number(event.target.value))}
+            className="w-full disabled:cursor-not-allowed disabled:opacity-50"
+          />
+          {cloneSpeedDisabled && (
+            <p className="text-xs text-muted-foreground">{t('settings.qwenCloneSpeedHint')}</p>
+          )}
         </div>
-        <input
-          aria-label={t('settings.ttsSpeed')}
-          type="range"
-          min={ttsProvider?.speedRange?.min ?? 0.5}
-          max={ttsProvider?.speedRange?.max ?? 2}
-          step={0.05}
-          value={cloneSpeedDisabled ? 1 : ttsSpeed}
-          disabled={cloneSpeedDisabled}
-          onChange={(event) => setTTSSpeed(Number(event.target.value))}
-          className="w-full disabled:cursor-not-allowed disabled:opacity-50"
-        />
-        {cloneSpeedDisabled && (
-          <p className="text-xs text-muted-foreground">{t('settings.qwenCloneSpeedHint')}</p>
-        )}
-      </div>
+      )}
 
       {/* Test TTS */}
       <div className="space-y-2">

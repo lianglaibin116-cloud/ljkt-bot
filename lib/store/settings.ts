@@ -78,6 +78,8 @@ function modalityHasCredentials(
     | 'imageProvidersConfig'
     | 'videoProvidersConfig'
     | 'ttsProvidersConfig'
+    | 'asrProvidersConfig'
+    | 'pdfProvidersConfig'
     | 'webSearchProvidersConfig'
   >,
 ): boolean {
@@ -87,6 +89,8 @@ function modalityHasCredentials(
     image: state.imageProvidersConfig as ModalityCredMap,
     video: state.videoProvidersConfig as ModalityCredMap,
     tts: state.ttsProvidersConfig as ModalityCredMap,
+    asr: state.asrProvidersConfig as ModalityCredMap,
+    document: state.pdfProvidersConfig as ModalityCredMap,
     webSearch: state.webSearchProvidersConfig as ModalityCredMap,
   };
   if (modality === 'llm') return false;
@@ -666,6 +670,7 @@ const getDefaultAudioConfig = () => ({
   asrProviderId: 'browser-native' as ASRProviderId,
   asrLanguage: 'zh-CN',
   ttsProvidersConfig: {
+    'deepseek-tts': { apiKey: '', baseUrl: '', enabled: true },
     // Built-in providers default enabled:true — they only ever surface once
     // configured (API key or server-managed), so "enabled" is a user opt-OUT,
     // not the visibility gate. A server-configured provider must not be hidden
@@ -698,6 +703,7 @@ const getDefaultAudioConfig = () => ({
     { apiKey: string; baseUrl: string; modelId?: string; enabled: boolean }
   >,
   asrProvidersConfig: {
+    'deepseek-asr': { apiKey: '', baseUrl: '', enabled: true },
     'openai-whisper': { apiKey: '', baseUrl: '', enabled: true },
     'browser-native': { apiKey: '', baseUrl: '', enabled: true },
     'qwen-asr': { apiKey: '', baseUrl: '', enabled: false },
@@ -715,6 +721,8 @@ const getDefaultPDFConfig = () => ({
     mineru: { apiKey: '', baseUrl: '', enabled: false },
     'mineru-cloud': { apiKey: '', baseUrl: '', enabled: false },
     alidocmind: { apiKey: '', baseUrl: '', enabled: false, accessKeyId: '', accessKeySecret: '' },
+    'minicpm-ocr': { apiKey: '', baseUrl: '', enabled: false },
+    'deepseek-ocr': { apiKey: '', baseUrl: '', enabled: false },
   } as Record<
     PDFProviderId,
     {

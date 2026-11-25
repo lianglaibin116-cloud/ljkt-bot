@@ -36,8 +36,13 @@ function createPdfBackedDocumentExtractor(id: PDFProviderId): DocumentExtractorP
         managed: input.config.managed,
       };
       let parsed;
-      if (id === 'alidocmind') {
-        // AliDocMind handles pdf/docx/pptx/xlsx/images through one flow.
+      if (id === 'alidocmind' || id === 'deepseek-ocr') {
+        // These providers parse their accepted document and image formats in one flow.
+        parsed = await parsePDF(config, input.buffer, {
+          fileName: input.fileName,
+          mimeType: input.mimeType,
+        });
+      } else if (id === 'minicpm-ocr') {
         parsed = await parsePDF(config, input.buffer, {
           fileName: input.fileName,
           mimeType: input.mimeType,

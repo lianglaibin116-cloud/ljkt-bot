@@ -293,7 +293,8 @@
       "qa": "Q&A",
       "discussion": "Disk.",
       "lecture": "Vortrag"
-    }
+    },
+    "interactiveMoreBelow": "Weiter unten geht es weiter"
   },
   "actions": {
     "names": {
@@ -344,6 +345,13 @@
     "startListening": "Spracheingabe",
     "stopListening": "Aufnahme beenden"
   },
+  "mobileClassroom": {
+    "classroom": "Klassenzimmer",
+    "directory": "Inhalt",
+    "lecture": "Vorlesung",
+    "chat": "Chat",
+    "materials": "Kursmaterialien"
+  },
   "stage": {
     "currentScene": "Aktuelle Szene",
     "generating": "Wird generiert...",
@@ -353,6 +361,7 @@
     "confirmSwitchMessage": "Ein Thema läuft gerade. Beim Wechseln der Szene wird das aktuelle Thema beendet. Möchtest du wirklich wechseln?",
     "generatingNextPage": "Die Szene wird generiert. Bitte warten...",
     "courseComplete": "Kurs abgeschlossen",
+    "endCourse": "Kurs beenden",
     "fullscreen": "Vollbild",
     "exitFullscreen": "Vollbild beenden",
     "editCourse": "Kurs bearbeiten",

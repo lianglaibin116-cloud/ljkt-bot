@@ -89,7 +89,8 @@ export type BuiltInTTSProviderId =
   | 'elevenlabs-tts'
   | 'minimax-tts'
   | 'lemonade-tts'
-  | 'browser-native-tts';
+  | 'browser-native-tts'
+  | 'deepseek-tts';
 
 export type TTSProviderId = BuiltInTTSProviderId | `custom-tts-${string}`;
 
@@ -138,6 +139,8 @@ export interface TTSProviderConfig {
   defaultModelId: string;
   voices: TTSVoiceInfo[];
   supportedFormats: string[]; // ['mp3', 'wav', 'opus', etc.]
+  /** False when the provider API does not support a playback-speed parameter. */
+  supportsSpeed?: boolean;
   speedRange?: {
     min: number;
     max: number;
@@ -198,7 +201,8 @@ export type BuiltInASRProviderId =
   | 'qwen-asr'
   | 'funasr-asr'
   | 'lemonade-asr'
-  | 'azure-asr';
+  | 'azure-asr'
+  | 'deepseek-asr';
 
 export type ASRProviderId = BuiltInASRProviderId | `custom-asr-${string}`;
 

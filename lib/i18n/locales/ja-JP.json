@@ -293,7 +293,8 @@
       "qa": "Q&A",
       "discussion": "議論",
       "lecture": "講義"
-    }
+    },
+    "interactiveMoreBelow": "下に続きがあります"
   },
   "actions": {
     "names": {
@@ -344,6 +345,13 @@
     "startListening": "音声入力",
     "stopListening": "録音を停止"
   },
+  "mobileClassroom": {
+    "classroom": "教室",
+    "directory": "目次",
+    "lecture": "講義",
+    "chat": "チャット",
+    "materials": "授業資料"
+  },
   "stage": {
     "currentScene": "現在のシーン",
     "generating": "生成中...",
@@ -353,6 +361,7 @@
     "confirmSwitchMessage": "現在トピックが進行中です。シーンを切り替えると、現在のトピックが終了します。よろしいですか？",
     "generatingNextPage": "シーンを生成中です。お待ちください...",
     "courseComplete": "コース完了",
+    "endCourse": "コースを終了",
     "fullscreen": "全画面表示",
     "exitFullscreen": "全画面表示を終了",
     "editCourse": "コースを編集",

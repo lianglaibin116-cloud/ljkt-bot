@@ -16,8 +16,15 @@ import type { ProviderType } from '@/lib/types/provider';
 /** Loose grouping for the preset list UI. */
 export type PresetCategory = 'official' | 'aggregator' | 'token_plan' | 'third_party';
 
-/** The modalities a token plan can be applied to. ASR is omitted = not adapted. */
-export type TokenPlanModality = 'llm' | 'image' | 'video' | 'tts' | 'webSearch';
+/** The modalities a token plan can be applied to. */
+export type TokenPlanModality =
+  | 'llm'
+  | 'image'
+  | 'video'
+  | 'tts'
+  | 'asr'
+  | 'document'
+  | 'webSearch';
 
 /** Where a token plan maps in one modality's provider registry. */
 export interface TokenPlanModalityTarget {
@@ -75,7 +82,15 @@ export interface TokenPlanPreset {
 }
 
 /** Human-facing order of modalities in the apply result. */
-export const MODALITY_ORDER: TokenPlanModality[] = ['llm', 'image', 'video', 'tts', 'webSearch'];
+export const MODALITY_ORDER: TokenPlanModality[] = [
+  'llm',
+  'image',
+  'video',
+  'tts',
+  'asr',
+  'document',
+  'webSearch',
+];
 
 /**
  * Built-in token plans.
@@ -328,6 +343,27 @@ export const TOKEN_PLAN_PRESETS: TokenPlanPreset[] = [
       },
     },
   },
+  {
+    id: 'deepseek-token-plan',
+    name: 'DeepSeek',
+    websiteUrl: 'https://platform.deepseek.com',
+    apiKeyPlaceholder: 'sk-...',
+    icon: '/logos/deepseek.svg',
+    category: 'token_plan',
+    modalities: {
+      llm: {
+        providerId: 'deepseek',
+        baseUrl: 'https://api.deepseek.com/v1',
+        apiFormat: 'openai',
+        defaultModels: ['deepseek-flash', 'deepseek-v4-pro'],
+        defaultModelId: 'deepseek-flash',
+      },
+      tts: { providerId: 'deepseek-tts', baseUrl: 'https://api.deepseek.com/v1' },
+      asr: { providerId: 'deepseek-asr', baseUrl: 'https://api.deepseek.com/v1' },
+      document: { providerId: 'deepseek-ocr', baseUrl: 'https://api.deepseek.com/v1' },
+      webSearch: { providerId: 'deepseek', baseUrl: 'https://api.deepseek.com/v1' },
+    },
+  },
 ];
 
 /** Preset category display order. */
@@ -353,5 +389,8 @@ export function tokenPlanSeedFingerprint(preset: TokenPlanPreset): string {
     image: m.image?.defaultModels,
     video: m.video?.defaultModels,
     tts: [m.tts?.defaultModelId, m.tts?.defaultModels],
+    asr: m.asr?.providerId,
+    document: m.document?.providerId,
+    webSearch: m.webSearch?.providerId,
   });
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { StageMode } from '@/lib/types/stage';
@@ -29,6 +29,8 @@ interface HeaderProps {
   readonly hideGlobalControls?: boolean;
   /** Hide course-level share/export in a workbench-attached classroom. */
   readonly hideCourseActions?: boolean;
+  /** End a completed course and open its existing summary page. */
+  readonly onEndCourse?: () => void;
 }
 
 export function Header({
@@ -41,6 +43,7 @@ export function Header({
   hideBackControl,
   hideGlobalControls,
   hideCourseActions,
+  onEndCourse,
 }: HeaderProps) {
   const { t } = useI18n();
   const router = useRouter();
@@ -89,14 +92,28 @@ export function Header({
 
         {/* Standalone classroom keeps the full cluster. Workbench-attached
             classrooms omit both the global capsule and course share/export. */}
-        <HeaderControls
-          mode={mode}
-          proModeActive={proModeActive}
-          canEdit={canEdit}
-          onToggleEditMode={onToggleEditMode}
-          showGlobalControls={!hideGlobalControls}
-          showCourseActions={!hideCourseActions}
-        />
+        <div className="flex shrink-0 items-center gap-2">
+          {onEndCourse && (
+            <button
+              type="button"
+              onClick={onEndCourse}
+              className="inline-flex h-9 items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200 dark:hover:bg-emerald-950"
+              title={t('stage.endCourse')}
+              aria-label={t('stage.endCourse')}
+            >
+              <CheckCircle2 className="h-4 w-4" aria-hidden />
+              <span className="hidden sm:inline">{t('stage.endCourse')}</span>
+            </button>
+          )}
+          <HeaderControls
+            mode={mode}
+            proModeActive={proModeActive}
+            canEdit={canEdit}
+            onToggleEditMode={onToggleEditMode}
+            showGlobalControls={!hideGlobalControls}
+            showCourseActions={!hideCourseActions}
+          />
+        </div>
       </header>
     </>
   );

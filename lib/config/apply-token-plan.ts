@@ -1,6 +1,7 @@
 import type { ProviderId } from '@/lib/types/provider';
 import type { ImageProviderId, VideoProviderId } from '@/lib/media/types';
-import type { TTSProviderId } from '@/lib/audio/types';
+import type { ASRProviderId, TTSProviderId } from '@/lib/audio/types';
+import type { PDFProviderId } from '@/lib/pdf/types';
 import type { WebSearchProviderId } from '@/lib/web-search/types';
 import { MODALITY_ORDER, TOKEN_PLAN_PRESETS, tokenPlanSeedFingerprint } from './token-plan-presets';
 import type {
@@ -40,6 +41,14 @@ export interface TokenPlanActions {
       replaceBuiltInModels: boolean;
     }>,
   ) => void;
+  setASRProviderConfig: (
+    id: ASRProviderId,
+    config: Partial<{ apiKey: string; baseUrl: string; enabled: boolean }>,
+  ) => void;
+  setPDFProviderConfig: (
+    id: PDFProviderId,
+    config: Partial<{ apiKey: string; baseUrl: string; enabled: boolean }>,
+  ) => void;
   setTTSProviderConfig: (
     id: TTSProviderId,
     config: Partial<{
@@ -76,6 +85,8 @@ export interface TokenPlanActions {
     route: { providerId: ProviderId; modelId: string } | null,
   ) => void;
   /** Optional active-selection switches for TTS / web search. */
+  setASRProvider?: (id: ASRProviderId) => void;
+  setPDFProvider?: (id: PDFProviderId) => void;
   setTTSProvider?: (id: TTSProviderId) => void;
   setWebSearchProvider?: (id: WebSearchProviderId) => void;
   /** Current stage routes — used by removal to drop routes onto this plan. */
@@ -207,6 +218,12 @@ export function setTokenPlanAuthorization(
           break;
         case 'tts':
           actions.setTTSProviderConfig(target.providerId as TTSProviderId, { enabled });
+          break;
+        case 'asr':
+          actions.setASRProviderConfig(target.providerId as ASRProviderId, { enabled });
+          break;
+        case 'document':
+          actions.setPDFProviderConfig(target.providerId as PDFProviderId, { enabled });
           break;
         case 'webSearch':
           actions.setWebSearchProviderConfig(target.providerId as WebSearchProviderId, { enabled });
@@ -543,6 +560,19 @@ export function seedPlanModels(
     }
   }
 
+  if (m.asr && allowed('asr') && !providerYields('asr') && !selectionTaken('asr')) {
+    actions.setASRProvider?.(m.asr.providerId as ASRProviderId);
+  }
+
+  if (
+    m.document &&
+    allowed('document') &&
+    !providerYields('document') &&
+    !selectionTaken('document')
+  ) {
+    actions.setPDFProvider?.(m.document.providerId as PDFProviderId);
+  }
+
   if (m.webSearch && allowed('webSearch') && !selectionTaken('webSearch')) {
     actions.setWebSearchProvider?.(m.webSearch.providerId as WebSearchProviderId);
   }
@@ -591,6 +621,20 @@ function applyModality(
       break;
     case 'tts':
       actions.setTTSProviderConfig(target.providerId as TTSProviderId, {
+        apiKey,
+        baseUrl: target.baseUrl,
+        enabled: true,
+      });
+      break;
+    case 'asr':
+      actions.setASRProviderConfig(target.providerId as ASRProviderId, {
+        apiKey,
+        baseUrl: target.baseUrl,
+        enabled: true,
+      });
+      break;
+    case 'document':
+      actions.setPDFProviderConfig(target.providerId as PDFProviderId, {
         apiKey,
         baseUrl: target.baseUrl,
         enabled: true,
@@ -750,6 +794,20 @@ function removeModality(
       break;
     case 'tts':
       actions.setTTSProviderConfig(target.providerId as TTSProviderId, {
+        apiKey: '',
+        baseUrl: '',
+        enabled: false,
+      });
+      break;
+    case 'asr':
+      actions.setASRProviderConfig(target.providerId as ASRProviderId, {
+        apiKey: '',
+        baseUrl: '',
+        enabled: false,
+      });
+      break;
+    case 'document':
+      actions.setPDFProviderConfig(target.providerId as PDFProviderId, {
         apiKey: '',
         baseUrl: '',
         enabled: false,

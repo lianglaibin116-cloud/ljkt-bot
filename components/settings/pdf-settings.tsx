@@ -50,8 +50,10 @@ export function PDFSettings({ selectedProviderId }: PDFSettingsProps) {
   const isCloud = selectedProviderId === 'mineru-cloud';
   const isSelfHosted = selectedProviderId === 'mineru';
   const isAliDocMind = selectedProviderId === 'alidocmind';
+  const isMiniCPMOCR = selectedProviderId === 'minicpm-ocr';
+  const isDeepSeekOCR = selectedProviderId === 'deepseek-ocr';
   const hasAccessKeys = !!providerConfig?.accessKeyId && !!providerConfig?.accessKeySecret;
-  const needsRemoteConfig = isSelfHosted || isCloud || isAliDocMind;
+  const needsRemoteConfig = isSelfHosted || isCloud || isAliDocMind || isMiniCPMOCR || isDeepSeekOCR;
 
   // For cloud: test requires API key (user-entered or server-configured);
   // for AliDocMind: requires AK + SK; for self-hosted: requires base URL.
@@ -118,9 +120,16 @@ export function PDFSettings({ selectedProviderId }: PDFSettingsProps) {
         <>
           <div className="grid grid-cols-2 gap-4">
             {/* API Key — shown first for cloud, second for self-hosted */}
-            {isCloud && (
+            {(isCloud || isMiniCPMOCR || isDeepSeekOCR) && (
               <div className="space-y-2">
-                <Label className="text-sm">{t('settings.pdfApiKey')}</Label>
+                <Label className="text-sm">
+                  {t('settings.pdfApiKey')}
+                  {isMiniCPMOCR && (
+                    <span className="text-muted-foreground ml-1 font-normal">
+                      ({t('settings.optional')})
+                    </span>
+                  )}
+                </Label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Input
@@ -130,7 +139,7 @@ export function PDFSettings({ selectedProviderId }: PDFSettingsProps) {
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck={false}
-                      placeholder={t('settings.mineruCloudApiKeyPlaceholder')}
+                      placeholder={isCloud ? t('settings.mineruCloudApiKeyPlaceholder') : t('settings.enterApiKey')}
                       value={providerConfig?.apiKey || ''}
                       onChange={(e) =>
                         setPDFProviderConfig(selectedProviderId, { apiKey: e.target.value })
@@ -234,11 +243,11 @@ export function PDFSettings({ selectedProviderId }: PDFSettingsProps) {
             )}
 
             {/* Base URL */}
-            {(isSelfHosted || isCloud) && (
+            {(isSelfHosted || isCloud || isMiniCPMOCR) && (
               <div className="space-y-2">
                 <Label className="text-sm">
                   {t('settings.pdfBaseUrl')}
-                  {isCloud && (
+                  {(isCloud || isMiniCPMOCR) && (
                     <span className="text-muted-foreground ml-1 font-normal">
                       ({t('settings.optional')})
                     </span>
@@ -251,7 +260,7 @@ export function PDFSettings({ selectedProviderId }: PDFSettingsProps) {
                     autoCapitalize="none"
                     autoCorrect="off"
                     spellCheck={false}
-                    placeholder={isCloud ? 'https://mineru.net/api/v4' : 'http://localhost:8080'}
+                    placeholder={isCloud ? 'https://mineru.net/api/v4' : isMiniCPMOCR ? 'https://api.modelbest.cn/v1' : 'http://localhost:8080'}
                     value={providerConfig?.baseUrl || ''}
                     onChange={(e) =>
                       setPDFProviderConfig(selectedProviderId, { baseUrl: e.target.value })
@@ -351,6 +360,13 @@ export function PDFSettings({ selectedProviderId }: PDFSettingsProps) {
               return (
                 <p className="text-xs text-muted-foreground break-all">
                   {t('settings.requestUrl')}: {base}/file-urls/batch
+                </p>
+              );
+            }
+            if (pdfProvider.displayEndpoint) {
+              return (
+                <p className="text-xs text-muted-foreground break-all">
+                  {t('settings.requestUrl')}: {isMiniCPMOCR ? (providerConfig?.baseUrl || 'https://api.modelbest.cn/v1') + '/document-parse/jobs' : pdfProvider.displayEndpoint}
                 </p>
               );
             }

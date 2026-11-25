@@ -146,6 +146,8 @@ import { createLogger } from '@/lib/logger';
 import { extractMinerUResult } from './mineru-parser';
 import { parseWithMinerUCloud } from './mineru-cloud';
 import { parseWithAliDocMindClient } from './alidocmind-client';
+import { parseWithMiniCPMOCR } from './minicpm-ocr';
+import { parseWithDeepSeekOCR } from './deepseek-ocr';
 import { providerFetch, type ProviderFetchPolicy } from '@/lib/server/provider-fetch';
 
 const log = createLogger('PDFProviders');
@@ -221,7 +223,11 @@ export async function parsePDF(
   if (provider.requiresApiKey && !config.apiKey) {
     // AliDocMind uses AK/SK instead of a single apiKey; check separately.
     const envAvailable = config.allowEnvFallback && !!process.env.ALIDOCMIND_ACCESS_KEY_ID;
-    if (config.providerId !== 'alidocmind' || (!config.accessKeyId && !envAvailable)) {
+    const aliDocMindCredentials =
+      config.providerId === 'alidocmind' && (Boolean(config.accessKeyId) || envAvailable);
+    const keylessSelfHost =
+      provider.apiKeyOptionalWithBaseUrl === true && Boolean(config.baseUrl);
+    if (!aliDocMindCredentials && !keylessSelfHost) {
       throw new Error(`API key required for PDF provider: ${config.providerId}`);
     }
   }
@@ -245,6 +251,20 @@ export async function parsePDF(
 
     case 'alidocmind':
       result = await parseWithAliDocMind(config, pdfBuffer, options);
+      break;
+
+    case 'minicpm-ocr':
+      result = await parseWithMiniCPMOCR(config, pdfBuffer, {
+        fileName: options?.fileName || 'document.pdf',
+        mimeType: options?.mimeType || 'application/pdf',
+      });
+      break;
+
+    case 'deepseek-ocr':
+      result = await parseWithDeepSeekOCR(config, pdfBuffer, {
+        fileName: options?.fileName || 'document.pdf',
+        mimeType: options?.mimeType || 'application/pdf',
+      });
       break;
 
     default:

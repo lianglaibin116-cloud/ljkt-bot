@@ -293,7 +293,8 @@
       "qa": "P&R",
       "discussion": "DEB",
       "lecture": "AULA"
-    }
+    },
+    "interactiveMoreBelow": "Há mais abaixo"
   },
   "actions": {
     "names": {
@@ -760,6 +761,13 @@
       "stepExpired": "Esta etapa foi removida porque a mídia associada excedeu o prazo de retenção."
     }
   },
+  "mobileClassroom": {
+    "classroom": "Sala de aula",
+    "directory": "Índice",
+    "lecture": "Aula",
+    "chat": "Chat",
+    "materials": "Materiais da aula"
+  },
   "stage": {
     "currentScene": "Cena Atual",
     "generating": "Gerando...",
@@ -769,6 +777,7 @@
     "confirmSwitchMessage": "Há um tópico em andamento. Trocar de cena vai encerrá-lo. Tem certeza?",
     "generatingNextPage": "A cena está sendo gerada, aguarde...",
     "courseComplete": "Curso concluído",
+    "endCourse": "Finalizar curso",
     "fullscreen": "Tela cheia",
     "exitFullscreen": "Sair da tela cheia",
     "editCourse": "Editar curso",

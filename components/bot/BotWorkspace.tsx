@@ -71,6 +71,7 @@ import { createBotBackup, restoreBotBackup, saveRestoredBotTasks } from '@/lib/b
 import { buildBotCourseSession } from '@/lib/bot/course-session';
 import {
   buildCourseContext,
+  buildHistoryDigest,
   buildMaterialContext,
   estimateTextTokens,
   selectRelevantMaterials,
@@ -747,8 +748,18 @@ export default function BotWorkspace() {
         0,
         inputBudget - fixedContextTokens - latestPromptTokens - sourceTokens,
       );
-      const selectedHistory = selectRecentMessages(history, historyBudget);
+      const rawHistoryTokens = history.reduce(
+        (total, message) => total + estimateTextTokens(message.content),
+        0,
+      );
+      const hasOmittedHistory = rawHistoryTokens > historyBudget || history.length > 59;
+      const digestBudget = hasOmittedHistory ? Math.min(450, Math.floor(historyBudget * 0.15)) : 0;
+      const selectedHistory = selectRecentMessages(history, historyBudget - digestBudget);
       const messages = [...selectedHistory.messages, ...(latestMessage ? [latestMessage] : [])];
+      const omittedHistory = selectedHistory.omittedCount
+        ? history.slice(0, selectedHistory.omittedCount)
+        : [];
+      const historyDigest = buildHistoryDigest(omittedHistory, digestBudget);
       const response = await fetch('/api/bot/chat', {
         method: 'POST',
         headers,
@@ -760,6 +771,7 @@ export default function BotWorkspace() {
           materialNames: contextMaterials.map((item) => item.name),
           materialContext: scopedMaterialContext || undefined,
           historyOmittedCount: selectedHistory.omittedCount,
+          historyDigest: historyDigest || undefined,
           thinkingConfig: config.thinkingConfig,
         }),
       });

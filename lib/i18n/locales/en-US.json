@@ -293,7 +293,8 @@
       "qa": "Q&A",
       "discussion": "DISC",
       "lecture": "LEC"
-    }
+    },
+    "interactiveMoreBelow": "More below"
   },
   "actions": {
     "names": {
@@ -344,6 +345,13 @@
     "startListening": "Voice input",
     "stopListening": "Stop recording"
   },
+  "mobileClassroom": {
+    "classroom": "Classroom",
+    "directory": "Directory",
+    "lecture": "Lecture",
+    "chat": "Chat",
+    "materials": "Classroom materials"
+  },
   "stage": {
     "currentScene": "Current Scene",
     "generating": "Generating...",
@@ -353,6 +361,7 @@
     "confirmSwitchMessage": "A topic is currently in progress. Switching scenes will end the current topic. Are you sure?",
     "generatingNextPage": "Scene is being generated, please wait...",
     "courseComplete": "Course complete",
+    "endCourse": "End course",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit Fullscreen",
     "editCourse": "Edit course",

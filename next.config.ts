@@ -79,6 +79,8 @@ const nextConfig: NextConfig = {
     // egress cannot resolve their SDK in the shipped deployment.
     '@aws-sdk/client-s3',
     '@aws-sdk/s3-request-presigner',
+    // Native canvas is loaded for DeepSeek OCR's PDF page rendering.
+    '@napi-rs/canvas',
   ],
   experimental: {
     // Resolve named barrel exports to their actual modules before webpack
