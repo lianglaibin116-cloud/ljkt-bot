@@ -7,8 +7,6 @@ Generate a self-contained HTML code editor with execution and test validation.
 - Python (via Pyodide CDN)
 - JavaScript (native browser execution)
 - TypeScript (via Babel CDN transpilation)
-- C++ (only as an explicitly labeled offline exercise checker; the standalone
-  Bot does not include a general C++ compiler)
 
 ## C++ Limitations and Required Behavior
 
@@ -208,7 +206,8 @@ window.addEventListener('message', function(event) {
       // Reveal a hidden element (e.g. the solution or a hint panel)
       const revealEl = document.querySelector(target);
       if (revealEl) {
-        revealEl.hidden = false;
+        revealEl.removeAttribute('hidden'); // Works for HTML and SVG elements
+        revealEl.classList.remove('hidden');
         revealEl.style.display = '';
         revealEl.style.opacity = '1';
       }
@@ -253,5 +252,7 @@ Return ONLY the HTML document, no markdown fences or explanations.
 {{snippet:interactive-math}}
 
 {{snippet:interactive-observation}}
+
+{{snippet:interactive-display-state}}
 
 {{snippet:interactive-visual-reliability}}

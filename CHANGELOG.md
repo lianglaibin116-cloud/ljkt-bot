@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.4] - 2026-11-25
+
+### Updated
+
+- Align compatible shared packages to OpenMAIC v1.5.0: editor 0.0.13, generation 0.3.33, and renderer 0.2.4.
+- Use the v1.5.0 playback and editor renderer defaults, with explicit opt-out flags; support `NEXT_PUBLIC_WORKBENCH_ENABLED` while retaining the previous flag as a compatibility alias.
+- Keep storage at 0.39.3 so this release does not apply the upstream agent-session schema migration to existing Bot data.
+- Preserve Bot's independent conversation, workspace, Electron data path, and local assets.
+
+### Pending adaptation
+
+- Durable Pi agent runtime and storage 0.39.4 session compaction/status migration.
+- New workbench home/mobile workflows and provider/Token Plan additions that require Bot-specific UI and settings integration.
+
 ## [Unreleased]
 
 ## [1.1.4] - 2026-10-11

@@ -56,6 +56,8 @@ export function isServerPersistenceConfigured(): boolean {
  * bundles; both gates must be on before a workbench page is reachable.
  */
 export function isProWorkbenchEnabled(): boolean {
+  const current = process.env.NEXT_PUBLIC_WORKBENCH_ENABLED;
+  if (current !== undefined && current !== '') return readBoolean(current);
   return readBoolean(process.env.NEXT_PUBLIC_PRO_WORKBENCH_ENABLED);
 }
 
@@ -79,20 +81,19 @@ export function isMaicEditorEnabled(): boolean {
 }
 
 /**
- * Experimental playback canvas renderer. Default OFF so classroom playback uses
- * the legacy in-app renderer unless explicitly enabled in `.env.local`.
+ * Shared playback canvas renderer. Default ON, matching OpenMAIC v1.5.0;
+ * deployments can opt out with `false` or `0` while adapting their classroom.
  */
 export function isPlaybackRendererEnabled(): boolean {
-  return readBoolean(process.env.NEXT_PUBLIC_MAIC_PLAYBACK_RENDERER_ENABLED);
+  return readDefaultOnBoolean(process.env.NEXT_PUBLIC_MAIC_PLAYBACK_RENDERER_ENABLED);
 }
 
 /**
- * Experimental Pro-mode slide editor renderer. Default OFF so professional
- * editing keeps using the legacy in-app editor canvas unless explicitly enabled
- * in `.env.local`.
+ * Shared slide editor renderer. Default ON, matching OpenMAIC v1.5.0;
+ * deployments can opt out with `false` or `0` while adapting their editor.
  */
 export function isEditorRendererEnabled(): boolean {
-  return readBoolean(process.env.NEXT_PUBLIC_MAIC_EDITOR_RENDERER_ENABLED);
+  return readDefaultOnBoolean(process.env.NEXT_PUBLIC_MAIC_EDITOR_RENDERER_ENABLED);
 }
 
 /**

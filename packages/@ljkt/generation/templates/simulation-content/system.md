@@ -87,7 +87,8 @@ window.addEventListener('message', function(event) {
       // Reveal a hidden element
       const revealEl = document.querySelector(target);
       if (revealEl) {
-        revealEl.hidden = false;
+        revealEl.removeAttribute('hidden'); // Works for HTML and SVG elements
+        revealEl.classList.remove('hidden');
         revealEl.style.display = '';
         revealEl.style.opacity = '1';
       }
@@ -117,41 +118,67 @@ To make highlight/annotation work, use consistent IDs for controls:
   - **Bottom sheet**: Control panel slides up from bottom on mobile
   - **Side drawer**: Collapsible panel that doesn't block canvas
 - Test viewport widths: 320px, 375px, 414px, 768px
-- Use `min-height` for canvas to ensure it's visible on mobile
+- Give the canvas stage a bounded height so it stays visible on mobile
 - Control panel should be collapsible on mobile if large
 
 Example mobile-safe layout:
 ```html
+<style>
+  [hidden]:not([hidden="until-found"]) { display: none !important; }
+  /* The stage's size never depends on the canvas, which sits out of flow inside it:
+     a bounded height when stacked, the full row height side by side. */
+  #stage { position: relative; flex: 1 1 auto; min-width: 0; height: clamp(260px, 60vh, 640px); }
+  @media (min-width: 768px) { #stage { height: auto; align-self: stretch; } }
+  #canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #canvas-error { position: absolute; inset: 0; display: grid; place-items: center; }
+</style>
 <body class="flex flex-col min-h-screen md:flex-row">
   <!-- Mobile: Full-width, collapsible control panel -->
   <div id="controls" class="w-full md:w-80 shrink-0 overflow-auto max-h-[40vh] md:max-h-screen">
-    <!-- Controls here -->
-    <button onclick="toggleControls()" class="md:hidden">Hide Controls</button>
+    <!-- Sliders for the lesson's variables -->
+    <button id="start-btn" onclick="handleMainButton()"></button>
+    <button id="reset-btn" onclick="resetSimulation()"><!-- Reset label, in the course language --></button>
+    <!-- Readouts: one element per quantity the lesson tracks, id="{variable_name}-display" -->
+    <button onclick="toggleControls()" class="md:hidden"><!-- Hide label, in the course language --></button>
   </div>
-  <!-- Canvas area gets remaining space -->
-  <div class="flex-1 min-h-[300px] relative">
+  <div id="stage">
     <canvas id="canvas"></canvas>
+    <div id="canvas-error" hidden><!-- Error message, in the course language --></div>
   </div>
 </body>
 ```
 
 ### 2. Reset Button - MUST WORK CORRECTLY
 - **Reset button MUST return simulation to initial state**
-- Reset must also restore visible elapsed time, temperature, intensity, feedback, and control values through the same render path used by initialization; do not leave stale DOM readouts after resetting the state object.
 - Common bug: Button changes text to "重新开始" but clicking it doesn't reset
-- Solution: Use a separate reset function, or check state properly
+- Common bug: Reset restores the state but the readouts keep showing the previous run
+- Solution: Use a separate reset function that rebuilds the state, then calls the same `render()` as startup and every update
 
 Correct implementation:
 ```javascript
-function createInitialState() {
-  return { running: false, paused: false, ended: false, posX: 50, velocity: 0, time: 0 };
+// The lesson supplies these; they are placeholders here, not part of the pattern:
+//   initialQuantities()  the lesson's own quantities at their starting values
+//   advance(state, dt)   moves those quantities forward by dt seconds
+//   isFinished(state)    whether the run has reached its end
+//   renderReadouts()     writes every readout from state
+//   LABELS               the main button's text in the course language: { start, pause, resume, restart }
+function initialState() {
+  return { running: false, paused: false, ended: false, ...initialQuantities() };
 }
-let state = createInitialState();
-let animationFrameId = null; // Store each requestAnimationFrame handle here.
+let state = initialState();
+let frameId = null;
+let lastFrameTime = null;
 
-function renderCurrentState() {
-  updateButton(state.running ? '暂停' : state.ended ? '重新开始' : '启动');
-  updateReadouts(state); // Update all displayed values from current state, never stale DOM.
+function buttonLabel() {
+  if (state.ended) return LABELS.restart;
+  if (state.running) return LABELS.pause;
+  return state.paused ? LABELS.resume : LABELS.start;
+}
+
+// The one path from state to screen: every readout, the button text and the drawing.
+function render() {
+  renderReadouts();
+  document.getElementById('start-btn').textContent = buttonLabel();
   draw();
   publishCurrentState();
 }
@@ -163,40 +190,53 @@ function handleMainButton() {
   } else if (state.running) {
     pauseSimulation();
   } else {
-    startSimulation();
+    startSimulation(); // Starts, or resumes after a pause
   }
 }
 
+function startSimulation() {
+  state.running = true;
+  state.paused = false;
+  lastFrameTime = null;
+  render();
+  frameId = requestAnimationFrame(step);
+}
+
+function pauseSimulation() {
+  state.running = false;
+  state.paused = true;
+  cancelAnimationFrame(frameId);
+  render();
+}
+
+// Advance by the real time since the last frame, so the speed does not depend
+// on the display's refresh rate.
+function step(now) {
+  const dt = lastFrameTime === null ? 0 : Math.min((now - lastFrameTime) / 1000, 0.05);
+  lastFrameTime = now;
+  advance(state, dt);
+  if (isFinished(state)) {
+    onSimulationEnd();
+    return;
+  }
+  render();
+  frameId = requestAnimationFrame(step);
+}
+
 function resetSimulation() {
-  if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
-  animationFrameId = null;
-  state = createInitialState();
-  // Restore input/control values here as well when the simulation has controls.
-  renderCurrentState();
+  cancelAnimationFrame(frameId); // Stop the loop first
+  state = initialState();        // The same initial values as startup
+  render();                      // Readouts, button and drawing all follow the state
 }
 
 // When simulation hits boundary/ends:
 function onSimulationEnd() {
   state.running = false;
   state.ended = true;
-  renderCurrentState();
+  render();
 }
 
-function updateButton(text) {
-  document.getElementById('mainBtn').innerText = text;
-}
-
-function updateReadouts(current) {
-  const values = {
-    'position-display': current.posX,
-    'velocity-display': current.velocity,
-    'time-display': current.time.toFixed(1)
-  };
-  Object.entries(values).forEach(([id, value]) => {
-    const element = document.getElementById(id);
-    if (element) element.textContent = String(value);
-  });
-}
+// The initial render() runs once at startup, after the canvas setup below.
 ```
 
 ### 3. Button State Management
@@ -215,40 +255,43 @@ function updateReadouts(current) {
 - Use `touch-action: none` on canvas for custom gesture handling
 
 ### 5. Canvas Sizing
-- Use `ResizeObserver` or window resize event
-- Canvas should fill available space but respect `max-height`
+- Measure the stage, never the canvas: the stage's size must not depend on the canvas (see the layout example)
+- Apply `devicePixelRatio` once, and assign the bitmap size only when it changed
+- Draw and position everything in the stage's CSS size, never in `canvas.width` / `canvas.height` (device pixels)
+- Never write a measured size back to `canvas.style` or to the stage
 - Don't use fixed pixel dimensions
 - Account for control panel height on mobile
-- Give the visualization canvas a stable id, for example `id="simulation-canvas"`
-- Bind it explicitly with `const canvas = document.getElementById('simulation-canvas')` and verify it exists before reading `clientWidth`, `clientHeight`, or calling `getContext`
-- The lookup id must exactly match the `<canvas>` id; do not rely on implicit browser globals such as `window.canvas`
-- Run initialization only after the canvas is in the document (place the script after the markup or use `DOMContentLoaded`)
-- If initialization cannot find a usable canvas/context, show a visible in-widget error instead of throwing
-- The error overlay must remain hidden when initialization succeeds; explicitly protect its `[hidden]` rule from any `display: grid` / `display: flex` rule.
-- Use an independently sized container and keep the canvas out of its sizing flow. A `ResizeObserver` must not make its observed parent grow by updating the canvas bitmap. Apply DPR to the measured CSS size once, update only changed bitmap dimensions, and verify the size settles across frames.
 
-### 5a. Geometry and input boundaries (CRITICAL)
-- Every numeric value used for a canvas size, radius, coordinate, array index, or animation duration must be finite and within an explicit range before drawing or indexing.
-- Canvas APIs such as `ellipse()` require non-negative radii. Clamp computed radii with `Math.max(0, value)` (and skip drawing when the result is zero) rather than passing a signed difference directly.
-- Normalize rectangles with `left = Math.min(x1, x2)`, `top = Math.min(y1, y2)`, and non-negative width/height. Do not assume resize or animation dimensions remain larger than zero.
-- Keep drawing calculations in small named helpers (for example, `clamp`, `safeRadius`, and `drawCup`) and use the same helper in initial draw, resize, reset, and animation paths.
-- Validate slider values and parsed data with `Number.isFinite`; provide safe defaults when values are missing or malformed. Exercise minimum and maximum control values in the code's own initialization checks.
-- Do not let one malformed drawing value terminate the animation loop. Guard the drawing boundary and report an in-widget error only when no safe fallback is possible.
-- Reuse these tiny guards instead of re-implementing unchecked math at each draw site:
-  ```js
-  function finiteOr(value, fallback) {
-    return Number.isFinite(value) ? value : fallback;
-  }
-  function safeRadius(value) {
-    return Math.max(0, finiteOr(value, 0));
-  }
-  // ctx.ellipse(cx, cy, safeRadius(rx), safeRadius(ry), rotation, start, end)
-  ```
+```javascript
+const stage = document.getElementById('stage');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
-### 5b. Offline-safe dependencies
-- The simulation must remain usable if third-party CDNs are blocked or unavailable
-- Do not make core controls, drawing, or initialization depend on an external script such as KaTeX; use plain HTML/CSS/text for formulas, or render optional enhancements only when their library is available
-- Guard optional helpers with a feature check (for example, `if (typeof renderMathInElement === 'function')`)
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const width = Math.round(stage.clientWidth * dpr);
+  const height = Math.round(stage.clientHeight * dpr);
+  if (canvas.width === width && canvas.height === height) return;
+  canvas.width = width; // Resizing the bitmap clears it and resets the transform
+  canvas.height = height;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // Draw in CSS pixels
+  draw();
+}
+
+function draw() {
+  if (!ctx) return;
+  ctx.clearRect(0, 0, stage.clientWidth, stage.clientHeight);
+  // Draw the current state here, in CSS pixels.
+}
+
+if (ctx) {
+  new ResizeObserver(resizeCanvas).observe(stage); // Observing also runs the first resize
+} else {
+  document.getElementById('canvas-error').removeAttribute('hidden'); // The only path that shows it
+}
+
+render(); // Initial state, before any user action
+```
 
 ### 6. Visual Feedback
 - Clear indication when simulation starts/pauses/ends
@@ -311,7 +354,7 @@ function updateReadouts(current) {
 
 ### 10. Accessibility
 - ARIA labels on all controls
-- Keyboard support (Space to start/pause, R to reset)
+- Keyboard support (Space to start/pause, R to reset), ignored while focus is in an input, textarea, select or editable element
 - Focus indicators
 - High contrast text on canvas
 
@@ -326,6 +369,9 @@ function updateReadouts(current) {
 | Bug | Cause | Solution |
 |-----|-------|----------|
 | Reset doesn't work | Button calls wrong function | Ensure reset function resets ALL state variables |
+| Readouts show the previous run after reset | Reset changes state without rendering | Rebuild the state, then call the one `render()` |
+| Error message covers a working canvas | `display: grid` on the layer overrides `hidden` | Add the `[hidden]` rule; show the layer only on a detected failure |
+| Canvas keeps growing until it is blank | Canvas in the flow of the stage it measures | Bounded stage, absolutely positioned canvas, bitmap size from the stage only |
 | Canvas overlap on mobile | Fixed positioning | Use flex/grid with proper responsive classes |
 | Simulation stuck | Missing `ended` state | Track `ended` separately from `running` |
 | Button does nothing | State logic error | Clear state machine with defined transitions |
@@ -345,13 +391,16 @@ Return ONLY the HTML document, no markdown fences or explanations.
 When calculating positions for simulation objects, account for UI overlays:
 
 ```javascript
+// Positions are in CSS pixels: use the stage's size, not canvas.height (device pixels).
+const height = stage.clientHeight;
+
 // BAD: Object overlaps with controls/HUD
-const objectY = baseY - (value / maxValue) * canvas.height;
+const objectY = baseY - (value / maxValue) * height;
 
 // GOOD: Reserve space for UI elements
 const TOP_MARGIN = 100;    // Space for HUD/stats at top
 const BOTTOM_MARGIN = 200; // Space for controls at bottom
-const playableHeight = canvas.height - TOP_MARGIN - BOTTOM_MARGIN;
+const playableHeight = height - TOP_MARGIN - BOTTOM_MARGIN;
 const objectY = baseY - BOTTOM_MARGIN - (value / maxValue) * playableHeight;
 ```
 
@@ -361,9 +410,10 @@ const objectY = baseY - BOTTOM_MARGIN - (value / maxValue) * playableHeight;
 - [ ] Reset button returns simulation to EXACT initial state
 - [ ] Button text matches button action correctly
 - [ ] Touch targets are at least 44px
-- [ ] Canvas resizes properly on window resize
+- [ ] Canvas size settles after a resize: bounded stage, canvas out of its flow
+- [ ] Error layers stay hidden unless a failure was detected
 - [ ] State machine is clear (running/paused/ended)
-- [ ] All state variables reset on resetSimulation()
+- [ ] All state variables reset on resetSimulation(), and every readout and button label follows
 - [ ] Works on both desktop and mobile browsers
 - [ ] **NO DUPLICATED HTML** - exactly ONE `<!DOCTYPE html>` tag
 - [ ] Simulation objects are visible and not hidden under UI overlays
@@ -376,5 +426,7 @@ const objectY = baseY - BOTTOM_MARGIN - (value / maxValue) * playableHeight;
 {{snippet:interactive-math}}
 
 {{snippet:interactive-observation}}
+
+{{snippet:interactive-display-state}}
 
 {{snippet:interactive-visual-reliability}}

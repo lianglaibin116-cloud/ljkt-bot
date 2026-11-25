@@ -23,6 +23,7 @@ export type SnippetId =
   | 'interactive-libraries'
   | 'interactive-math'
   | 'interactive-observation'
+  | 'interactive-display-state'
   | 'interactive-visual-reliability'
   | 'json-output-rules'
   | 'image-instructions'
